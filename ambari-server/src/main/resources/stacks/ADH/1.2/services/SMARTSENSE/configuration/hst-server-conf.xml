@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+  <p/>
+  http://www.apache.org/licenses/LICENSE-2.0
+  <p/>
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+ -->
+<configuration supports_final="false">
+  <property>
+    <name>customer.smartsense.id</name>
+    <display-name>SmartSense ID</display-name>
+    <value>unspecified</value>
+    <description>Your SmartSense ID is available from Hortonworks Support
+      and uniquely identifies your account.
+    </description>
+  </property>
+
+  <property>
+    <name>customer.account.name</name>
+    <display-name>Customer account name</display-name>
+    <value>unspecified</value>
+    <description>The name of your Organization as it is registered with
+      Hortonworks Support.
+    </description>
+  </property>
+
+  <property>
+    <name>customer.notification.email</name>
+    <display-name>Notification Email</display-name>
+    <value>unspecified</value>
+    <description>Email address used to send bundle upload, and
+      recommendation availability notifications.
+    </description>
+  </property>
+
+  <property>
+    <name>server.storage.dir</name>
+    <display-name>Bundle storage directory</display-name>
+    <value>/var/lib/smartsense/hst-server/data</value>
+    <description>Storage directory for saving bundles. Typical value is
+      '/var/lib/smartsense/hst-server/data'. Make sure this directory has
+      enough free space (min 1GB recommended)
+    </description>
+  </property>
+  <property>
+    <name>server.min_required_storage</name>
+    <display-name>Minimum size required for storage directory (in GB)
+    </display-name>
+    <value>1</value>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>50</maximum>
+      <increment-step>1</increment-step>
+      <unit>GB</unit>
+    </value-attributes>
+    <description>Minimum required storage space needed in GB for storing
+      bundles in directory specified by 'server.storage.dir'. Please make
+      sure directory specified in 'server.storage.dir' has at least this
+      much space available, else the setup will fail.
+    </description>
+  </property>
+  <property>
+    <name>server.port</name>
+    <display-name>Web UI Port</display-name>
+    <value>9000</value>
+    <description>Web UI Port</description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1025</minimum>
+      <maximum>9999</maximum>
+    </value-attributes>
+  </property>
+  <!-- <property> <name>server.ssl_enabled</name> <display-name>Web UI SSL
+    enabled</display-name> <value>false</value> <value-attributes> <type>value-list</type>
+    <entries> <entry> <value>true</value> <label>Enabled</label> </entry> <entry>
+    <value>false</value> <label>Disabled</label> </entry> </entries> <selection-cardinality>1</selection-cardinality>
+    </value-attributes> <description>Enable Web UI SSL</description> </property> -->
+  <property>
+    <name>client.password_less_ssh.enabled</name>
+    <display-name>Is password-less ssh setup?</display-name>
+    <value>false</value>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Yes</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>No</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <description>Can HST server do password-less ssh into all agents? If
+      password-less ssh needs a ssh key, then please specify path of the
+      ssh key in advanced properties with the property name
+      'client.sshkey.path'
+    </description>
+  </property>
+  <property>
+    <name>server.http.session.inactive_timeout</name>
+    <display-name>HTTP session timeout</display-name>
+    <value>1800</value>
+    <value-attributes>
+      <type>int</type>
+      <minimum>120</minimum>
+      <maximum>3600</maximum>
+      <increment-step>10</increment-step>
+      <unit>Sec</unit>
+    </value-attributes>
+    <description>Duration for which if there is no activity, then the HTTP
+      session will be invalidated and will force login.
+    </description>
+  </property>
+  <property>
+    <name>server.tmp.dir</name>
+    <display-name>Server temporary data directory</display-name>
+    <value>/var/lib/smartsense/hst-server/tmp</value>
+    <description>Temporary directory used by server to keep local bundles
+      during bundle preparation. Should be different than agent tmp
+      dirTypical value is '/var/lib/smartsense/hst-server/tmp'. Make sure
+      this directory will always have at least 5G of free space.
+    </description>
+  </property>
+  <property>
+    <name>agent.request.processing.timeout</name>
+    <display-name>Bundle processing timeout interval</display-name>
+    <value>7200</value>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1800</minimum>
+      <maximum>14400</maximum>
+      <increment-step>60</increment-step>
+      <unit>Sec</unit>
+    </value-attributes>
+    <description>Agent request processing timeout (in seconds)
+    </description>
+  </property>
+  <property>
+    <name>agent.request.syncup.interval</name>
+    <display-name>Agent reporting window for a bundle</display-name>
+    <value>180</value>
+    <value-attributes>
+      <type>int</type>
+      <minimum>10</minimum>
+      <maximum>360</maximum>
+      <increment-step>10</increment-step>
+      <unit>Sec</unit>
+    </value-attributes>
+    <description>Window in which all agents reported will be added as part
+      of one bundle (if the case number matches). Any agent reported after
+      this time will end up sending their data into a new bundle.
+    </description>
+  </property>
+  <property>
+    <name>bundle.monitor.interval</name>
+    <display-name>Bundle status check interval</display-name>
+    <value>20</value>
+    <value-attributes>
+      <type>int</type>
+      <minimum>5</minimum>
+      <maximum>120</maximum>
+      <increment-step>5</increment-step>
+      <unit>Sec</unit>
+    </value-attributes>
+    <description>Bundle monitor interval (in seconds)</description>
+  </property>
+  <property>
+    <name>client.threadpool.size.max</name>
+    <display-name>Server thread pool size</display-name>
+    <value>40</value>
+    <value-attributes>
+      <type>int</type>
+      <minimum>25</minimum>
+      <maximum>250</maximum>
+      <increment-step>5</increment-step>
+      <unit>Threads</unit>
+    </value-attributes>
+    <description>Server thread pool size to handle bundle requests.
+    </description>
+  </property>
+  <property>
+    <name>gateway.enabled</name>
+    <display-name>Auto-upload bundles
+    </display-name>
+    <value>false</value>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Enabled</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Disabled</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <description>Automatic bundle submission feature. When enabled, bundle is
+      sent to Hortonworks as soon as it is successfully collected. Enabling
+      it eliminates the need for manual intervention of watching the bundle
+      completion, downloading it and manually uploading it to Hortonworks
+      for analysis.
+    </description>
+  </property>
+  <property>
+    <name>gateway.host</name>
+    <display-name>Gateway host</display-name>
+    <value>unspecified</value>
+    <description>Fully qualified domain name of the host where the SmartSense Gateway process has been deployed and is running
+    </description>
+  </property>
+  <property>
+    <name>gateway.port</name>
+    <display-name>Gateway port</display-name>
+    <value>9451</value>
+    <description>Port on which gateway is listening. It is setup with 2 way SSL and data will be transferred through this port.</description>
+  </property>
+  <property>
+    <name>gateway.registration.port</name>
+    <display-name>Gateway registration port</display-name>
+    <value>9450</value>
+    <description>Port that will be used by clients to register to gateway. It is setup with 1 way SSL and data will NOT be transferred through this port.</description>
+  </property>
+  <!--
+  <property>
+    <name>gateway.user</name>
+    <display-name>Gateway service user</display-name>
+    <value>smartsense</value>
+    <description>User id used to authenticate for access to gateway
+      service.
+    </description>
+  </property>
+  <property>
+    <name>gateway.password</name>
+    <display-name>Gateway user password</display-name>
+    <value>Sm@rtS3nSe!</value>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
+    <description>Password used to authenticate for access to gateway
+      service.
+    </description>
+  </property>
+   -->
+</configuration>

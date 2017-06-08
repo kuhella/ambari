@@ -828,9 +828,6 @@ class TestNamenode(RMFTestCase):
                               content = Template('exclude_hosts_list.j2'),
                               group = 'hadoop',
                               )
-    self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode/namenode-bootstrapped/',
-                              recursive = True
-    )
     self.assertResourceCalled('Directory', '/var/run/hadoop',
                               owner = 'hdfs',
                               group = 'hadoop',
@@ -944,9 +941,6 @@ class TestNamenode(RMFTestCase):
                               content = Template('exclude_hosts_list.j2'),
                               group = 'hadoop',
                               )
-    self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode/namenode-bootstrapped/',
-                              recursive = True
-    )
     self.assertResourceCalled('Directory', '/var/run/hadoop',
                               owner = 'hdfs',
                               group = 'hadoop',

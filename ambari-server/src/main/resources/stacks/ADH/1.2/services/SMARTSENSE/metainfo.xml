@@ -1,0 +1,163 @@
+<?xml version="1.0"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+  <p/>
+  http://www.apache.org/licenses/LICENSE-2.0
+  <p/>
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+ -->
+<metainfo>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <!-- Internal name for service (must be unique) -->
+      <name>SMARTSENSE</name>
+      <!-- display name for service (displayed in Ambari UI) -->
+      <displayName>SmartSense</displayName>
+      <!-- Description of service - will be displayed when user clicks add service -->
+      <comment>SmartSense - Hortonworks SmartSense Tool (HST) helps quickly
+        gather configuration, metrics, logs from common HDP services that
+        aids to quickly troubleshoot support cases and receive
+        cluster-specific recommendations.
+      </comment>
+      <!-- Version of component -->
+      <version>1.2.2.0-460</version>
+
+      <components>
+        <!-- In this case, there is only one master component -->
+        <component>
+          <name>HST_SERVER</name>
+          <displayName>SmartSense HST Server</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <commandScript>
+            <script>scripts/hst_server.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+        </component>
+        <component>
+          <name>HST_AGENT</name>
+          <displayName>SmartSense HST Agent</displayName>
+          <category>SLAVE</category>
+          <cardinality>ALL</cardinality>
+          <auto-deploy>
+            <enabled>true</enabled>
+          </auto-deploy>
+          <versionAdvertised>false</versionAdvertised>
+          <dependencies>
+            <dependency>
+              <name>SMARTSENSE/HST_SERVER</name>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+              <scope>cluster</scope>
+            </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/hst_agent.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+          <customCommands>
+            <customCommand>
+              <name>Capture</name>
+              <displayName>Capture for SmartSense</displayName>
+              <commandScript>
+                <script>scripts/hst_agent.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>Register</name>
+              <displayName>Register agent with server</displayName>
+              <commandScript>
+                <script>scripts/hst_agent.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>Unregister</name>
+              <displayName>Unregister agent from server</displayName>
+              <commandScript>
+                <script>scripts/hst_agent.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>Uninstall</name>
+              <displayName>Uninstall all SmartSense components</displayName>
+              <commandScript>
+                <script>scripts/hst_agent.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>Status</name>
+              <displayName>Status of agents</displayName>
+              <commandScript>
+                <script>scripts/hst_agent.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
+        </component>
+      </components>
+
+      <!-- what yum packages will be needed for the setup. These will be installed
+        by install_packages() in master.py -->
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any</osFamily>
+          <packages>
+            <package>
+              <name>wget</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+      <themes>
+        <theme>
+          <fileName>theme.json</fileName>
+          <default>false</default>
+        </theme>
+        <theme>
+          <fileName>theme_v2.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+
+      <!-- names for config files (under configuration dir) -->
+      <configuration-dependencies>
+        <config-type>hst-common-conf</config-type>
+        <config-type>hst-server-conf</config-type>
+        <config-type>hst-agent-conf</config-type>
+        <config-type>capture-levels</config-type>
+        <config-type>anonymization-rules</config-type>
+        <config-type>hst-log4j</config-type>
+      </configuration-dependencies>
+
+    </service>
+  </services>
+</metainfo>

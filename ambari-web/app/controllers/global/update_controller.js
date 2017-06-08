@@ -411,13 +411,11 @@ App.UpdateController = Em.Controller.extend({
       var view = Em.View.views[_graph.id];
       if (view) {
         existedGraphs.push(_graph);
-        if (!view.get('isRequestRunning')) {
-          //console.log('updated graph', _graph.name);
+        //console.log('updated graph', _graph.name);
+        view.loadData();
+        //if graph opened as modal popup update it to
+        if ($(".modal-graph-line .modal-body #" + _graph.popupId + "-container-popup").length) {
           view.loadData();
-          //if graph opened as modal popup update it to
-          if ($(".modal-graph-line .modal-body #" + _graph.popupId + "-container-popup").length) {
-            view.loadData();
-          }
         }
       }
     });

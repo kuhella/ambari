@@ -30,9 +30,9 @@ App.HawqSegmentUpView = App.TextDashboardWidgetView.extend({
 
   hiddenInfo: function () {
     var result = [];
-    result.pushObject(this.get('hawqSegmentsStarted') + ' ' + Em.I18n.t('dashboard.services.components.started'));
-    result.pushObject(this.get('hawqSegmentsInstalled') + ' ' + Em.I18n.t('dashboard.services.components.stopped'));
-    result.pushObject(this.get('hawqSegmentsTotal')+ ' ' + Em.I18n.t('dashboard.services.components.total'));
+    result.pushObject(this.get('hawqSegmentsStarted') + ' ' + Em.I18n.t('dashboard.services.hawq.segments.started'));
+    result.pushObject(this.get('hawqSegmentsInstalled') + ' ' + Em.I18n.t('dashboard.services.hawq.segments.stopped'));
+    result.pushObject(this.get('hawqSegmentsTotal')+ ' ' + Em.I18n.t('dashboard.services.hawq.segments.total'));
     return result;
   }.property('hawqSegmentsStarted', 'hawqSegmentsInstalled', 'hawqSegmentsTotal'),
   hiddenInfoClass: "hidden-info-three-line",

@@ -518,6 +518,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     } catch (InvalidTopologyException e) {
       throw new IllegalArgumentException("Topology validation failed: " + e, e);
     } catch (AmbariException e) {
+      e.printStackTrace();
       throw new SystemException("Unknown exception when asking TopologyManager to provision cluster", e);
     }
   }

@@ -28,7 +28,6 @@ import java.net.URL;
 import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.Map;
-import java.util.logging.LogManager;
 
 import javax.crypto.BadPaddingException;
 import javax.servlet.DispatcherType;
@@ -109,7 +108,6 @@ import org.apache.ambari.server.utils.RetryHelper;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.ambari.server.view.ViewRegistry;
-import org.apache.ambari.server.view.ViewThrottleFilter;
 import org.apache.velocity.app.Velocity;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.SessionIdManager;
@@ -125,7 +123,6 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -266,9 +263,6 @@ public class AmbariServer {
 
   @SuppressWarnings("deprecation")
   public void run() throws Exception {
-    setupJulLogging();
-
-
     performStaticInjection();
     initDB();
     server = new Server();
@@ -348,12 +342,6 @@ public class AmbariServer {
       // requests.
       root.addFilter(new FilterHolder(injector.getInstance(AmbariViewsSecurityHeaderFilter.class)), "/api/v1/views/*",
           DISPATCHER_TYPES);
-
-      // since views share the REST API threadpool, a misbehaving view could
-      // consume all of the available threads and effectively cause a loss of
-      // service for Ambari
-      root.addFilter(new FilterHolder(injector.getInstance(ViewThrottleFilter.class)),
-          "/api/v1/views/*", DISPATCHER_TYPES);
 
       // session-per-request strategy for api
       root.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/api/*", DISPATCHER_TYPES);
@@ -589,15 +577,6 @@ public class AmbariServer {
           "Terminating this instance.", bindException);
       throw bindException;
     }
-  }
-
-  /**
-   * installs bridge handler which redirects log entries from JUL to Slf4J
-   */
-  private void setupJulLogging() {
-    // install handler for jul to slf4j translation
-    LogManager.getLogManager().reset();
-    SLF4JBridgeHandler.install();
   }
 
   /**

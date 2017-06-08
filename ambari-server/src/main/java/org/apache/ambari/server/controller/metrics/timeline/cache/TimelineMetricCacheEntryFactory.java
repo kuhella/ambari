@@ -91,7 +91,6 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
         metricCacheKey.getTemporalInfo().getEndTimeMillis());
     } catch (IOException io) {
       LOG.debug("Caught IOException on fetching metrics. " + io.getMessage());
-      throw io;
     }
 
     TimelineMetricsCacheValue value = null;
@@ -192,7 +191,6 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
         if (LOG.isDebugEnabled()) {
           LOG.debug("Exception retrieving metrics.", io);
         }
-        throw io;
       }
     } else {
       LOG.debug("Skip updating cache with new startTime = " +

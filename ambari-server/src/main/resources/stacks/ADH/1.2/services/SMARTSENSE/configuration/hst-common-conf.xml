@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+  <p/>
+  http://www.apache.org/licenses/LICENSE-2.0
+  <p/>
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+ -->
+<configuration supports_final="false">
+	<property>
+		<name>security.anonymization.enabled</name>
+		<display-name>Data anonymization</display-name>
+		<value>true</value>
+		<value-attributes>
+			<type>value-list</type>
+			<entries>
+				<entry>
+					<value>true</value>
+					<label>Enabled</label>
+				</entry>
+				<entry>
+					<value>false</value>
+					<label>Disabled</label>
+				</entry>
+			</entries>
+			<selection-cardinality>1</selection-cardinality>
+		</value-attributes>
+		<description>Indicator for enabling or disabling anonymization.
+			Certain data sets such as host names, IP address etc will be
+			anonymized based on anonymization rules. Data can still be encrypted
+			irrespective of anonymization
+		</description>
+	</property>
+<!-- 
+	<property>
+		<name>security.dictionary.enabled</name>
+		<display-name>Enable dictionary creation</display-name>
+		<value>false</value>
+		<value-attributes>
+			<type>value-list</type>
+			<entries>
+				<entry>
+					<value>true</value>
+					<label>Enabled</label>
+				</entry>
+				<entry>
+					<value>false</value>
+					<label>Disabled</label>
+				</entry>
+			</entries>
+			<selection-cardinality>1</selection-cardinality>
+		</value-attributes>
+		<description>Enable dictionary creation during anonymization.
+			Dictionary can later be used for reliable de-anonymization
+		</description>
+	</property>
+
+
+	<property>
+		<name>security.anonymization.private.key</name>
+		<display-name>Path to private key used for anonymization
+		</display-name>
+		<value>/var/lib/smartsense/hst-common/anonymization/keys/private_anonymization.key</value>
+		<description>There are two types of anonymizations. One which can be
+			de-anonymized only by customer which is called as 'private'
+			anonymization and other which can be de-anonimized by customer as
+			well as Hortonworks which is called 'shared' anonymization
+			PII
+			information like credit cards, ssn, phone numbers etc is anonymized
+			using private key, where are data like host names is anonymized using
+			shared key as hortonworks support needs to be able to de-anonymize
+			and see actual host names. It is advised to keep the default values
+		</description>
+	</property>
+	<property>
+		<name>security.anonymization.shared.key</name>
+		<display-name>Path to shared key used for anonymization</display-name>
+		<value>/var/lib/smartsense/hst-common/anonymization/keys/shared_anonymization.key</value>
+		<description>There are two types of anonymizations. One which can be
+			de-anonymized only by customer which is called as 'private'
+			anonymization and other which can be de-anonimized by customer as
+			well as Hortonworks which is called 'shared' anonymization
+			PII
+			information like credit cards, ssn, phone numbers etc is anonymized
+			using private key, where are data like host names is anonymized using
+			shared key as hortonworks support needs to be able to de-anonymize
+			and see actual host names. It is advised to keep the default values
+		</description>
+	</property>
+	<property>
+		<name>security.encryption.public.key</name>
+		<display-name>Path to public key used for encryption</display-name>
+		<value>/var/lib/smartsense/hst-common/encryption/keys/public.key</value>
+		<description>Path to hortonworks provided public key used for
+			encryption.
+		</description>
+	</property>
+	-->
+	<property>
+		<name>agent.capture.level</name>
+		<display-name>Default data capture level</display-name>
+		<value>L2</value>
+		<value-attributes>
+			<type>value-list</type>
+			<entries>
+				<entry>
+					<label>Configurations</label>
+					<value>L1</value>
+				</entry>
+				<entry>
+					<label>Configurations and Metrics</label>
+					<value>L2</value>
+				</entry>
+				<entry>
+					<label>Configurations, Metrics and Logs</label>
+					<value>L3</value>
+				</entry>
+			</entries>
+			<selection-cardinality>1</selection-cardinality>
+		</value-attributes>
+		<description>Capture level for data collection. 'Configurations and
+			Metrics' is minimum needed
+			for SmartSense analysis, 'Configurations, Metrics
+			and Logs' is needed for support case resolution
+		</description>
+	</property>
+	<!-- 
+	<property>
+		<name>management.updates.dir</name>
+		<display-name>Update management operations directory</display-name>
+		<value>/var/lib/smartsense/hst-common/updates</value>
+		<description>Directory used for service lifecycle management such as patches, config sharing, key sharing etc. It is not advised to change it unless really needed to do so.</description>
+	</property>
+	-->
+</configuration>

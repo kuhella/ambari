@@ -77,7 +77,6 @@ class HeartbeatStopHandlersWindows(HeartbeatStopHandlers):
 
 def signal_handler(signum, frame):
   global _handler
-  logger.info("Ambari-agent received {0} signal, stopping...".format(signum))
   _handler.set_stop()
 
 

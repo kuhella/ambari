@@ -30,8 +30,6 @@ import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -56,7 +54,7 @@ public class TimelineMetricCache extends UpdatingSelfPopulatingCache {
    * @param key @TimelineAppMetricCacheKey
    * @return @org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics
    */
-  public TimelineMetrics getAppTimelineMetricsFromCache(TimelineAppMetricCacheKey key) throws IllegalArgumentException, IOException {
+  public TimelineMetrics getAppTimelineMetricsFromCache(TimelineAppMetricCacheKey key) throws IllegalArgumentException {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Fetching metrics with key: " + key);
     }
@@ -64,20 +62,7 @@ public class TimelineMetricCache extends UpdatingSelfPopulatingCache {
     // Make sure key is valid
     validateKey(key);
 
-    Element element = null;
-    try {
-      element = get(key);
-    } catch (LockTimeoutException le) {
-      // Ehcache masks the Socket Timeout to look as a LockTimeout
-      Throwable t = le.getCause();
-      if (t instanceof CacheException) {
-        t = t.getCause();
-        if (t instanceof SocketTimeoutException) {
-          throw new SocketTimeoutException(t.getMessage());
-        }
-      }
-    }
-
+    Element element = get(key);
     TimelineMetrics timelineMetrics = new TimelineMetrics();
     if (element != null && element.getObjectValue() != null) {
       TimelineMetricsCacheValue value = (TimelineMetricsCacheValue) element.getObjectValue();

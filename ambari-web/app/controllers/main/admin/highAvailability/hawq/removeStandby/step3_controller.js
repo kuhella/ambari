@@ -104,7 +104,7 @@ App.RemoveHawqStandbyWizardStep3Controller = App.HighAvailabilityProgressPageCon
   },
 
   startRequiredServices: function () {
-    this.startServices(false, [this.hawqServiceName], true);
+    this.startServices(true, [this.hawqServiceName], true);
   }
 
 });

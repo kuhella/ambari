@@ -284,11 +284,11 @@ class TestActionQueue(TestCase):
 
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
-  @patch("logging.RootLogger.exception")
+  @patch("traceback.print_exc")
   @patch.object(ActionQueue, "execute_command")
   @patch.object(ActionQueue, "execute_status_command")
   def test_process_command(self, execute_status_command_mock,
-                           execute_command_mock, log_exc_mock):
+                           execute_command_mock, print_exc_mock):
     dummy_controller = MagicMock()
     config = AmbariConfig()
     config.set('agent', 'tolerate_download_failures', "true")
@@ -306,42 +306,42 @@ class TestActionQueue(TestCase):
     actionQueue.process_command(wrong_command)
     self.assertFalse(execute_command_mock.called)
     self.assertFalse(execute_status_command_mock.called)
-    self.assertFalse(log_exc_mock.called)
+    self.assertFalse(print_exc_mock.called)
 
     execute_command_mock.reset_mock()
     execute_status_command_mock.reset_mock()
-    log_exc_mock.reset_mock()
+    print_exc_mock.reset_mock()
     # Try normal execution
     actionQueue.process_command(execution_command)
     self.assertTrue(execute_command_mock.called)
     self.assertFalse(execute_status_command_mock.called)
-    self.assertFalse(log_exc_mock.called)
+    self.assertFalse(print_exc_mock.called)
 
     execute_command_mock.reset_mock()
     execute_status_command_mock.reset_mock()
-    log_exc_mock.reset_mock()
+    print_exc_mock.reset_mock()
 
     actionQueue.process_command(status_command)
     self.assertFalse(execute_command_mock.called)
     self.assertTrue(execute_status_command_mock.called)
-    self.assertFalse(log_exc_mock.called)
+    self.assertFalse(print_exc_mock.called)
 
     execute_command_mock.reset_mock()
     execute_status_command_mock.reset_mock()
-    log_exc_mock.reset_mock()
+    print_exc_mock.reset_mock()
 
     # Try exception to check proper logging
     def side_effect(self):
       raise Exception("TerribleException")
     execute_command_mock.side_effect = side_effect
     actionQueue.process_command(execution_command)
-    self.assertTrue(log_exc_mock.called)
+    self.assertTrue(print_exc_mock.called)
 
-    log_exc_mock.reset_mock()
+    print_exc_mock.reset_mock()
 
     execute_status_command_mock.side_effect = side_effect
     actionQueue.process_command(execution_command)
-    self.assertTrue(log_exc_mock.called)
+    self.assertTrue(print_exc_mock.called)
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(CustomServiceOrchestrator, "runCommand")
@@ -371,7 +371,7 @@ class TestActionQueue(TestCase):
     expected = {'status': 'COMPLETED',
                 'configurationTags': {'global': {'tag': 'v123'}},
                 'stderr': 'stderr',
-                'stdout': 'out\n\nCommand completed successfully!\n',
+                'stdout': 'out',
                 'clusterName': u'cc',
                 'structuredOut': '""',
                 'roleCommand': u'CUSTOM_COMMAND',
@@ -540,7 +540,7 @@ class TestActionQueue(TestCase):
     configname = os.path.join(tempdir, 'config.json')
     expected = {'status': 'COMPLETED',
                 'stderr': 'stderr',
-                'stdout': 'out\n\nCommand completed successfully!\n',
+                'stdout': 'out',
                 'clusterName': u'cc',
                 'structuredOut': '""',
                 'roleCommand': u'INSTALL',
@@ -579,7 +579,7 @@ class TestActionQueue(TestCase):
       # check report
     expected = {'status': 'FAILED',
                 'stderr': 'stderr',
-                'stdout': 'out\n\nCommand completed successfully!\n\n\nCommand failed after 1 tries\n',
+                'stdout': 'out',
                 'clusterName': u'cc',
                 'structuredOut': '""',
                 'roleCommand': u'INSTALL',
@@ -611,7 +611,7 @@ class TestActionQueue(TestCase):
     # check report
     expected = {'status': 'COMPLETED',
                 'stderr': 'stderr',
-                'stdout': 'out\n\nCommand completed successfully!\n\n\nCommand failed after 1 tries\n\n\nCommand completed successfully!\n',
+                'stdout': 'out',
                 'clusterName': 'clusterName',
                 'structuredOut': '""',
                 'roleCommand': 'UPGRADE',
@@ -655,7 +655,7 @@ class TestActionQueue(TestCase):
     expected = {'status': 'COMPLETED',
                 'configurationTags': {'global': {'tag': 'v123'}},
                 'stderr': 'stderr',
-                'stdout': 'out\n\nCommand completed successfully!\n',
+                'stdout': 'out',
                 'clusterName': u'cc',
                 'structuredOut': '""',
                 'roleCommand': u'CUSTOM_COMMAND',
@@ -697,7 +697,7 @@ class TestActionQueue(TestCase):
     expected = {'status': 'COMPLETED',
                 'configurationTags': {'global': {'tag': 'v123'}},
                 'stderr': 'stderr',
-                'stdout': 'out\n\nCommand completed successfully!\n',
+                'stdout': 'out',
                 'clusterName': u'cc',
                 'structuredOut': '""',
                 'roleCommand': u'CUSTOM_COMMAND',
@@ -988,7 +988,7 @@ class TestActionQueue(TestCase):
       'structuredOut': '',
       'status': 'FAILED'
     }
-    time_mock.side_effect = [4, 8, 10, 14, 18, 22, 26]
+    time_mock.side_effect = [4, 8, 10, 14, 18, 22]
 
     def side_effect(command, tmpoutfile, tmperrfile, override_output_files=True, retry=False):
       return python_execution_result_dict

@@ -32,8 +32,6 @@ export default Ember.Controller.extend({
 
   tableSearchResults: Ember.Object.create(),
 
-  isDatabaseRefreshInProgress: false,
-
   tableControls: [
     {
       icon: 'fa-list',
@@ -159,8 +157,6 @@ export default Ember.Controller.extend({
     var self = this;
     var selectedDatabase = this.get('selectedDatabase.name') || 'default';
 
-    this.set('isDatabaseRefreshInProgress', true);
-
     this.set('isLoading', true);
 
     this.get('databaseService').getDatabases().then(function (databases) {
@@ -172,13 +168,12 @@ export default Ember.Controller.extend({
       if(error.status == 401) {
          self.send('passwordLDAPDB');
       }
-    }).finally(function() {
-      self.set('isDatabaseRefreshInProgress', false);
+
+
     });
   }.on('init'),
 
   syncDatabases: function() {
-    this.set('isDatabaseRefreshInProgress', true);
     var oldDatabaseNames = this.store.all('database').mapBy('name');
     var self = this;
     return this.get('databaseService').getDatabasesFromServer().then(function(data) {
@@ -199,8 +194,6 @@ export default Ember.Controller.extend({
           });
         }
       });
-    }).finally(function() {
-      self.set('isDatabaseRefreshInProgress', false);
     });
   },
 
@@ -208,10 +201,8 @@ export default Ember.Controller.extend({
     // This was required so that the unit test would not stall
     if(ENV.environment !== "test") {
       Ember.run.later(this, function() {
-        if (this.get('isDatabaseRefreshInProgress') === false) {
-          this.syncDatabases();
-          this.initiateDatabaseSync();
-        }
+        this.syncDatabases();
+        this.initiateDatabaseSync();
       }, 15000);
     }
   }.on('init'),
@@ -231,12 +222,8 @@ export default Ember.Controller.extend({
 
   actions: {
     refreshDatabaseExplorer: function () {
-      if (this.get('isDatabaseRefreshInProgress') === false) {
-        this.getDatabases();
-        this.resetSearch();
-      } else {
-        console.log("Databases refresh is in progress. Skipping this request.");
-      }
+      this.getDatabases();
+      this.resetSearch();
     },
 
     passwordLDAPDB: function(){

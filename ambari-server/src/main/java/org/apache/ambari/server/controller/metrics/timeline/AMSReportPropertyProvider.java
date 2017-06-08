@@ -38,7 +38,6 @@ import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.http.client.utils.URIBuilder;
 
 import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -205,21 +204,15 @@ public class AMSReportPropertyProvider extends MetricsReportPropertyProvider {
 
       // Self populating cache updates itself on every get with latest results
       TimelineMetrics timelineMetrics;
-      try {
-        if (metricCache != null && metricCacheKey.getTemporalInfo() != null) {
-          timelineMetrics = metricCache.getAppTimelineMetricsFromCache(metricCacheKey);
-        } else {
+      if (metricCache != null && metricCacheKey.getTemporalInfo() != null) {
+        timelineMetrics = metricCache.getAppTimelineMetricsFromCache(metricCacheKey);
+      } else {
+        try {
           timelineMetrics = requestHelper.fetchTimelineMetrics(uriBuilder,
             temporalInfo.getStartTimeMillis(),
             temporalInfo.getEndTimeMillis());
-        }
-      } catch (IOException io) {
-        timelineMetrics = null;
-        if (io instanceof SocketTimeoutException) {
-          if (LOG.isDebugEnabled()) {
-            LOG.debug("Skip populating metrics on socket timeout exception.");
-          }
-          break;
+        } catch (IOException e) {
+          timelineMetrics = null;
         }
       }
 

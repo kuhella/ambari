@@ -144,43 +144,37 @@ class ActionQueue(threading.Thread):
       self.customServiceOrchestrator.cancel_command(task_id, reason)
 
   def run(self):
-    try:
-      while not self.stopped():
-        self.processBackgroundQueueSafeEmpty();
-        self.processStatusCommandQueueSafeEmpty();
-        try:
-          if self.parallel_execution == 0:
+    while not self.stopped():
+      self.processBackgroundQueueSafeEmpty();
+      self.processStatusCommandQueueSafeEmpty();
+      try:
+        if self.parallel_execution == 0:
+          command = self.commandQueue.get(True, self.EXECUTION_COMMAND_WAIT_TIME)
+          self.process_command(command)
+        else:
+          # If parallel execution is enabled, just kick off all available
+          # commands using separate threads
+          while (True):
             command = self.commandQueue.get(True, self.EXECUTION_COMMAND_WAIT_TIME)
-            self.process_command(command)
-          else:
-            # If parallel execution is enabled, just kick off all available
-            # commands using separate threads
-            while (True):
-              command = self.commandQueue.get(True, self.EXECUTION_COMMAND_WAIT_TIME)
-              # If command is not retry_enabled then do not start them in parallel
-              # checking just one command is enough as all commands for a stage is sent
-              # at the same time and retry is only enabled for initial start/install
-              retryAble = False
-              if 'commandParams' in command and 'command_retry_enabled' in command['commandParams']:
-                retryAble = command['commandParams']['command_retry_enabled'] == "true"
-              if retryAble:
-                logger.info("Kicking off a thread for the command, id=" +
-                            str(command['commandId']) + " taskId=" + str(command['taskId']))
-                t = threading.Thread(target=self.process_command, args=(command,))
-                t.daemon = True
-                t.start()
-              else:
-                self.process_command(command)
-                break
-              pass
+            # If command is not retry_enabled then do not start them in parallel
+            # checking just one command is enough as all commands for a stage is sent
+            # at the same time and retry is only enabled for initial start/install
+            retryAble = False
+            if 'commandParams' in command and 'command_retry_enabled' in command['commandParams']:
+              retryAble = command['commandParams']['command_retry_enabled'] == "true"
+            if retryAble:
+              logger.info("Kicking off a thread for the command, id=" +
+                          str(command['commandId']) + " taskId=" + str(command['taskId']))
+              t = threading.Thread(target=self.process_command, args=(command,))
+              t.daemon = True
+              t.start()
+            else:
+              self.process_command(command)
+              break;
             pass
-        except (Queue.Empty):
           pass
-    except:
-      logger.exception("ActionQueue thread failed with exception:")
-      raise
-    
-    logger.info("ActionQueue thread has successfully finished")
+      except (Queue.Empty):
+        pass
 
   def processBackgroundQueueSafeEmpty(self):
     while not self.backgroundCommandQueue.empty():
@@ -223,8 +217,10 @@ class ActionQueue(threading.Thread):
         self.execute_status_command(command)
       else:
         logger.error("Unrecognized command " + pprint.pformat(command))
-    except Exception:
-      logger.exception("Exception while processing {0} command".format(commandType))
+    except Exception, err:
+      # Should not happen
+      traceback.print_exc()
+      logger.warn(err)
 
   def tasks_in_progress_or_pending(self):
     return_val = False
@@ -315,16 +311,11 @@ class ActionQueue(threading.Thread):
         if delay > retryDuration:
           delay = retryDuration
         retryDuration -= delay  # allow one last attempt
-        commandresult['stderr'] += "\n\nCommand failed. Retrying command execution ...\n\n"
         logger.info("Retrying command id {cid} after a wait of {delay}".format(cid=taskId, delay=delay))
         time.sleep(delay)
         continue
       else:
         break
-
-    # final result to stdout
-    commandresult['stdout'] += '\n\nCommand completed successfully!\n' if status == self.COMPLETED_STATUS else '\n\nCommand failed after ' + str(numAttempts) + ' tries\n'
-    logger.info('Command {cid} completed successfully!'.format(cid=taskId) if status == self.COMPLETED_STATUS else 'Command {cid} failed after {attempts} tries'.format(cid=taskId, attempts=numAttempts))
 
     roleResult = self.commandStatuses.generate_report_template(command)
     roleResult.update({
