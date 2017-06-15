@@ -62,7 +62,7 @@ public class ConfigHelper {
   private static final String DELETED = "DELETED_";
   public static final String CLUSTER_DEFAULT_TAG = "tag";
   private final boolean STALE_CONFIGS_CACHE_ENABLED;
-  private final int STALE_CONFIGS_CACHE_EXPIRATION_TIME;
+  private final int STALE_CONFIGS_CACHE_EXPIRATION_TIME = 300;
   private final Cache<ServiceComponentHost, Boolean> staleConfigsCache;
 
   private static final Logger LOG =
@@ -89,7 +89,6 @@ public class ConfigHelper {
     ambariMetaInfo = metaInfo;
     this.clusterDAO = clusterDAO;
     STALE_CONFIGS_CACHE_ENABLED = configuration.isStaleConfigCacheEnabled();
-    STALE_CONFIGS_CACHE_EXPIRATION_TIME = configuration.staleConfigCacheExpiration();
     staleConfigsCache = CacheBuilder.newBuilder().
         expireAfterWrite(STALE_CONFIGS_CACHE_EXPIRATION_TIME, TimeUnit.SECONDS).build();
   }
@@ -105,24 +104,9 @@ public class ConfigHelper {
   public Map<String, Map<String, String>> getEffectiveDesiredTags(
       Cluster cluster, String hostName) throws AmbariException {
 
-    return getEffectiveDesiredTags(cluster, hostName, false);
-  }
-
-  /**
-   * Gets the desired tags for a cluster and host
-   *
-   * @param cluster  the cluster
-   * @param hostName the host name
-   * @param bypassCache don't use cached values
-   * @return a map of tag type to tag names with overrides
-   * @throws AmbariException
-   */
-  public Map<String, Map<String, String>> getEffectiveDesiredTags(
-      Cluster cluster, String hostName, boolean bypassCache) throws AmbariException {
-
     Host host = (hostName == null) ? null : clusters.getHost(hostName);
-    Map<String, HostConfig> desiredHostConfigs = (host == null) ? null : host.getDesiredHostConfigs(cluster, bypassCache);
-    return getEffectiveDesiredTags(cluster, desiredHostConfigs, bypassCache);
+    Map<String, HostConfig> desiredHostConfigs = (host == null) ? null : host.getDesiredHostConfigs(cluster);
+    return getEffectiveDesiredTags(cluster, desiredHostConfigs);
   }
 
   /**
@@ -130,13 +114,12 @@ public class ConfigHelper {
    *
    * @param cluster             the cluster
    * @param hostConfigOverrides the host overrides applied using config groups
-   * @param bypassCache         don't use cached values
    * @return a map of tag type to tag names with overrides
    */
   private Map<String, Map<String, String>> getEffectiveDesiredTags(
-      Cluster cluster, Map<String, HostConfig> hostConfigOverrides, boolean bypassCache) {
+      Cluster cluster, Map<String, HostConfig> hostConfigOverrides) {
 
-    Map<String, DesiredConfig> clusterDesired = (cluster == null) ? new HashMap<String, DesiredConfig>() : cluster.getDesiredConfigs(bypassCache);
+    Map<String, DesiredConfig> clusterDesired = (cluster == null) ? new HashMap<String, DesiredConfig>() : cluster.getDesiredConfigs();
 
     Map<String, Map<String, String>> resolved = new TreeMap<String, Map<String, String>>();
 
@@ -159,7 +142,7 @@ public class ConfigHelper {
 
         tags.put(CLUSTER_DEFAULT_TAG, config.getTag());
 
-        // AMBARI-3672. Only consider Config groups for override tags
+      // AMBARI-3672. Only consider Config groups for override tags
         // tags -> (configGroupId, versionTag)
         if (hostConfigOverrides != null) {
           HostConfig hostConfig = hostConfigOverrides.get(config.getType());
@@ -700,49 +683,42 @@ public class ConfigHelper {
                                String authenticatedUserName,
                                String serviceVersionNote) throws AmbariException {
 
-    // Nothing to update or remove
-    if (configType == null ||
-      (updates == null || updates.isEmpty()) &&
-      (removals == null || removals.isEmpty())) {
-      return;
-    }
+    if((configType != null) && (updates != null) && !updates.isEmpty()) {
+      Config oldConfig = cluster.getDesiredConfigByType(configType);
+      Map<String, String> oldConfigProperties;
+      Map<String, String> properties = new HashMap<String, String>();
+      Map<String, Map<String, String>> propertiesAttributes =
+        new HashMap<String, Map<String, String>>();
 
-    Config oldConfig = cluster.getDesiredConfigByType(configType);
-    Map<String, String> oldConfigProperties;
-    Map<String, String> properties = new HashMap<String, String>();
-    Map<String, Map<String, String>> propertiesAttributes =
-      new HashMap<String, Map<String, String>>();
-
-    if (oldConfig == null) {
-      oldConfigProperties = null;
-    } else {
-      oldConfigProperties = oldConfig.getProperties();
-      if (oldConfigProperties != null) {
-        properties.putAll(oldConfigProperties);
-      }
-      if (oldConfig.getPropertiesAttributes() != null) {
-        propertiesAttributes.putAll(oldConfig.getPropertiesAttributes());
-      }
-    }
-
-    if (updates != null) {
-      properties.putAll(updates);
-    }
-
-    // Remove properties that need to be removed.
-    if (removals != null) {
-      for (String propertyName : removals) {
-        properties.remove(propertyName);
-        for (Map<String, String> attributesMap: propertiesAttributes.values()) {
-          attributesMap.remove(propertyName);
+      if (oldConfig == null) {
+        oldConfigProperties = null;
+      } else {
+        oldConfigProperties = oldConfig.getProperties();
+        if (oldConfigProperties != null) {
+          properties.putAll(oldConfigProperties);
+        }
+        if (oldConfig.getPropertiesAttributes() != null) {
+          propertiesAttributes.putAll(oldConfig.getPropertiesAttributes());
         }
       }
-    }
 
-    if ((oldConfigProperties == null)
-      || !Maps.difference(oldConfigProperties, properties).areEqual()) {
-      createConfigType(cluster, controller, configType, properties,
-        propertiesAttributes, authenticatedUserName, serviceVersionNote);
+      properties.putAll(updates);
+
+      // Remove properties that need to be removed.
+      if(removals != null) {
+        for (String propertyName : removals) {
+          properties.remove(propertyName);
+          for (Map<String, String> attributesMap: propertiesAttributes.values()) {
+            attributesMap.remove(propertyName);
+          }
+        }
+      }
+
+      if ((oldConfigProperties == null)
+        || !Maps.difference(oldConfigProperties, properties).areEqual()) {
+        createConfigType(cluster, controller, configType, properties,
+          propertiesAttributes, authenticatedUserName, serviceVersionNote);
+      }
     }
   }
 
@@ -998,7 +974,8 @@ public class ConfigHelper {
     Cluster cluster = clusters.getClusterById(sch.getClusterId());
     StackId stackId = cluster.getDesiredStackVersion();
 
-    Map<String, Map<String, String>> desired = getEffectiveDesiredTags(cluster, sch.getHostName(), true);
+    Map<String, Map<String, String>> desired = getEffectiveDesiredTags(cluster,
+        sch.getHostName());
 
     ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
         stackId.getStackVersion(), sch.getServiceName());

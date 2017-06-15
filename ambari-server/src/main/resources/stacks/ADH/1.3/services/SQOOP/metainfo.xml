@@ -20,7 +20,7 @@
   <services>
     <service>
       <name>SQOOP</name>
-      <version>1.4.5.2.2</version>
+      <version>1.4.5.2.3</version>
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>
@@ -32,7 +32,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat6,suse11</osFamily>
+          <osFamily>redhat7,redhat6,suse11</osFamily>
           <packages>
             <package>
               <name>sqoop</name>
@@ -40,7 +40,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>ubuntu12</osFamily>
+          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
               <name>sqoop</name>

@@ -235,7 +235,6 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
    * @param password  a String containing the password to use when creating the principal
    * @param service   a boolean value indicating whether the principal is to be created as a service principal or not
    * @return an Integer declaring the generated key number
-   * @throws KerberosPrincipalAlreadyExistsException if the principal already exists
    * @throws KerberosOperationException
    */
   @Override
@@ -244,14 +243,12 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     if (!isOpen()) {
       throw new KerberosOperationException("This operation handler has not been opened");
     }
+
     if (principal == null) {
       throw new KerberosOperationException("principal is null");
     }
     if (password == null) {
       throw new KerberosOperationException("principal password is null");
-    }
-    if (principalExists(principal)) {
-      throw new KerberosPrincipalAlreadyExistsException(principal);
     }
 
     DeconstructedPrincipal deconstructedPrincipal = createDeconstructPrincipal(principal);
@@ -336,7 +333,6 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
    * @param principal a String containing the principal to update
    * @param password  a String containing the password to set
    * @return an Integer declaring the new key number
-   * @throws KerberosPrincipalDoesNotExistException if the principal does not exist
    * @throws KerberosOperationException
    */
   @Override
@@ -349,9 +345,6 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     }
     if (password == null) {
       throw new KerberosOperationException("principal password is null");
-    }
-    if(!principalExists(principal)) {
-      throw new KerberosPrincipalDoesNotExistException(principal);
     }
 
     DeconstructedPrincipal deconstructPrincipal = createDeconstructPrincipal(principal);

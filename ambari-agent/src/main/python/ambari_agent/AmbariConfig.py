@@ -46,7 +46,6 @@ data_cleanup_max_size_MB = 100
 ping_port=8670
 cache_dir={ps}var{ps}lib{ps}ambari-agent{ps}cache
 parallel_execution=0
-system_resource_overrides={ps}etc{ps}resource_overrides
 
 [services]
 
@@ -62,9 +61,6 @@ passphrase_env_var_name=AMBARI_PASSPHRASE
 state_interval = 6
 dirs={ps}etc{ps}hadoop,{ps}etc{ps}hadoop{ps}conf,{ps}var{ps}run{ps}hadoop,{ps}var{ps}log{ps}hadoop
 log_lines_count=300
-
-[logging]
-log_command_executes = 0
 
 """.format(ps=os.sep)
 

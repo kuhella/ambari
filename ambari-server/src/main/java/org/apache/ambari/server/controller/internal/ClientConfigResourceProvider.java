@@ -75,8 +75,6 @@ import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_COUNT;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_ON_UNAVAILABILITY;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_HOME;
@@ -85,7 +83,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JCE_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MYSQL_JDBC_URL;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.ORACLE_JDBC_URL;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.PACKAGE_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_REPO_INFO;
@@ -311,8 +308,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       hostLevelParams.put(ORACLE_JDBC_URL, managementController.getOjdbcUrl());
       hostLevelParams.put(HOST_SYS_PREPPED, configs.areHostsSysPrepped());
       hostLevelParams.putAll(managementController.getRcaParameters());
-      hostLevelParams.put(AGENT_STACK_RETRY_ON_UNAVAILABILITY, configs.isAgentStackRetryOnInstallEnabled());
-      hostLevelParams.put(AGENT_STACK_RETRY_COUNT, configs.getAgentStackRetryOnInstallCount());
+      hostLevelParams.putAll(managementController.getRcaParameters());
 
       // Write down os specific info for the service
       ServiceOsSpecific anyOs = null;
@@ -342,10 +338,6 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       Set<String> groupSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.GROUP, cluster);
       String groupList = gson.toJson(groupSet);
       hostLevelParams.put(GROUP_LIST, groupList);
-
-      Set<String> notManagedHdfsPathSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.NOT_MANAGED_HDFS_PATH, cluster);
-      String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
-      hostLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
 
       String jsonConfigurations = null;
       Map<String, Object> commandParams = new HashMap<String, Object>();
@@ -409,12 +401,15 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       } catch (TimeoutException e) {
         LOG.error("Generate client configs script was killed due to timeout ", e);
         throw new SystemException("Generate client configs script was killed due to timeout ", e);
-      } catch (InterruptedException | IOException e) {
+      } catch (InterruptedException e) {
         LOG.error("Failed to run generate client configs script for a component " + componentName, e);
         throw new SystemException("Failed to run generate client configs script for a component " + componentName, e);
       } catch (ExecutionException e) {
         LOG.error(e.getMessage(),e);
         throw new SystemException(e.getMessage() + " " + e.getCause());
+      } catch (IOException e) {
+        LOG.error("Failed to run generate client configs script for a component " + componentName, e);
+        throw new SystemException("Failed to run generate client configs script for a component " + componentName, e);
       }
 
     } catch (AmbariException e) {

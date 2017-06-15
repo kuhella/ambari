@@ -377,14 +377,14 @@ App.ManageAlertGroupsController = Em.Controller.extend({
     var validComponents = App.StackServiceComponent.find().map(function (component) {
       return Em.Object.create({
         componentName: component.get('componentName'),
-        displayName: App.format.role(component.get('componentName'), false),
+        displayName: App.format.role(component.get('componentName')),
         selected: false
       });
     });
     var validServices = App.Service.find().map(function (service) {
       return Em.Object.create({
         serviceName: service.get('serviceName'),
-        displayName: App.format.role(service.get('serviceName'), true),
+        displayName: App.format.role(service.get('serviceName')),
         selected: false
       });
     });

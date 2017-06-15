@@ -27,9 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 /**
@@ -46,12 +44,6 @@ public class DestroyPrincipalsServerAction extends KerberosServerAction {
 
   @Inject
   private KerberosPrincipalDAO kerberosPrincipalDAO;
-
-  /**
-   * A set of visited principal names used to prevent unnecessary processing on already processed
-   * principal names
-   */
-  private Set<String> seenPrincipals = new HashSet<String>();
 
   /**
    * Called to execute this action.  Upon invocation, calls
@@ -94,42 +86,38 @@ public class DestroyPrincipalsServerAction extends KerberosServerAction {
                                           Map<String, Object> requestSharedDataContext)
       throws AmbariException {
 
-    // Only process this principal if we haven't already processed it
-    if(!seenPrincipals.contains(evaluatedPrincipal)) {
-      seenPrincipals.add(evaluatedPrincipal);
+    String message = String.format("Destroying identity, %s", evaluatedPrincipal);
+    LOG.info(message);
+    actionLog.writeStdOut(message);
 
-      String message = String.format("Destroying identity, %s", evaluatedPrincipal);
-      LOG.info(message);
-      actionLog.writeStdOut(message);
+    try {
+      operationHandler.removePrincipal(evaluatedPrincipal);
+    } catch (KerberosOperationException e) {
+      message = String.format("Failed to remove identity for %s from the KDC - %s", evaluatedPrincipal, e.getMessage());
+      LOG.warn(message);
+      actionLog.writeStdErr(message);
+    }
 
-      try {
-        operationHandler.removePrincipal(evaluatedPrincipal);
-      } catch (KerberosOperationException e) {
-        message = String.format("Failed to remove identity for %s from the KDC - %s", evaluatedPrincipal, e.getMessage());
-        LOG.warn(message);
-        actionLog.writeStdErr(message);
-      }
+    try {
+      KerberosPrincipalEntity principalEntity = kerberosPrincipalDAO.find(evaluatedPrincipal);
 
-      try {
-        KerberosPrincipalEntity principalEntity = kerberosPrincipalDAO.find(evaluatedPrincipal);
+      if(principalEntity != null) {
+        String cachedKeytabPath = principalEntity.getCachedKeytabPath();
 
-        if (principalEntity != null) {
-          String cachedKeytabPath = principalEntity.getCachedKeytabPath();
+        kerberosPrincipalDAO.remove(principalEntity);
 
-          kerberosPrincipalDAO.remove(principalEntity);
-
-          // If a cached  keytabs file exists for this principal, delete it.
-          if (cachedKeytabPath != null) {
-            if (!new File(cachedKeytabPath).delete()) {
-              LOG.debug(String.format("Failed to remove cached keytab for %s", evaluatedPrincipal));
-            }
+        // If a cached  keytabs file exists for this principal, delete it.
+        if (cachedKeytabPath != null) {
+          if (!new File(cachedKeytabPath).delete()) {
+            LOG.debug(String.format("Failed to remove cached keytab for %s", evaluatedPrincipal));
           }
         }
-      } catch (Throwable t) {
-        message = String.format("Failed to remove identity for %s from the Ambari database - %s", evaluatedPrincipal, t.getMessage());
-        LOG.warn(message);
-        actionLog.writeStdErr(message);
       }
+    }
+    catch (Throwable t) {
+      message = String.format("Failed to remove identity for %s from the Ambari database - %s", evaluatedPrincipal, t.getMessage());
+      LOG.warn(message);
+      actionLog.writeStdErr(message);
     }
 
     // There is no reason to fail this task if an identity was not removed. The cluster will work

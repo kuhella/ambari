@@ -22,11 +22,8 @@ import status_params
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import os
 
-from urlparse import urlparse
-
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from ambari_commons.os_check import OSCheck
-from ambari_commons.str_utils import cbool, cint
 
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions.default import default
@@ -35,7 +32,6 @@ from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.copy_tarball import STACK_VERSION_PATTERN
 from resource_management.libraries.functions import get_kinit_path
-from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
 from resource_management.libraries import functions
@@ -46,8 +42,6 @@ tmp_dir = Script.get_tmp_dir()
 sudo = AMBARI_SUDO_BINARY
 
 stack_name = default("/hostLevelParams/stack_name", None)
-agent_stack_retry_on_unavailability = cbool(default("/hostLevelParams/agent_stack_retry_on_unavailability", None))
-agent_stack_retry_count = cint(default("/hostLevelParams/agent_stack_retry_count", None))
 
 # node hostname
 hostname = config["hostname"]
@@ -363,7 +357,6 @@ hive_env_sh_template = config['configurations']['hive-env']['content']
 hive_hdfs_user_dir = format("/user/{hive_user}")
 hive_hdfs_user_mode = 0755
 hive_apps_whs_dir = config['configurations']['hive-site']["hive.metastore.warehouse.dir"]
-whs_dir_protocol = urlparse(hive_apps_whs_dir).scheme
 hive_exec_scratchdir = config['configurations']['hive-site']["hive.exec.scratchdir"]
 #for create_hdfs_directory
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
@@ -456,15 +449,12 @@ security_param = "true" if security_enabled else "false"
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
 
-dfs_type = default("/commandParams/dfs_type", "")
-
 import functools
 #create partial functions with common arguments for every HdfsResource call
 #to create hdfs directory we need to call params.HdfsResource in code
 HdfsResource = functools.partial(
  HdfsResource,
   user = hdfs_user,
-  hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore",
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
@@ -472,9 +462,7 @@ HdfsResource = functools.partial(
   hadoop_conf_dir = hadoop_conf_dir,
   principal_name = hdfs_principal_name,
   hdfs_site = hdfs_site,
-  default_fs = default_fs,
-  immutable_paths = get_not_managed_resources(),
-  dfs_type = dfs_type
+  default_fs = default_fs
  )
 
 

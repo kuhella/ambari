@@ -35,7 +35,6 @@ from alerts.script_alert import ScriptAlert
 from alerts.web_alert import WebAlert
 from alerts.recovery_alert import RecoveryAlert
 from ambari_agent.ExitHelper import ExitHelper
-
 logger = logging.getLogger(__name__)
 
 class AlertSchedulerHandler():
@@ -47,7 +46,8 @@ class AlertSchedulerHandler():
   TYPE_RECOVERY = 'RECOVERY'
 
   def __init__(self, cachedir, stacks_dir, common_services_dir, host_scripts_dir,
-      cluster_configuration, config, recovery_manager, in_minutes=True):
+      alert_grace_period, cluster_configuration, config, recovery_manager,
+      in_minutes=True):
 
     self.cachedir = cachedir
     self.stacks_dir = stacks_dir
@@ -55,10 +55,7 @@ class AlertSchedulerHandler():
     self.host_scripts_dir = host_scripts_dir
 
     self._cluster_configuration = cluster_configuration
-
-    # the amount of time, in seconds, that an alert can run after it's scheduled time
-    alert_grace_period = int(config.get('agent', 'alert_grace_period', 5))
-
+    
     if not os.path.exists(cachedir):
       try:
         os.makedirs(cachedir)
@@ -281,7 +278,7 @@ class AlertSchedulerHandler():
       if source_type == AlertSchedulerHandler.TYPE_METRIC:
         alert = MetricAlert(json_definition, source, self.config)
       elif source_type == AlertSchedulerHandler.TYPE_PORT:
-        alert = PortAlert(json_definition, source, self.config)
+        alert = PortAlert(json_definition, source)
       elif source_type == AlertSchedulerHandler.TYPE_SCRIPT:
         source['stacks_directory'] = self.stacks_dir
         source['common_services_directory'] = self.common_services_dir
@@ -290,7 +287,7 @@ class AlertSchedulerHandler():
       elif source_type == AlertSchedulerHandler.TYPE_WEB:
         alert = WebAlert(json_definition, source, self.config)
       elif source_type == AlertSchedulerHandler.TYPE_RECOVERY:
-        alert = RecoveryAlert(json_definition, source, self.config, self.recovery_manger)
+        alert = RecoveryAlert(json_definition, source, self.recovery_manger)
 
       if alert is not None:
         alert.set_cluster(clusterName, hostName)

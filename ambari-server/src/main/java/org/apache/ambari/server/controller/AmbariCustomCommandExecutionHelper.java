@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.controller;
 
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_COUNT;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_ON_UNAVAILABILITY;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLIENTS_TO_UPDATE_CONFIGS;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
@@ -35,7 +33,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JCE_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MYSQL_JDBC_URL;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.ORACLE_JDBC_URL;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
@@ -246,15 +243,6 @@ public class AmbariCustomCommandExecutionHelper {
     return sb.toString();
   }
 
-  /**
-   * Called during the start/stop/restart of services, plus custom commands during Stack Upgrade.
-   * @param actionExecutionContext Execution Context
-   * @param resourceFilter Resource Filter
-   * @param stage Command stage
-   * @param additionalCommandParams Additional command params to add the the stage
-   * @param commandDetail String for the command detail
-   * @throws AmbariException
-   */
   private void addCustomCommandAction(final ActionExecutionContext actionExecutionContext,
       final RequestResourceFilter resourceFilter, Stage stage,
       Map<String, String> additionalCommandParams, String commandDetail) throws AmbariException {
@@ -383,10 +371,6 @@ public class AmbariCustomCommandExecutionHelper {
       String groupList = gson.toJson(groupSet);
       hostLevelParams.put(GROUP_LIST, groupList);
 
-      Set<String> notManagedHdfsPathSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.NOT_MANAGED_HDFS_PATH, cluster);
-      String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
-      hostLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
-
       execCmd.setHostLevelParams(hostLevelParams);
 
       Map<String, String> commandParams = new TreeMap<String, String>();
@@ -423,12 +407,15 @@ public class AmbariCustomCommandExecutionHelper {
       }
 
       commandParams.put(COMMAND_TIMEOUT, commandTimeout);
-      commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
+
+      commandParams.put(SERVICE_PACKAGE_FOLDER,
+          serviceInfo.getServicePackageFolder());
+
       commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
 
-      ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
-      if (effectiveClusterVersion != null) {
-       commandParams.put(KeyNames.VERSION, effectiveClusterVersion.getRepositoryVersion().getVersion());
+      ClusterVersionEntity currentClusterVersion = cluster.getCurrentClusterVersion();
+      if (currentClusterVersion != null) {
+       commandParams.put(KeyNames.VERSION, currentClusterVersion.getRepositoryVersion().getVersion());
       }
 
       execCmd.setCommandParams(commandParams);
@@ -436,12 +423,6 @@ public class AmbariCustomCommandExecutionHelper {
       Map<String, String> roleParams = execCmd.getRoleParams();
       if (roleParams == null) {
         roleParams = new TreeMap<String, String>();
-      }
-
-      // if there is a stack upgrade which is currently suspended then pass that
-      // information down with the command as some components may need to know
-      if (cluster.isUpgradeSuspended()) {
-        roleParams.put(KeyNames.UPGRADE_SUSPENDED, Boolean.TRUE.toString().toLowerCase());
       }
 
       roleParams.put(COMPONENT_CATEGORY, componentInfo.getCategory());
@@ -601,25 +582,7 @@ public class AmbariCustomCommandExecutionHelper {
     execCmd.setClusterHostInfo(
         StageUtils.getClusterHostInfo(cluster));
 
-    // Generate localComponents
-    for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostname)) {
-      execCmd.getLocalComponents().add(sch.getServiceComponentName());
-    }
-
     Map<String, String> commandParams = new TreeMap<String, String>();
-
-    //Propagate HCFS service type info
-    Iterator<Service> it = cluster.getServices().values().iterator();
-    while(it.hasNext()) {
-        ServiceInfo serviceInfoInstance = ambariMetaInfo.getService(stackId.getStackName(),stackId.getStackVersion(), it.next().getName());
-        LOG.info("Iterating service type Instance in addServiceCheckAction:: " + serviceInfoInstance.getName());
-        if(serviceInfoInstance.getServiceType() != null) {
-            LOG.info("Adding service type info in addServiceCheckAction:: " + serviceInfoInstance.getServiceType());
-            commandParams.put("dfs_type",serviceInfoInstance.getServiceType());
-            break;
-        }
-    }
-
     String commandTimeout = configs.getDefaultAgentTaskTimeout(false);
 
 
@@ -642,7 +605,9 @@ public class AmbariCustomCommandExecutionHelper {
     }
 
     commandParams.put(COMMAND_TIMEOUT, commandTimeout);
-    commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
+
+    commandParams.put(SERVICE_PACKAGE_FOLDER,
+        serviceInfo.getServicePackageFolder());
     commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
 
     execCmd.setCommandParams(commandParams);
@@ -943,7 +908,7 @@ public class AmbariCustomCommandExecutionHelper {
    *
    * @param actionExecutionContext  received request to execute a command
    * @param stage                   the initial stage for task creation
-   * @param requestParams           the request params
+   * @param retryAllowed            indicates whether the the command allows retry
    *
    * @throws AmbariException if the commands can not be added
    */
@@ -1127,19 +1092,6 @@ public class AmbariCustomCommandExecutionHelper {
         hostParamsStage.put(CLIENTS_TO_UPDATE_CONFIGS, clientsToUpdateConfigs);
       }
       clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
-
-      //Propogate HCFS service type info to command params
-      Iterator<Service> it = cluster.getServices().values().iterator();
-      while(it.hasNext()) {
-          ServiceInfo serviceInfoInstance = ambariMetaInfo.getService(stackId.getStackName(),stackId.getStackVersion(), it.next().getName());
-          LOG.info("Iterating service type Instance in getCommandJson:: " + serviceInfoInstance.getName());
-          if(serviceInfoInstance.getServiceType() != null) {
-              LOG.info("Adding service type info in getCommandJson:: " + serviceInfoInstance.getServiceType());
-              commandParamsStage.put("dfs_type",serviceInfoInstance.getServiceType());
-              break;
-          }
-      }      
-
     }
 
     String hostParamsStageJson = StageUtils.getGson().toJson(hostParamsStage);
@@ -1149,12 +1101,12 @@ public class AmbariCustomCommandExecutionHelper {
         hostParamsStageJson);
   }
 
-  Map<String, String> createDefaultHostParams(Cluster cluster) throws AmbariException {
+  Map<String, String> createDefaultHostParams(Cluster cluster) {
     StackId stackId = cluster.getDesiredStackVersion();
     return createDefaultHostParams(cluster, stackId);
   }
 
-  Map<String, String> createDefaultHostParams(Cluster cluster, StackId stackId) throws AmbariException{
+  Map<String, String> createDefaultHostParams(Cluster cluster, StackId stackId) {
     TreeMap<String, String> hostLevelParams = new TreeMap<String, String>();
     hostLevelParams.put(JDK_LOCATION, managementController.getJdkResourceUrl());
     hostLevelParams.put(JAVA_HOME, managementController.getJavaHome());
@@ -1169,13 +1121,6 @@ public class AmbariCustomCommandExecutionHelper {
     hostLevelParams.put(DB_DRIVER_FILENAME, configs.getMySQLJarName());
     hostLevelParams.putAll(managementController.getRcaParameters());
     hostLevelParams.put(HOST_SYS_PREPPED, configs.areHostsSysPrepped());
-    hostLevelParams.put(AGENT_STACK_RETRY_ON_UNAVAILABILITY, configs.isAgentStackRetryOnInstallEnabled());
-    hostLevelParams.put(AGENT_STACK_RETRY_COUNT, configs.getAgentStackRetryOnInstallCount());
-
-    Set<String> notManagedHdfsPathSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.NOT_MANAGED_HDFS_PATH, cluster);
-    String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
-    hostLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
-
     ClusterVersionEntity clusterVersionEntity = clusterVersionDAO.findByClusterAndStateCurrent(cluster.getClusterName());
     if (clusterVersionEntity == null) {
       List<ClusterVersionEntity> clusterVersionEntityList = clusterVersionDAO

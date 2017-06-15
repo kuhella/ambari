@@ -63,10 +63,11 @@ class ModifyPropertiesFileProvider(Provider):
       line = u"{0}{1}{2}".format(unicode(property_name), delimiter, value)
       new_content_lines.append(line)
           
-    File (filename,
-          content = u"\n".join(new_content_lines) + "\n",
-          owner = self.resource.owner,
-          group = self.resource.group,
-          mode = self.resource.mode,
-          encoding = self.resource.encoding,
-    )
+    with Environment.get_instance_copy() as env:
+      File (filename,
+            content = u"\n".join(new_content_lines) + "\n",
+            owner = self.resource.owner,
+            group = self.resource.group,
+            mode = self.resource.mode,
+            encoding = self.resource.encoding,
+      )

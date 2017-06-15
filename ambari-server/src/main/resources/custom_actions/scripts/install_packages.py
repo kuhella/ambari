@@ -30,7 +30,6 @@ import ambari_simplejson as json  # simplejson is much faster comparing to Pytho
 from resource_management import *
 from resource_management.libraries.functions.list_ambari_managed_repos import list_ambari_managed_repos
 from ambari_commons.os_check import OSCheck, OSConst
-from ambari_commons.str_utils import cbool, cint
 from resource_management.libraries.functions.packages_analyzer import allInstalledPackages
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.hdp_select import get_hdp_versions
@@ -212,10 +211,9 @@ class InstallPackages(Script):
         Logger.info("The current cluster stack of {0} does not require backing up configurations; "
                     "only conf-select versioned config directories will be created.".format(stack_version))
         # only link configs for all known packages
-        conf_select.select("HDP", package_name, stack_version, ignore_errors = True)
+        conf_select.link_component_conf_to_versioned_config(package_name, stack_version)
       else:
         # link configs and create conf.backup folders for all known packages
-        # this will also call conf-select select
         conf_select.convert_conf_directories_to_symlinks(package_name, stack_version, directories,
           skip_existing_links = False, link_to = "backup")
 
@@ -361,16 +359,10 @@ class InstallPackages(Script):
     # Clear cache of package manager right before installation of the packages
     self._clear_package_manager_cache()
 
-    config = self.get_config()
-    agent_stack_retry_on_unavailability = cbool(config['hostLevelParams']['agent_stack_retry_on_unavailability'])
-    agent_stack_retry_count = cint(config['hostLevelParams']['agent_stack_retry_count'])
-
     # Install packages
     packages_were_checked = False
     try:
-      Package(self.get_base_packages_to_install(),
-              retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
-              retry_count=agent_stack_retry_count)
+      Package(self.get_base_packages_to_install())
 
       packages_installed_before = []
       allInstalledPackages(packages_installed_before)
@@ -381,9 +373,7 @@ class InstallPackages(Script):
         name = self.format_package_name(package['name'], self.repository_version)
         Package(name,
                 use_repos=list(self.current_repo_files) if OSCheck.is_ubuntu_family() else self.current_repositories,
-                skip_repos=[self.REPO_FILE_NAME_PREFIX + "*"] if OSCheck.is_redhat_family() else [],
-                retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
-                retry_count=agent_stack_retry_count)
+                skip_repos=[self.REPO_FILE_NAME_PREFIX + "*"] if OSCheck.is_redhat_family() else [])
     except Exception, err:
       ret_code = 1
       Logger.logger.exception("Package Manager failed to install packages. Error: {0}".format(str(err)))

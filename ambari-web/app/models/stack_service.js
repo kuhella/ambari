@@ -27,7 +27,6 @@ require('models/configs/objects/service_config_category');
  */
 App.StackService = DS.Model.extend({
   serviceName: DS.attr('string'),
-  serviceType: DS.attr('string'),
   displayName: DS.attr('string'),
   comments: DS.attr('string'),
   configTypes: DS.attr('object'),
@@ -54,10 +53,7 @@ App.StackService = DS.Model.extend({
   // Is the service a distributed filesystem
   isDFS: function () {
     var dfsServices = ['HDFS', 'GLUSTERFS'];
-    if( this.get('serviceType') == 'HCFS' || dfsServices.contains(this.get('serviceName')) )
-    	return true;
-    else
-    	return false;
+    return dfsServices.contains(this.get('serviceName'));
   }.property('serviceName'),
 
   // Primary DFS. used if there is more than one DFS in a stack.
@@ -80,7 +76,7 @@ App.StackService = DS.Model.extend({
     console.info("displayName = " + displayName);
     var services = this.get('coSelectedServices').slice();
     var serviceDisplayNames = services.map(function (item) {
-      return App.format.role(item, true);
+      return App.format.role(item);
     }, this);
     if (!!serviceDisplayNames.length) {
       serviceDisplayNames.unshift(displayName);
@@ -179,7 +175,7 @@ App.StackService = DS.Model.extend({
     var configTypes = this.get('configTypes');
     var serviceComponents = this.get('serviceComponents');
     if (configTypes && Object.keys(configTypes).length) {
-      var pattern = ["General", "CapacityScheduler", "FaultTolerance", "Isolation", "Performance", "HIVE_SERVER2", "KDC", "Kadmin","^Advanced", "Env$", "^Custom", "Falcon - Oozie integration", "FalconStartupSite", "FalconRuntimeSite", "MetricCollector", "Settings$", "AdvancedHawqCheck"];
+      var pattern = ["General", "CapacityScheduler", "FaultTolerance", "Isolation", "Performance", "HIVE_SERVER2", "KDC", "Kadmin","^Advanced", "Env$", "^Custom", "Falcon - Oozie integration", "FalconStartupSite", "FalconRuntimeSite", "MetricCollector", "Settings$", "AdvancedGpcheck"];
       configCategories = App.StackService.configCategories.call(this).filter(function (_configCategory) {
         var serviceComponentName = _configCategory.get('name');
         var isServiceComponent = serviceComponents.someProperty('componentName', serviceComponentName);
@@ -207,9 +203,9 @@ App.StackService.displayOrder = [
   'GANGLIA',
   'HIVE',
   'HAWQ',
-  'PXF',
   'HBASE',
   'PIG',
+  'PXF',
   'SQOOP',
   'OOZIE',
   'ZOOKEEPER',
@@ -218,14 +214,11 @@ App.StackService.displayOrder = [
   'FLUME'
 ];
 
-App.StackService.componentsOrderForService = {
-  'HAWQ': ['HAWQMASTER', 'HAWQSTANDBY']
-};
-
 //@TODO: Write unit test for no two keys in the object should have any intersecting elements in their values
 App.StackService.coSelected = {
   'YARN': ['MAPREDUCE2']
 };
+
 
 App.StackService.reviewPageHandlers = {
   'HIVE': {
@@ -378,7 +371,7 @@ App.StackService.configCategories = function () {
     case 'HAWQ':
       serviceConfigCategories.pushObjects([
         App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'}),
-        App.ServiceConfigCategory.create({ name: 'AdvancedHawqCheck', displayName: 'Advanced Hawq Check'})
+        App.ServiceConfigCategory.create({ name: 'AdvancedGpcheck', displayName: 'Advanced gpcheck'})
       ]);
       break;
     default:
@@ -406,7 +399,7 @@ App.StackService.configCategories = function () {
 
   // Add custom section for every configType to all the services
   configTypes.forEach(function (type) {
-    var configTypesWithNoCustomSection = ['capacity-scheduler','mapred-queue-acls','flume-conf', 'pig-properties','topology','users-ldif', 'pxf-profiles', 'pxf-public-classpath'];
+    var configTypesWithNoCustomSection = ['capacity-scheduler','mapred-queue-acls','flume-conf', 'pig-properties','topology','users-ldif'];
     if (type.endsWith('-env') || type.endsWith('-log4j') || configTypesWithNoCustomSection.contains(type)) {
       return;
     }

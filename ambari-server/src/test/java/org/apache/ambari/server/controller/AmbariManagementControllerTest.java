@@ -96,7 +96,6 @@ import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.orm.dao.TopologyHostInfoDAO;
 import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
 import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
@@ -177,7 +176,7 @@ public class AmbariManagementControllerTest {
   private static final String PROPERTY_NAME = "hbase.regionserver.msginterval";
   private static final String SERVICE_NAME = "HDFS";
   private static final String FAKE_SERVICE_NAME = "FAKENAGIOS";
-  private static final int STACK_VERSIONS_CNT = 15;
+  private static final int STACK_VERSIONS_CNT = 14;
   private static final int REPOS_CNT = 3;
   private static final int STACKS_CNT = 3;
   private static final int STACK_PROPERTIES_CNT = 103;
@@ -210,7 +209,6 @@ public class AmbariManagementControllerTest {
   private OrmTestHelper helper;
   private StageFactory stageFactory;
   private HostDAO hostDAO;
-  private TopologyHostInfoDAO topologyHostInfoDAO;
   private HostRoleCommandDAO hostRoleCommandDAO;
   private TopologyManager topologyManager;
 
@@ -241,7 +239,6 @@ public class AmbariManagementControllerTest {
     helper = injector.getInstance(OrmTestHelper.class);
     stageFactory = injector.getInstance(StageFactory.class);
     hostDAO = injector.getInstance(HostDAO.class);
-    topologyHostInfoDAO = injector.getInstance(TopologyHostInfoDAO.class);
     hostRoleCommandDAO = injector.getInstance(HostRoleCommandDAO.class);
     topologyManager = injector.getInstance(TopologyManager.class);
     StageUtils.setTopologyManager(topologyManager);
@@ -4215,13 +4212,6 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals("a1", task.getRole().name());
     Assert.assertEquals("h1", task.getHostName());
     ExecutionCommand cmd = task.getExecutionCommandWrapper().getExecutionCommand();
-    // h1 has only DATANODE, NAMENODE, CLIENT sch's
-    Assert.assertEquals("h1", cmd.getHostname());
-    Assert.assertFalse(cmd.getLocalComponents().isEmpty());
-    Assert.assertTrue(cmd.getLocalComponents().contains(Role.DATANODE.name()));
-    Assert.assertTrue(cmd.getLocalComponents().contains(Role.NAMENODE.name()));
-    Assert.assertTrue(cmd.getLocalComponents().contains(Role.HDFS_CLIENT.name()));
-    Assert.assertFalse(cmd.getLocalComponents().contains(Role.RESOURCEMANAGER.name()));
     Type type = new TypeToken<Map<String, String>>(){}.getType();
     Map<String, String> hostParametersStage = StageUtils.getGson().fromJson(stage.getHostParamsStage(), type);
     Map<String, String> commandParametersStage = StageUtils.getGson().fromJson(stage.getCommandParamsStage(), type);
@@ -4274,13 +4264,6 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals("HDFS", cmd.getServiceName());
     Assert.assertEquals("DATANODE", cmd.getComponentName());
     Assert.assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
-    // h2 has only DATANODE sch
-    Assert.assertEquals("h2", cmd.getHostname());
-    Assert.assertFalse(cmd.getLocalComponents().isEmpty());
-    Assert.assertTrue(cmd.getLocalComponents().contains(Role.DATANODE.name()));
-    Assert.assertFalse(cmd.getLocalComponents().contains(Role.NAMENODE.name()));
-    Assert.assertFalse(cmd.getLocalComponents().contains(Role.HDFS_CLIENT.name()));
-    Assert.assertFalse(cmd.getLocalComponents().contains(Role.RESOURCEMANAGER.name()));
 
     hosts = new ArrayList<String>() {{add("h3");}};
     resourceFilters.clear();
@@ -4642,7 +4625,7 @@ public class AmbariManagementControllerTest {
 
     actionRequest = new ExecuteActionRequest("c1", null, "a2", resourceFilters, null, params, false);
     expectActionCreationErrorWithMessage(actionRequest, requestProperties,
-        "Request specifies host h6 but it is not a valid host based on the target service=HDFS and component=DATANODE");
+        "Request specifies host h6 but its not a valid host based on the target service=HDFS and component=DATANODE");
 
     hosts.clear();
     hosts.add("h1");
@@ -8620,8 +8603,6 @@ public class AmbariManagementControllerTest {
 
     Assert.assertEquals(0, cluster.getServiceComponentHosts(host1).size());
 
-    Assert.assertNull(topologyHostInfoDAO.findByHostname(host1));
-
     // Deletion without specifying cluster should be successful
     requests.clear();
     requests.add(new HostRequest(host1, null, null));
@@ -8633,7 +8614,7 @@ public class AmbariManagementControllerTest {
     // Verify host is no longer part of the cluster
     Assert.assertFalse(clusters.getHostsForCluster(clusterName).containsKey(host1));
     Assert.assertFalse(clusters.getClustersForHost(host1).contains(cluster));
-    Assert.assertNull(topologyHostInfoDAO.findByHostname(host1));
+
 
     // Case 3: Delete host that is still part of the cluster, and specify the cluster_name in the request
     requests.clear();
@@ -8646,7 +8627,6 @@ public class AmbariManagementControllerTest {
     // Verify host is no longer part of the cluster
     Assert.assertFalse(clusters.getHostsForCluster(clusterName).containsKey(host2));
     Assert.assertFalse(clusters.getClustersForHost(host2).contains(cluster));
-    Assert.assertNull(topologyHostInfoDAO.findByHostname(host2));
 
     // Case 4: Attempt to delete a host that has already been deleted
     requests.clear();
@@ -9817,15 +9797,11 @@ public class AmbariManagementControllerTest {
     String datanode = "DATANODE";
     String hdfsClient = "HDFS_CLIENT";
     String zookeeperServer = "ZOOKEEPER_SERVER";
-    String zookeeperClient = "ZOOKEEPER_CLIENT";
-
     createServiceComponent(clusterName, hdfsService, namenode,
       State.INIT);
     createServiceComponent(clusterName, hdfsService, datanode,
       State.INIT);
     createServiceComponent(clusterName, zookeeperService, zookeeperServer,
-      State.INIT);
-    createServiceComponent(clusterName, zookeeperService, zookeeperClient,
       State.INIT);
 
     String host1 = "h1";
@@ -9835,8 +9811,6 @@ public class AmbariManagementControllerTest {
     createServiceComponentHost(clusterName, hdfsService, namenode, host1, null);
     createServiceComponentHost(clusterName, hdfsService, datanode, host1, null);
     createServiceComponentHost(clusterName, zookeeperService, zookeeperServer, host1,
-      null);
-    createServiceComponentHost(clusterName, zookeeperService, zookeeperClient, host1,
       null);
 
     ServiceComponentHost zookeeperSch = null;
@@ -9848,16 +9822,11 @@ public class AmbariManagementControllerTest {
     assertFalse(zookeeperSch.isRestartRequired());
 
     addHostToCluster(host2, clusterName);
-    createServiceComponentHost(clusterName, zookeeperService, zookeeperClient, host2, null);
+    createServiceComponentHost(clusterName, zookeeperService, zookeeperServer, host2, null);
 
     assertFalse(zookeeperSch.isRestartRequired());  //No restart required if adding host
 
-    createServiceComponentHost(clusterName, zookeeperService, zookeeperServer, host2, null);
-
-    assertTrue(zookeeperSch.isRestartRequired());  //Add zk server required restart
-
     deleteServiceComponentHost(clusterName, zookeeperService, zookeeperServer, host2, null);
-    deleteServiceComponentHost(clusterName, zookeeperService, zookeeperClient, host2, null);
     deleteHost(host2);
 
     assertTrue(zookeeperSch.isRestartRequired());   //Restart if removing host!
@@ -10345,7 +10314,6 @@ public class AmbariManagementControllerTest {
     Assert.assertTrue(commandParamsStage.containsKey("some_custom_param"));
     Assert.assertEquals(null, cmd.getServiceName());
     Assert.assertEquals(null, cmd.getComponentName());
-    Assert.assertTrue(cmd.getLocalComponents().isEmpty());
 
     Assert.assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
 
@@ -10388,7 +10356,6 @@ public class AmbariManagementControllerTest {
     Assert.assertTrue(commandParamsStage.containsKey("some_custom_param"));
     Assert.assertEquals(null, cmd.getServiceName());
     Assert.assertEquals(null, cmd.getComponentName());
-    Assert.assertTrue(cmd.getLocalComponents().isEmpty());
 
     Assert.assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
   }

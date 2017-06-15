@@ -95,22 +95,6 @@ App.AssignMasterComponents = Em.Mixin.create({
   showInstalledMastersFirst: false,
 
   /**
-   * Map of component name to list of hostnames for that component
-   * format:
-   * {
-   *   NAMENODE: [
-   *     'c6401.ambari.apache.org'
-   *   ],
-   *   DATANODE: [
-   *     'c6402.ambari.apache.org',
-   *     'c6403.ambari.apache.org',
-   *   ]
-   * }
-   * @type {Object}
-   */
-  recommendedHostsForComponents: {},
-
-  /**
    * Array of <code>servicesMasters</code> objects, that will be shown on the page
    * Are filtered using <code>mastersToShow</code>
    * @type {Array}
@@ -740,7 +724,7 @@ App.AssignMasterComponents = Em.Mixin.create({
 
     var componentObj = {};
     componentObj.component_name = componentName;
-    componentObj.display_name = App.format.role(fullComponent.get('componentName'), false);
+    componentObj.display_name = App.format.role(fullComponent.get('componentName'));
     componentObj.serviceId = fullComponent.get('serviceName');
     componentObj.isServiceCoHost = App.StackServiceComponent.find().findProperty('componentName', componentName).get('isCoHostedComponent') && !this.get('mastersToMove').contains(componentName);
     componentObj.selectedHost = savedComponent ? savedComponent.hostName : hostName;
@@ -754,27 +738,7 @@ App.AssignMasterComponents = Em.Mixin.create({
    * @method loadRecommendationsSuccessCallback
    */
   loadRecommendationsSuccessCallback: function (data) {
-    var recommendations = data.resources[0].recommendations;
-    this.set('content.recommendations', recommendations);
-
-    var recommendedHostsForComponent = {};
-    var hostsForHostGroup = {};
-
-    recommendations.blueprint_cluster_binding.host_groups.forEach(function(hostGroup) {
-      hostsForHostGroup[hostGroup.name] = hostGroup.hosts.mapProperty('fqdn');
-    });
-
-    recommendations.blueprint.host_groups.forEach(function (hostGroup) {
-      var components = hostGroup.components.mapProperty('name');
-      components.forEach(function (componentName) {
-        var hostList = recommendedHostsForComponent[componentName] || [];
-        var hostNames = hostsForHostGroup[hostGroup.name] || [];
-        hostList.pushObjects(hostNames);
-        recommendedHostsForComponent[componentName] = hostList;
-      });
-    });
-
-    this.set('content.recommendedHostsForComponents', recommendedHostsForComponent);
+    this.set('content.recommendations', data.resources[0].recommendations);
   },
 
   /**
@@ -856,21 +820,6 @@ App.AssignMasterComponents = Em.Mixin.create({
    * @returns {*}
    */
   getHostForMaster: function (master, allMasters) {
-    var masterHostList = [];
-
-    allMasters.forEach(function (component) {
-      if (component.component_name === master) {
-        masterHostList.push(component.selectedHost);
-      }
-    });
-
-    var recommendedHostsForMaster = this.get('content.recommendedHostsForComponents')[master] || [];
-    for (var k = 0; k < recommendedHostsForMaster.length; k++) {
-      if(!masterHostList.contains(recommendedHostsForMaster[k])) {
-        return recommendedHostsForMaster[k];
-      }
-    }
-
     var usedHosts = allMasters.filterProperty('component_name', master).mapProperty('selectedHost');
     var allHosts = this.get('hosts');
     for (var i = 0; i < allHosts.length; i++) {
@@ -878,7 +827,6 @@ App.AssignMasterComponents = Em.Mixin.create({
         return allHosts[i].get('host_name');
       }
     }
-
     return false;
   },
 
@@ -900,11 +848,8 @@ App.AssignMasterComponents = Em.Mixin.create({
    */
   sortComponentsByServiceName: function(components) {
     var displayOrder = App.StackService.displayOrder;
-    var componentsOrderForService = App.StackService.componentsOrderForService;
     var indexForUnordered = Math.max(displayOrder.length, components.length);
     return components.sort(function (a, b) {
-      if(a.serviceId === b.serviceId && a.serviceId in componentsOrderForService)
-        return componentsOrderForService[a.serviceId].indexOf(a.component_name) - componentsOrderForService[b.serviceId].indexOf(b.component_name);
       var aValue = displayOrder.indexOf(a.serviceId) != -1 ? displayOrder.indexOf(a.serviceId) : indexForUnordered;
       var bValue = displayOrder.indexOf(b.serviceId) != -1 ? displayOrder.indexOf(b.serviceId) : indexForUnordered;
       return aValue - bValue;
@@ -1133,6 +1078,7 @@ App.AssignMasterComponents = Em.Mixin.create({
         if (!self.get('submitDisabled')) {
           App.router.send('next');
         }
+        self.set('submitButtonClicked', false);
       };
 
       if (this.get('useServerValidation')) {
@@ -1142,7 +1088,6 @@ App.AssignMasterComponents = Em.Mixin.create({
       } else {
         self.updateIsSubmitDisabled();
         goNextStepIfValid();
-        self.set('submitButtonClicked', false);
       }
     }
   },
@@ -1153,31 +1098,18 @@ App.AssignMasterComponents = Em.Mixin.create({
    */
   showValidationIssuesAcceptBox: function(callback) {
     var self = this;
-
-    // If there are no warnings and no errors, return
-    if (!self.get('anyWarning') && !self.get('anyError')) {
+    if (self.get('anyWarning') || self.get('anyError')) {
+      App.ModalPopup.show({
+        primary: Em.I18n.t('common.continueAnyway'),
+        header: Em.I18n.t('installer.step5.validationIssuesAttention.header'),
+        body: Em.I18n.t('installer.step5.validationIssuesAttention'),
+        onPrimary: function () {
+          this.hide();
+          callback();
+        }
+      });
+    } else {
       callback();
-      self.set('submitButtonClicked', false);
-      return;
     }
-
-    App.ModalPopup.show({
-      primary: Em.I18n.t('common.continueAnyway'),
-      header: Em.I18n.t('installer.step5.validationIssuesAttention.header'),
-      body: Em.I18n.t('installer.step5.validationIssuesAttention'),
-      onPrimary: function () {
-        this._super();
-        callback();
-        self.set('submitButtonClicked', false);
-      },
-      onSecondary: function () {
-        this._super();
-        self.set('submitButtonClicked', false);
-      },
-      onClose: function () {
-        this._super();
-        self.set('submitButtonClicked', false);
-      }
-    });
   }
 });

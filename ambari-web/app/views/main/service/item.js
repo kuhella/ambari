@@ -42,9 +42,8 @@ App.MainServiceItemView = Em.View.extend({
     'RESOURCEMANAGER': ['DECOMMISSION', 'REFRESHQUEUES'],
     'HBASE_MASTER': ['DECOMMISSION'],
     'KNOX_GATEWAY': ['STARTDEMOLDAP','STOPDEMOLDAP'],
-    'HAWQMASTER': ['IMMEDIATE_STOP_HAWQ_SERVICE', 'RUN_HAWQ_CHECK', 'HAWQ_CLEAR_CACHE', 'REMOVE_HAWQ_STANDBY', 'RESYNC_HAWQ_STANDBY'],
-    'HAWQSEGMENT': ['IMMEDIATE_STOP_HAWQ_SEGMENT'],
-    'HAWQSTANDBY' : ['ACTIVATE_HAWQ_STANDBY']
+    'HAWQMASTER': ['IMMEDIATE_STOP_CLUSTER'],
+    'HAWQSEGMENT': ['IMMEDIATE_STOP']
   },
 
    addActionMap: function() {
@@ -83,13 +82,13 @@ App.MainServiceItemView = Em.View.extend({
       },
       {
         cssClass: 'icon-plus',
-        'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('RANGER_KMS_SERVER', false)),
+        'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('RANGER_KMS_SERVER')),
         service: 'RANGER_KMS',
         component: 'RANGER_KMS_SERVER'
       },
       {
         cssClass: 'icon-plus',
-        'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('NIMBUS', false)),
+        'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('NIMBUS')),
         service: 'STORM',
         component: 'NIMBUS'
       }
@@ -148,7 +147,7 @@ App.MainServiceItemView = Em.View.extend({
       }).forEach(function(_component) {
         options.push(self.createOption(actionMap.ROLLING_RESTART, {
           context: _component,
-          label: actionMap.ROLLING_RESTART.label.format(App.format.role(_component, false))
+          label: actionMap.ROLLING_RESTART.label.format(App.format.role(_component))
         }));
       });
       allMasters.filter(function(master) {
@@ -156,7 +155,7 @@ App.MainServiceItemView = Em.View.extend({
       }).forEach(function(master) {
         options.push(self.createOption(actionMap.MOVE_COMPONENT, {
           context: master,
-          label: actionMap.MOVE_COMPONENT.label.format(App.format.role(master, false)),
+          label: actionMap.MOVE_COMPONENT.label.format(App.format.role(master)),
           disabled: App.allHostNames.length === App.HostComponent.find().filterProperty('componentName', master).mapProperty('hostName').length
         }));
       });
@@ -170,9 +169,6 @@ App.MainServiceItemView = Em.View.extend({
             break;
           case 'RANGER':
             options.push(actionMap.TOGGLE_RA_HA);
-            break;
-          case 'HAWQ':
-            options.push(actionMap.TOGGLE_ADD_HAWQ_STANDBY);     
             break;
         }
       }
@@ -197,25 +193,21 @@ App.MainServiceItemView = Em.View.extend({
           }
         });
       }
-      /**
-       * Display all custom commands of Master and StandBy on Service page.
-       **/
-      if(serviceName === 'HAWQ') {
-        var hawqMasterComponent = App.StackServiceComponent.find().findProperty('componentName','HAWQMASTER');
-        var hawqStandByComponent = App.StackServiceComponent.find().findProperty('componentName','HAWQSTANDBY');
-        components = [hawqMasterComponent,hawqStandByComponent]
-        components.forEach(function(component){
-          component.get('customCommands').forEach(function(command){
-            options.push(self.createOption(actionMap[command], {
-              context: {
-                label: actionMap[command].context,
-                service: component.get('serviceName'),
-                component: component.get('componentName'),
-                command: command
-              }
-            }));
-          });
-        });
+
+      var hawqMasterComponent = App.StackServiceComponent.find().findProperty('componentName','HAWQMASTER');
+      if (serviceName === 'HAWQ' && hawqMasterComponent) {
+        var hawqMasterCustomCommands = hawqMasterComponent.get('customCommands');
+        customCommandToStopCluster = 'IMMEDIATE_STOP_CLUSTER';
+        if (hawqMasterCustomCommands && hawqMasterCustomCommands.contains(customCommandToStopCluster)) {
+        options.push(self.createOption(actionMap.IMMEDIATE_STOP_CLUSTER, {
+          label: Em.I18n.t('services.service.actions.run.immediateStopHawqCluster.context'),
+          context: {
+            label: Em.I18n.t('services.service.actions.run.immediateStopHawqCluster.context'),
+            service: hawqMasterComponent.get('serviceName'),
+            component: hawqMasterComponent.get('componentName'),
+            command: customCommandToStopCluster
+          }
+        })) };
       }
 
       self.addActionMap().filterProperty('service', serviceName).forEach(function(item) {

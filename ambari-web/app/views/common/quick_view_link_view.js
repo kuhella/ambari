@@ -23,8 +23,6 @@ App.QuickViewLinks = Em.View.extend({
 
   isLoaded: false,
 
-  areQuickLinksUndefined: false,
-
   loadTags: function () {
     App.ajax.send({
       name: 'config.tags',
@@ -66,8 +64,7 @@ App.QuickViewLinks = Em.View.extend({
         masterHosts: masterHosts.join(','),
         urlParams: ',host_components/metrics/hbase/master/IsActiveMaster'
       },
-      success: 'setQuickLinksSuccessCallback',
-      error: 'setQuickLinksErrorCallback'
+      success: 'setQuickLinksSuccessCallback'
     });
   },
 
@@ -78,29 +75,7 @@ App.QuickViewLinks = Em.View.extend({
   /**
    * list of files that contains properties for enabling/disabling ssl
    */
-  requiredSiteNames: [
-    'ams-grafana-ini',
-    'hadoop-env',
-    'yarn-env',
-    'hbase-env',
-    'oozie-env',
-    'mapred-env',
-    'storm-env',
-    'falcon-env',
-    'core-site',
-    'hdfs-site',
-    'hbase-site',
-    'oozie-site',
-    'yarn-site',
-    'mapred-site',
-    'storm-site',
-    'spark-defaults',
-    'accumulo-site',
-    'application-properties',
-    'ranger-admin-site',
-    'ranger-site',
-    'admin-properties'
-  ],
+  requiredSiteNames: ['hadoop-env','yarn-env','hbase-env','oozie-env','mapred-env','storm-env', 'falcon-env', 'core-site', 'hdfs-site', 'hbase-site', 'oozie-site', 'yarn-site', 'mapred-site', 'storm-site', 'spark-defaults', 'accumulo-site', 'application-properties', 'ranger-admin-site', 'ranger-site', 'admin-properties'],
   /**
    * Get public host name by its host name.
    *
@@ -172,7 +147,12 @@ App.QuickViewLinks = Em.View.extend({
     var quickLinks = [];
     var hosts = this.setHost(response, this.get('content.serviceName'));
     if (hosts.length === 0 || !this.get('content.quickLinks')) {
-      this.setQuickLinksErrorCallback();
+      quickLinks = [{
+          label: this.t('quick.links.error.label'),
+          url: 'javascript:alert("' + this.t('contact.administrator') + '");return false;'
+      }];
+      this.set('quickLinks', quickLinks);
+      this.set('isLoaded', true);
     } else if (hosts.length == 1) {
 
       quickLinks = this.get('content.quickLinks').map(function (item) {
@@ -210,11 +190,8 @@ App.QuickViewLinks = Em.View.extend({
         }
         return item;
       });
-      this.setProperties({
-        quickLinks: quickLinks,
-        isLoaded: true,
-        areQuickLinksUndefined: false
-      });
+      this.set('quickLinks', quickLinks);
+      this.set('isLoaded', true);
     } else {
       // multiple hbase masters or HDFS HA enabled
       var quickLinksArray = [];
@@ -251,9 +228,6 @@ App.QuickViewLinks = Em.View.extend({
             }
             if (item.get('service_id')==='OOZIE') {
               newItem.url = item.get('template').fmt(protocol, host.publicHostName, port, App.router.get('loginName'));
-            } else if (item.get('service_id')==='MAPREDUCE2') {
-              var hostPortConfigValue = "%@:%@".fmt(host.publicHostName, port);
-              newItem.url = item.get('template').fmt(protocol, hostPortConfigValue);
             } else {
               newItem.url = item.get('template').fmt(protocol, host.publicHostName, port);
             }
@@ -268,23 +242,9 @@ App.QuickViewLinks = Em.View.extend({
         }
         quickLinksArray.push(quickLinks);
       }, this);
-      this.setProperties({
-        quickLinksArray: quickLinksArray,
-        isLoaded: true,
-        areQuickLinksUndefined: false
-      });
+      this.set('quickLinksArray', quickLinksArray);
+      this.set('isLoaded', true);
     }
-  },
-
-  setQuickLinksErrorCallback: function () {
-    this.setProperties({
-      quickLinks: [{
-        label: this.t('quick.links.error.label'),
-        url: 'javascript:alert("' + this.t('contact.administrator') + '");'
-      }],
-      isLoaded: true,
-      areQuickLinksUndefined: true
-    });
   },
 
   /**
@@ -299,11 +259,10 @@ App.QuickViewLinks = Em.View.extend({
       return [App.get('singleNodeAlias')];
     }
     var hosts = [];
-    var components;
     switch (serviceName) {
       case 'OOZIE':
         // active OOZIE components
-        components = this.get('content.hostComponents').filterProperty('componentName','OOZIE_SERVER').filterProperty('workStatus', 'STARTED');
+        var components = this.get('content.hostComponents').filterProperty('componentName','OOZIE_SERVER').filterProperty('workStatus', 'STARTED');
         if (components && components.length > 1) {
           components.forEach(function (component) {
             hosts.push({
@@ -402,21 +361,6 @@ App.QuickViewLinks = Em.View.extend({
       case "ATLAS":
         hosts[0] = this.findComponentHost(response.items, "ATLAS_SERVER");
         break;
-      case "AMBARI_METRICS":
-        hosts[0] = this.findComponentHost(response.items, "METRICS_GRAFANA");
-        break;
-      case "MAPREDUCE2":
-        components = this.get('content.hostComponents').filterProperty('componentName', 'HISTORYSERVER');
-        if (components && components.length > 1) {
-          components.forEach(function (component) {
-            hosts.push({
-              'publicHostName': response.items.findProperty('Hosts.host_name', component.get('hostName')).Hosts.public_host_name
-            });
-          });
-        } else if (components && components.length === 1) {
-          hosts[0] = this.findComponentHost(response.items, 'HISTORYSERVER');
-        }
-        break;
       default:
         var service = App.StackService.find().findProperty('serviceName', serviceName);
         if (service && service.get('hasMaster')) {
@@ -452,9 +396,7 @@ App.QuickViewLinks = Em.View.extend({
     switch (service_id) {
       case "GANGLIA":
         return (ambariProperties && ambariProperties['ganglia.https'] == "true") ? "https" : "http";
-      case "AMBARI_METRICS":
-        var grafanaProperties = configProperties && configProperties.findProperty('type', 'ams-grafana-ini');
-        return grafanaProperties.properties['protocol'] ? grafanaProperties.properties['protocol'] : 'http';
+        break;
       case "YARN":
         var yarnProperties = configProperties && configProperties.findProperty('type', 'yarn-site');
         if (yarnProperties && yarnProperties.properties) {
@@ -465,6 +407,7 @@ App.QuickViewLinks = Em.View.extend({
           }
         }
         return hadoopSslEnabled ? "https" : "http";
+        break;
       case "MAPREDUCE2":
         var mapred2Properties = configProperties && configProperties.findProperty('type', 'mapred-site');
         if (mapred2Properties && mapred2Properties.properties) {
@@ -475,6 +418,7 @@ App.QuickViewLinks = Em.View.extend({
           }
         }
         return hadoopSslEnabled ? "https" : "http";
+        break;
       case "ACCUMULO":
         var accumuloProperties = configProperties && configProperties.findProperty('type', 'accumulo-site');
         if (accumuloProperties && accumuloProperties.properties) {
@@ -485,6 +429,7 @@ App.QuickViewLinks = Em.View.extend({
           }
         }
         return "http";
+        break;
       case "ATLAS":
         var atlasProperties = configProperties && configProperties.findProperty('type', 'application-properties');
         if (atlasProperties && atlasProperties.properties) {
@@ -495,6 +440,7 @@ App.QuickViewLinks = Em.View.extend({
           }
         }
         return "http";
+        break;
       case "OOZIE":
         var site = configProperties.findProperty('type', 'oozie-site');
         var properties = site && site.properties;
@@ -510,6 +456,7 @@ App.QuickViewLinks = Em.View.extend({
           protocol = 'https';
         }
         return protocol;
+        break;
       case "RANGER":
         var rangerProperties = configProperties && configProperties.findProperty('type', 'ranger-admin-site');
         var rangerSiteProperties = configProperties && configProperties.findProperty('type', 'ranger-site');
@@ -529,6 +476,7 @@ App.QuickViewLinks = Em.View.extend({
         } else {
           return "http";
         }
+        break;
       default:
         return this.get('servicesSupportsHttps').contains(service_id) && hadoopSslEnabled ? "https" : "http";
     }
@@ -577,9 +525,6 @@ App.QuickViewLinks = Em.View.extend({
   },
 
   linkTarget: function () {
-    if (this.get('isLoaded') && this.get('areQuickLinksUndefined')) {
-      return '';
-    }
     switch (this.get('content.serviceName').toLowerCase()) {
       case "hdfs":
       case "yarn":
@@ -593,13 +538,12 @@ App.QuickViewLinks = Em.View.extend({
       case "accumulo":
       case "atlas":
       case "ranger":
-      case "ambari_metrics":
         return "_blank";
         break;
       default:
         return "";
         break;
     }
-  }.property('service', 'isLoaded')
+  }.property('service')
 
 });

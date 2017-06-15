@@ -18,9 +18,6 @@
 
 package org.apache.ambari.server.controller;
 
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_COUNT;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_ON_UNAVAILABILITY;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_COUNT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
@@ -30,7 +27,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAM
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +58,7 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.utils.SecretReference;
+import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -265,13 +262,6 @@ public class AmbariActionExecutionHelper {
     final String serviceName = actionContext.getExpectedServiceName();
     final String componentName = actionContext.getExpectedComponentName();
 
-    LOG.debug(String.format("Called addExecutionCommandsToStage() for serviceName: %s, componentName: %s.", serviceName, componentName));
-    if (resourceFilter.getHostNames().isEmpty()) {
-      LOG.debug("Resource filter has no hostnames.");
-    } else {
-      LOG.debug(String.format("Resource filter has hosts: %s", StringUtils.join(resourceFilter.getHostNames(), ", ")));
-    }
-
     if (null != cluster) {
       StackId stackId = cluster.getCurrentStackVersion();
       if (serviceName != null && !serviceName.isEmpty()) {
@@ -285,7 +275,6 @@ public class AmbariActionExecutionHelper {
                 stackId.getStackVersion(), serviceName, componentName);
           } catch (ObjectNotFoundException e) {
             // do nothing, componentId is checked for null later
-            LOG.error(String.format("Did not find service %s and component %s in stack %s.", serviceName, componentName, stackId.getStackName()));
           }
         } else {
           for (String component : cluster.getService(serviceName).getServiceComponents().keySet()) {
@@ -299,7 +288,6 @@ public class AmbariActionExecutionHelper {
         // All hosts are valid target host
         candidateHosts.addAll(clusters.getHostsForCluster(cluster.getClusterName()).keySet());
       }
-      LOG.debug(String.format("Request for service %s and component %s is set to run on candidate hosts: %s.", serviceName, componentName, StringUtils.join(candidateHosts, ", ")));
 
       // Filter hosts that are in MS
       Set<String> ignoredHosts = maintenanceStateHelper.filterHostsInMaintenanceState(
@@ -313,9 +301,7 @@ public class AmbariActionExecutionHelper {
                 }
               }
       );
-
       if (! ignoredHosts.isEmpty()) {
-        LOG.debug(String.format("Hosts to ignore: %s.", StringUtils.join(ignoredHosts, ", ")));
         LOG.debug("Ignoring action for hosts due to maintenance state." +
             "Ignored hosts =" + ignoredHosts + ", component="
             + componentName + ", service=" + serviceName
@@ -337,7 +323,7 @@ public class AmbariActionExecutionHelper {
       for (String hostname : resourceFilter.getHostNames()) {
         if (!candidateHosts.contains(hostname)) {
           throw new AmbariException("Request specifies host " + hostname +
-            " but it is not a valid host based on the " +
+            " but its not a valid host based on the " +
             "target service=" + serviceName + " and component=" + componentName);
         }
       }
@@ -417,10 +403,7 @@ public class AmbariActionExecutionHelper {
       execCmd.setComponentName(componentName == null || componentName.isEmpty() ?
         resourceFilter.getComponentName() : componentName);
 
-      Map<String, String> hostLevelParams = execCmd.getHostLevelParams();
-      hostLevelParams.put(AGENT_STACK_RETRY_ON_UNAVAILABILITY, configs.isAgentStackRetryOnInstallEnabled());
-      hostLevelParams.put(AGENT_STACK_RETRY_COUNT, configs.getAgentStackRetryOnInstallCount());
-      addRepoInfoToHostLevelParams(cluster, hostLevelParams, hostName);
+      addRepoInfoToHostLevelParams(cluster, execCmd.getHostLevelParams(), hostName);
 
       Map<String, String> roleParams = execCmd.getRoleParams();
       if (roleParams == null) {
@@ -433,12 +416,6 @@ public class AmbariActionExecutionHelper {
 
       if (componentInfo != null) {
         roleParams.put(COMPONENT_CATEGORY, componentInfo.getCategory());
-      }
-
-      // if there is a stack upgrade which is currently suspended then pass that
-      // information down with the command as some components may need to know
-      if (null != cluster && cluster.isUpgradeSuspended()) {
-        roleParams.put(KeyNames.UPGRADE_SUSPENDED, Boolean.TRUE.toString().toLowerCase());
       }
 
       execCmd.setRoleParams(roleParams);
@@ -454,16 +431,8 @@ public class AmbariActionExecutionHelper {
 
           execCmd.setForceRefreshConfigTagsBeforeExecution(configsToRefresh);
         }
-      } 
-
-      if (null != cluster) {
-        // Generate localComponents
-        for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostName)) {
-          execCmd.getLocalComponents().add(sch.getServiceComponentName());
-        }
-     } 
-
-     } 
+      }
+    }
   }
 
   /*

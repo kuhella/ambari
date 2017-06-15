@@ -65,7 +65,7 @@ public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
 
     condition.setStatement(String.format(GET_AGGREGATED_HOST_METRIC_GROUPBY_SQL,
       PhoenixTransactSQL.getNaiveTimeRangeHint(startTime, nativeTimeRangeDelay),
-      outputTableName, endTime, tableName, startTime, endTime));
+      outputTableName, tableName, startTime, endTime));
 
     if (LOG.isDebugEnabled()) {
       LOG.debug("Condition: " + condition.toString());

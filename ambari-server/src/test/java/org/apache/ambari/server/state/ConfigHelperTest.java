@@ -31,11 +31,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import javax.persistence.EntityManager;
 
@@ -52,7 +48,6 @@ import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
@@ -228,22 +223,6 @@ public class ConfigHelperTest {
       return configGroup.getId();
     }
 
-    void applyConfig(Map<String, String> properties, String configType, String configTag) throws Exception {
-      ConfigurationRequest cr = new ConfigurationRequest();
-      cr.setClusterName(clusterName);
-      cr.setType(configType);
-      cr.setVersionTag(configTag);
-      cr.setProperties(properties);
-
-      final ClusterRequest clusterRequest =
-          new ClusterRequest(cluster.getClusterId(), clusterName,
-              cluster.getDesiredStackVersion().getStackVersion(), null);
-
-      clusterRequest.setDesiredConfig(Collections.singletonList(cr));
-      managementController.updateClusters(new HashSet<ClusterRequest>() {{
-        add(clusterRequest);
-      }}, null);
-    }
     @Test
     public void testEffectiveTagsForHost() throws Exception {
       final Config config = new ConfigImpl("core-site");
@@ -670,32 +649,6 @@ public class ConfigHelperTest {
     }
 
     @Test
-    public void testUpdateConfigTypeRemovals() throws Exception {
-      Config currentConfig = cluster.getDesiredConfigByType("oozie-site");
-      Map<String, String> properties = currentConfig.getProperties();
-      // Config tag before update
-      Assert.assertEquals("version1", currentConfig.getTag());
-      // Properties before update
-      Assert.assertEquals("simple", properties.get("oozie.authentication.type"));
-      Assert.assertEquals("false", properties.get("oozie.service.HadoopAccessorService.kerberos.enabled"));
-
-      List<String> removals = new ArrayList<String>();
-      removals.add("oozie.authentication.type");
-
-      configHelper.updateConfigType(cluster, managementController, "oozie-site", null, removals, "admin", "Test note");
-
-      Config updatedConfig = cluster.getDesiredConfigByType("oozie-site");
-      // Config tag updated
-      Assert.assertFalse("version1".equals(updatedConfig.getTag()));
-      // Property removed
-      properties = updatedConfig.getProperties();
-      Assert.assertFalse(properties.containsKey("oozie.authentication.type"));
-      // Property unchanged
-      Assert.assertTrue(properties.containsKey("oozie.service.HadoopAccessorService.kerberos.enabled"));
-      Assert.assertEquals("false", properties.get("oozie.service.HadoopAccessorService.kerberos.enabled"));
-    }
-
-    @Test
     public void testCalculateIsStaleConfigs() throws Exception {
 
       Map<String, HostConfig> schReturn = new HashMap<String, HostConfig>();
@@ -765,111 +718,6 @@ public class ConfigHelperTest {
 
       verify(sch);
     }
-    @Test
-    public void testCalculateIsStaleConfigsParallel() throws Exception{
-      Map<String, HostConfig> schReturn = new HashMap<String, HostConfig>();
-      HostConfig hc = new HostConfig();
-      // Put a different version to check for change
-      hc.setDefaultVersionTag("version2");
-      schReturn.put("flume-conf", hc);
-
-      // set up mocks
-      final ServiceComponentHost sch = createNiceMock(ServiceComponentHost.class);
-      // set up expectations
-      expect(sch.getActualConfigs()).andReturn(schReturn).anyTimes();
-      expect(sch.getHostName()).andReturn("h1").anyTimes();
-      expect(sch.getClusterId()).andReturn(1l).anyTimes();
-      expect(sch.getServiceName()).andReturn("FLUME").anyTimes();
-      expect(sch.getServiceComponentName()).andReturn("FLUME_HANDLER").anyTimes();
-      replay(sch);
-      // Cluster level config changes
-
-      final Config config1 = cluster.getDesiredConfigByType("flume-conf");
-
-      applyConfig(new HashMap<String, String>(){{
-        put("property", "1");
-      }}, "flume-conf", "version2");
-
-      final Config config2 = cluster.getDesiredConfigByType("flume-conf");
-
-      applyConfig(new HashMap<String, String>(){{
-        put("property", "2");
-      }}, "flume-conf", "version3");
-
-      final Config config3 = cluster.getDesiredConfigByType("flume-conf");
-
-      cluster.addDesiredConfig("admin", new HashSet<Config>(){{add(config1);}});
-
-      final AtomicBoolean mustBeStale = new AtomicBoolean();
-      mustBeStale.set(false);
-
-      final AtomicBoolean failed = new AtomicBoolean();
-      failed.set(false);
-
-      final AtomicBoolean finished = new AtomicBoolean();
-      finished.set(false);
-      // avoid situations when not checked previous mustBeStale value yes and applied new config version
-      final Lock checkLock = new ReentrantLock();
-
-      // parallel thread that will compare actual stale config with expected accordingly to desired configs, checks if
-      // isStaleConfigs bypassing every cache and returns correct information.
-      Thread parallel = new Thread(new Runnable() {
-        @Override
-        public void run() {
-          while(!finished.get()){
-            checkLock.lock();
-            try {
-              boolean isStale = configHelper.isStaleConfigs(sch);
-              if(mustBeStale.get() != isStale){
-                failed.set(true);
-                break;
-              }
-            } catch (AmbariException e) {
-              e.printStackTrace();
-            } finally {
-              checkLock.unlock();
-            }
-          }
-        }
-      });
-
-      parallel.start();
-
-      Random r = new Random();
-      for(int i=0; i< 1000; i++){
-        try {
-          checkLock.lock();
-          switch(r.nextInt(3)) {
-            case 0: {
-              cluster.addDesiredConfig("admin", new HashSet<Config>(){{add(config1);}});
-              mustBeStale.set(true);
-              checkLock.unlock();
-              break;
-            }
-            case 1: {
-              cluster.addDesiredConfig("admin", new HashSet<Config>(){{add(config2);}});
-              mustBeStale.set(false);
-              checkLock.unlock();
-              break;
-            }
-            case 2: {
-              cluster.addDesiredConfig("admin", new HashSet<Config>(){{add(config3);}});
-              mustBeStale.set(true);
-              checkLock.unlock();
-              break;
-            }
-          }
-        } catch (Exception e){
-          checkLock.unlock();
-        }
-        if(!parallel.isAlive()) {
-          break;
-        }
-      }
-      finished.set(true);
-      parallel.join();
-      Assert.assertFalse(failed.get());
-    }
   }
 
   public static class RunWithCustomModule {
@@ -897,7 +745,6 @@ public class ConfigHelperTest {
           bind(Clusters.class).toInstance(createNiceMock(ClustersImpl.class));
           bind(ClusterController.class).toInstance(clusterController);
           bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
-          bind(HostRoleCommandDAO.class).toInstance(createNiceMock(HostRoleCommandDAO.class));
         }
       });
 

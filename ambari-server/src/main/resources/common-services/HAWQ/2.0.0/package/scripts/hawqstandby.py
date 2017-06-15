@@ -16,13 +16,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
 from resource_management import Script
-from resource_management.core.logger import Logger
+from resource_management.libraries.functions.check_process_status import check_process_status
 
+import master_helper
 import common
 import hawq_constants
-import master_helper
 
 class HawqStandby(Script):
   """
@@ -41,27 +40,19 @@ class HawqStandby(Script):
     master_helper.configure_master()
 
   def start(self, env):
-    import params
     self.configure(env)
     common.validate_configuration()
-    common.start_component(hawq_constants.STANDBY, params.hawq_master_address_port, params.hawq_master_dir)
+    master_helper.start_master()
 
   def stop(self, env):
-    import params
-    common.stop_component(hawq_constants.STANDBY, hawq_constants.FAST)
+    master_helper.stop()
 
   def status(self, env):
-    from hawqstatus import assert_component_running
-    assert_component_running(hawq_constants.STANDBY)
+    from hawqstatus import get_pid_file
+    check_process_status(get_pid_file())
 
-  def activate_hawq_standby(self, env):
-    import utils
-    Logger.info("Activating HAWQ standby...")
-    utils.exec_hawq_operation(hawq_constants.ACTIVATE, "{0} -a -M {1} -v --ignore-bad-hosts".format(hawq_constants.STANDBY, hawq_constants.FAST))
+  def activatestandby(self, env):
+    pass
 
-    # Stop the newly become master as the process might be running with an old port,
-    # which would cause a failure Start HAWQ Service step in Activte HAWQ Standby Master Wizard
-    common.stop_component(hawq_constants.MASTER, hawq_constants.FAST)
-    
 if __name__ == "__main__":
-  HawqStandby().execute()
+    HawqStandby().execute()

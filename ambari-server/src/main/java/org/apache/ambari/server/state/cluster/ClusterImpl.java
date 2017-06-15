@@ -46,7 +46,6 @@ import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
-import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariSessionManager;
@@ -55,7 +54,6 @@ import org.apache.ambari.server.controller.ConfigurationResponse;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
-import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.cache.HostConfigMapping;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
@@ -66,10 +64,8 @@ import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.ConfigGroupHostMappingDAO;
 import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
-import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
@@ -83,20 +79,15 @@ import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.RequestScheduleEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
-import org.apache.ambari.server.orm.entities.UpgradeEntity;
-import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
-import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ClusterHealthReport;
@@ -128,7 +119,6 @@ import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
-import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostSummary;
 import org.apache.ambari.server.topology.TopologyRequest;
 import org.apache.commons.lang.StringUtils;
@@ -211,12 +201,6 @@ public class ClusterImpl implements Cluster {
 
   @Inject
   private ClusterVersionDAO clusterVersionDAO;
-
-  @Inject
-  private HostRoleCommandDAO hostRoleCommandDAO;
-
-  @Inject
-  private RequestDAO requestDAO;
 
   @Inject
   private HostDAO hostDAO;
@@ -1118,106 +1102,12 @@ public class ClusterImpl implements Cluster {
     Collection<ClusterVersionEntity> clusterVersionEntities = getClusterEntity().getClusterVersionEntities();
     for (ClusterVersionEntity clusterVersionEntity : clusterVersionEntities) {
       if (clusterVersionEntity.getState() == RepositoryVersionState.CURRENT) {
-        // TODO assuming there's only 1 current version, return 1st found, exception was expected in previous implementation
+//      TODO assuming there's only 1 current version, return 1st found, exception was expected in previous implementation
         return clusterVersionEntity;
       }
     }
     return null;
-  }
-
-  /**
-   * Get any stack upgrade currently in progress.
-   * @return
-   */
-  private UpgradeEntity getUpgradeInProgress() {
-    UpgradeEntity mostRecentUpgrade = upgradeDAO.findLastUpgradeOrDowngradeForCluster(this.getClusterId());
-
-    if (mostRecentUpgrade != null) {
-      List<HostRoleStatus> UNFINISHED_STATUSES = new ArrayList();
-      UNFINISHED_STATUSES.add(HostRoleStatus.PENDING);
-      UNFINISHED_STATUSES.add(HostRoleStatus.ABORTED);
-
-      List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findByRequestIdAndStatuses(mostRecentUpgrade.getRequestId(), UNFINISHED_STATUSES);
-      if (!commands.isEmpty()) {
-        return mostRecentUpgrade;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * If no RU/EU is in progress, get the ClusterVersionEntity object whose state is CURRENT.
-   * If RU/EU is in progress, based on the direction and desired stack, determine which version to use.
-   * Assuming upgrading from HDP 2.2.0.0-1 to 2.3.0.0-2, then
-   * RU Upgrade: 2.3.0.0-2 (desired stack id)
-   * RU Downgrade: 2.2.0.0-1 (desired stack id)
-   * EU Upgrade: while stopping services and before changing desired stack, use 2.2.0.0-1, after, use 2.3.0.0-2
-   * EU Downgrade: while stopping services and before changing desired stack, use 2.3.0.0-2, after, use 2.2.0.0-1
-   * @return
-   */
-  @Override
-  public ClusterVersionEntity getEffectiveClusterVersion() throws AmbariException {
-    // This is not reliable. Need to find the last upgrade request.
-    UpgradeEntity upgradeInProgress = this.getUpgradeInProgress();
-    if (upgradeInProgress == null) {
-      return this.getCurrentClusterVersion();
-    }
-
-    String effectiveVersion = null;
-    switch (upgradeInProgress.getUpgradeType()) {
-      case NON_ROLLING:
-        if (upgradeInProgress.getDirection() == Direction.UPGRADE) {
-          boolean pastChangingStack = this.isNonRollingUpgradePastUpgradingStack(upgradeInProgress);
-          effectiveVersion = pastChangingStack ? upgradeInProgress.getToVersion() : upgradeInProgress.getFromVersion();
-        } else {
-          // Should be the lower value during a Downgrade.
-          effectiveVersion = upgradeInProgress.getToVersion();
-        }
-        break;
-      case ROLLING:
-      default:
-        // Version will be higher on upgrade and lower on downgrade directions.
-        effectiveVersion = upgradeInProgress.getToVersion();
-        break;
-    }
-
-    if (effectiveVersion == null) {
-      throw new AmbariException("Unable to determine which version to use during Stack Upgrade, effectiveVersion is null.");
-    }
-
-    // Find the first cluster version whose repo matches the expected version.
-    Collection<ClusterVersionEntity> clusterVersionEntities = getClusterEntity().getClusterVersionEntities();
-    for (ClusterVersionEntity clusterVersionEntity : clusterVersionEntities) {
-      if (clusterVersionEntity.getRepositoryVersion().getVersion().equals(effectiveVersion)) {
-        return clusterVersionEntity;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Given a NonRolling stack upgrade, determine if it has already crossed the point of using the newer version.
-   * @param upgrade Stack Upgrade
-   * @return Return true if should be using to_version, otherwise, false to mean the from_version.
-   */
-  private boolean isNonRollingUpgradePastUpgradingStack(UpgradeEntity upgrade) {
-    for (UpgradeGroupEntity group : upgrade.getUpgradeGroups()) {
-      if (group.getName().equalsIgnoreCase(UpgradeResourceProvider.CONST_UPGRADE_GROUP_NAME)) {
-        for (UpgradeItemEntity item : group.getItems()) {
-          List<Long> taskIds = hostRoleCommandDAO.findTaskIdsByStage(upgrade.getRequestId(), item.getStageId());
-          List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findByPKs(taskIds);
-          for (HostRoleCommandEntity command : commands) {
-            if (command.getCustomCommandName() != null &&
-                command.getCustomCommandName().equalsIgnoreCase(UpgradeResourceProvider.CONST_CUSTOM_COMMAND_NAME) &&
-                command.getStatus() == HostRoleStatus.COMPLETED) {
-              return true;
-            }
-          }
-        }
-        return false;
-      }
-    }
-    return false;
+//    return clusterVersionDAO.findByClusterAndStateCurrent(getClusterName());
   }
 
   /**
@@ -1636,8 +1526,8 @@ public class ClusterImpl implements Cluster {
     StackId repoVersionStackId = new StackId(repoVersionStackEntity);
 
     HostVersionEntity hostVersionEntity = hostVersionDAO.findByClusterStackVersionAndHost(
-      getClusterId(), repoVersionStackId, repositoryVersion.getVersion(),
-      host.getHostId());
+      getClusterName(), repoVersionStackId, repositoryVersion.getVersion(),
+      host.getHostName());
 
     hostTransitionStateWriteLock.lock();
     try {
@@ -1652,7 +1542,7 @@ public class ClusterImpl implements Cluster {
         hostVersionDAO.create(hostVersionEntity);
       }
 
-      HostVersionEntity currentVersionEntity = hostVersionDAO.findByHostAndStateCurrent(getClusterId(), host.getHostId());
+      HostVersionEntity currentVersionEntity = hostVersionDAO.findByHostAndStateCurrent(getClusterName(), host.getHostName());
       boolean isCurrentPresent = (currentVersionEntity != null);
       final ServiceComponentHostSummary hostSummary = new ServiceComponentHostSummary(ambariMetaInfo, host, stack);
 
@@ -2295,7 +2185,7 @@ public class ClusterImpl implements Cluster {
    */
   @Override
   public Map<String, Set<DesiredConfig>> getAllDesiredConfigVersions() {
-    return getDesiredConfigs(true, false);
+    return getDesiredConfigs(true);
   }
 
   /**
@@ -2304,12 +2194,9 @@ public class ClusterImpl implements Cluster {
    */
   @Override
   public Map<String, DesiredConfig> getDesiredConfigs() {
-    return getDesiredConfigs(false);
-  }
 
-  @Override
-  public Map<String, DesiredConfig> getDesiredConfigs(boolean bypassCache) {
-    Map<String, Set<DesiredConfig>> activeConfigsByType = getDesiredConfigs(false, bypassCache);
+    Map<String, Set<DesiredConfig>> activeConfigsByType = getDesiredConfigs(false);
+
     return Maps.transformEntries(
         activeConfigsByType,
         new Maps.EntryTransformer<String, Set<DesiredConfig>, DesiredConfig>() {
@@ -2320,6 +2207,7 @@ public class ClusterImpl implements Cluster {
         });
   }
 
+
   /**
    * Gets desired configurations for the cluster.
    * @param allVersions specifies if all versions of the desired configurations to be returned
@@ -2327,17 +2215,14 @@ public class ClusterImpl implements Cluster {
    *                    desired configuration per config type.
    * @return a map of type-to-configuration information.
    */
-  private Map<String, Set<DesiredConfig>> getDesiredConfigs(boolean allVersions, boolean bypassCache) {
+  private Map<String, Set<DesiredConfig>> getDesiredConfigs(boolean allVersions) {
     loadConfigurations();
     clusterGlobalLock.readLock().lock();
     try {
       Map<String, Set<DesiredConfig>> map = new HashMap<>();
       Collection<String> types = new HashSet<>();
-      Collection<ClusterConfigMappingEntity> entities =
-          bypassCache ?
-              clusterDAO.getClusterConfigMappingEntitiesByCluster(getClusterId()) :
-              getClusterEntity().getConfigMappingEntities();
-      for (ClusterConfigMappingEntity e : entities) {
+
+      for (ClusterConfigMappingEntity e : getClusterEntity().getConfigMappingEntities()) {
         if (allVersions || e.isSelected() > 0) {
           DesiredConfig c = new DesiredConfig();
           c.setServiceName(null);
@@ -2348,17 +2233,7 @@ public class ClusterImpl implements Cluster {
                 " unknown configType=" + e.getType());
             continue;
           }
-
-          Map<String, Config> configMap = allConfigs.get(e.getType());
-          if(!configMap.containsKey(e.getTag())) {
-            LOG.debug("Config inconsistency exists for typeName=" +
-                    e.getType() +
-                    ", unknown versionTag=" + e.getTag());
-            continue;
-          }
-
-          Config config = configMap.get(e.getTag());
-          c.setVersion(config.getVersion());
+          c.setVersion(allConfigs.get(e.getType()).get(e.getTag()).getVersion());
 
           Set<DesiredConfig> configs = map.get(e.getType());
           if (configs == null) {
@@ -2454,11 +2329,11 @@ public class ClusterImpl implements Cluster {
 
     configChangeLog.info("Cluster '{}' changed by: '{}'; service_name='{}' config_group='{}' config_group_id='{}' " +
         "version='{}'", getClusterName(), user, serviceName,
-      configGroup == null ? ServiceConfigVersionResponse.DEFAULT_CONFIG_GROUP_NAME : configGroup.getName(),
+      configGroup == null ? "default" : configGroup.getName(),
       configGroup == null ? "-1" : configGroup.getId(),
       serviceConfigEntity.getVersion());
 
-    String configGroupName = configGroup != null ? configGroup.getName() : ServiceConfigVersionResponse.DEFAULT_CONFIG_GROUP_NAME;
+    String configGroupName = configGroup != null ? configGroup.getName() : null;
 
     ServiceConfigVersionResponse response = new ServiceConfigVersionResponse(
         serviceConfigEntity, configGroupName);
@@ -2543,48 +2418,13 @@ public class ClusterImpl implements Cluster {
     clusterGlobalLock.readLock().lock();
     try {
       List<ServiceConfigVersionResponse> serviceConfigVersionResponses = new ArrayList<ServiceConfigVersionResponse>();
+      Set<Long> activeIds = getActiveServiceConfigVersionIds();
 
-      List<ServiceConfigEntity> serviceConfigs = serviceConfigDAO.getServiceConfigs(getClusterId());
-
-      // Gather for each service in each config group the active service config response  as we
-      // iterate through all service config responses
-      Map<String, Map<String, ServiceConfigVersionResponse>> activeServiceConfigResponses = new HashMap<>();
-
-      for (ServiceConfigEntity serviceConfigEntity : serviceConfigs) {
+      for (ServiceConfigEntity serviceConfigEntity : serviceConfigDAO.getServiceConfigs(getClusterId())) {
         ServiceConfigVersionResponse serviceConfigVersionResponse = convertToServiceConfigVersionResponse(serviceConfigEntity);
 
-        Map<String, ServiceConfigVersionResponse> activeServiceConfigResponseGroups = activeServiceConfigResponses.get(serviceConfigVersionResponse.getServiceName());
-
-        if (activeServiceConfigResponseGroups == null) {
-          Map<String, ServiceConfigVersionResponse> serviceConfigGroups = new HashMap<>();
-          activeServiceConfigResponses.put(serviceConfigVersionResponse.getServiceName(), serviceConfigGroups);
-
-          activeServiceConfigResponseGroups = serviceConfigGroups;
-        }
-
-        // the active config within a group
-        ServiceConfigVersionResponse activeServiceConfigResponse = activeServiceConfigResponseGroups.get(serviceConfigVersionResponse.getGroupName());
-
-        if (activeServiceConfigResponse == null && !ServiceConfigVersionResponse.DELETED_CONFIG_GROUP_NAME.equals(serviceConfigVersionResponse.getGroupName())) {
-          // service config version with deleted group should always be marked is not current
-          activeServiceConfigResponseGroups.put(serviceConfigVersionResponse.getGroupName(), serviceConfigVersionResponse);
-          activeServiceConfigResponse = serviceConfigVersionResponse;
-        }
-
         serviceConfigVersionResponse.setConfigurations(new ArrayList<ConfigurationResponse>());
-
-        if (serviceConfigEntity.getGroupId() == null) {
-          if (serviceConfigVersionResponse.getCreateTime() > activeServiceConfigResponse.getCreateTime()) {
-            activeServiceConfigResponseGroups.put(serviceConfigVersionResponse.getGroupName(), serviceConfigVersionResponse);
-          }
-        }
-        else if (clusterConfigGroups != null && clusterConfigGroups.containsKey(serviceConfigEntity.getGroupId())){
-          if (serviceConfigVersionResponse.getVersion() > activeServiceConfigResponse.getVersion()) {
-            activeServiceConfigResponseGroups.put(serviceConfigVersionResponse.getGroupName(), serviceConfigVersionResponse);
-          }
-        }
-
-        serviceConfigVersionResponse.setIsCurrent(false);
+        serviceConfigVersionResponse.setIsCurrent(activeIds.contains(serviceConfigEntity.getServiceConfigId()));
 
         List<ClusterConfigEntity> clusterConfigEntities = serviceConfigEntity.getClusterConfigEntities();
         for (ClusterConfigEntity clusterConfigEntity : clusterConfigEntities) {
@@ -2598,12 +2438,6 @@ public class ClusterImpl implements Cluster {
         }
 
         serviceConfigVersionResponses.add(serviceConfigVersionResponse);
-      }
-
-      for (Map<String, ServiceConfigVersionResponse> serviceConfigVersionResponseGroup: activeServiceConfigResponses.values()) {
-        for (ServiceConfigVersionResponse serviceConfigVersionResponse : serviceConfigVersionResponseGroup.values()) {
-          serviceConfigVersionResponse.setIsCurrent(true);
-        }
       }
 
       return serviceConfigVersionResponses;
@@ -2622,6 +2456,14 @@ public class ClusterImpl implements Cluster {
       responses.add(response);
     }
     return responses;
+  }
+
+  private Set<Long> getActiveServiceConfigVersionIds() {
+    Set<Long> idSet = new HashSet<Long>();
+    for (ServiceConfigEntity entity : getActiveServiceConfigVersionEntities()) {
+      idSet.add(entity.getServiceConfigId());
+    }
+    return idSet;
   }
 
   private List<ServiceConfigEntity> getActiveServiceConfigVersionEntities() {
@@ -2662,10 +2504,10 @@ public class ClusterImpl implements Cluster {
       if (configGroup != null) {
         groupName = configGroup.getName();
       } else {
-        groupName = ServiceConfigVersionResponse.DELETED_CONFIG_GROUP_NAME;
+        groupName = "deleted";
       }
     } else {
-      groupName = ServiceConfigVersionResponse.DEFAULT_CONFIG_GROUP_NAME;
+      groupName = "default";
     }
 
     ServiceConfigVersionResponse serviceConfigVersionResponse = new ServiceConfigVersionResponse(
@@ -2787,11 +2629,10 @@ public class ClusterImpl implements Cluster {
             serviceName = entry.getKey();
             break;
           } else if (!serviceName.equals(entry.getKey())) {
-            String error = String.format("Updating configs for multiple services by a " +
-                "single API request isn't supported. Conflicting services %s and %s for %s",
-                                         serviceName, entry.getKey(), config.getType());
+            String error = "Updating configs for multiple services by a " +
+                "single API request isn't supported";
             IllegalArgumentException exception = new IllegalArgumentException(error);
-            LOG.error(error + ", config version not created for {}", serviceName);
+            LOG.error(error + ", config version not created");
             throw exception;
           } else {
             break;
@@ -3294,7 +3135,7 @@ public class ClusterImpl implements Cluster {
       clusterGlobalLock.writeLock().unlock();
     }
   }
-
+  
   public Collection<ClusterConfigMappingEntity> getLatestConfigMapping(List<ClusterConfigMappingEntity> clusterConfigMappingEntities){
     Map<String, ClusterConfigMappingEntity> temp = new HashMap<String, ClusterConfigMappingEntity>();
     for (ClusterConfigMappingEntity e : clusterConfigMappingEntities) {
@@ -3312,7 +3153,7 @@ public class ClusterImpl implements Cluster {
     }
 
     return temp.values();
-  }
+  }  
 
   /**
    * {@inheritDoc}
@@ -3549,17 +3390,7 @@ public class ClusterImpl implements Cluster {
   private ClusterEntity getClusterEntity() {
     return clusterDAO.findById(clusterId);
   }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean isUpgradeSuspended() {
-    UpgradeEntity lastUpgradeItemForCluster = upgradeDAO.findLastUpgradeForCluster(clusterId);
-    if (null != lastUpgradeItemForCluster) {
-      return lastUpgradeItemForCluster.isSuspended();
-    }
-
-    return false;
-  }
 }
+
+
+

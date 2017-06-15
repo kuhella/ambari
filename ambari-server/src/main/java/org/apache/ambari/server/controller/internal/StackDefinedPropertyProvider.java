@@ -207,7 +207,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
       }
 
     } catch (Exception e) {
-      LOG.error("Error loading deferred resources", e);
+      e.printStackTrace();
       throw new SystemException("Error loading deferred resources", e);
     }
 

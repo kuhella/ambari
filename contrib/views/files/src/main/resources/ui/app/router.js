@@ -16,18 +16,8 @@
  * limitations under the License.
  */
 
-import Ember from 'ember';
-import config from './config/environment';
+App = require('app');
 
-const Router = Ember.Router.extend({
-  location: config.locationType
+App.Router.map(function() {
+  this.route('files', { queryParams:['path'],path: '/',});
 });
-
-Router.map(function() {
-  this.route('files');
-  this.route('messages', function() {
-    this.route('message', {path: '/:message_id'});
-  });
-});
-
-export default Router;

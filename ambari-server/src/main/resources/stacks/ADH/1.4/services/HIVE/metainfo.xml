@@ -33,7 +33,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat7,amazon2015,redhat6,suse11</osFamily>
+          <osFamily>redhat7,redhat6,suse11</osFamily>
           <packages>
             <package>
               <name>hive</name>
@@ -44,11 +44,6 @@
             <package>
               <name>hive-webhcat</name>
             </package>
-<!--
-            <package>
-              <name>atlas-metadata*</name>
-            </package>
--->
           </packages>
         </osSpecific>
         <osSpecific>
@@ -84,9 +79,6 @@
             </package>
             <package>
               <name>hive-webhcat</name>
-            </package>
-            <package>
-              <name>atlas-metadata.*</name>
             </package>
           </packages>
         </osSpecific>

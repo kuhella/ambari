@@ -128,11 +128,11 @@ public class RecommendationResponse extends StackAdvisorResponse {
 
   public static class BlueprintConfigurations {
     @JsonProperty
-    private final Map<String, String> properties = new HashMap<String, String>();
+    private Map<String, String> properties;
 
     @JsonProperty("property_attributes")
     @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
-    private Map<String, ValueAttributesInfo> propertyAttributes = null;
+    private Map<String, ValueAttributesInfo> propertyAttributes;
 
     public BlueprintConfigurations() {
 
@@ -142,18 +142,8 @@ public class RecommendationResponse extends StackAdvisorResponse {
       return properties;
     }
 
-    /**
-     * Returns a map of properties for this configuration.
-     * <p/>
-     * It is expected that a non-null value is always returned.
-     *
-     * @param properties a map of properties, always non-null
-     */
     public void setProperties(Map<String, String> properties) {
-      this.properties.clear();
-      if(properties != null) {
-        this.properties.putAll(properties);
-      }
+      this.properties = properties;
     }
 
     public Map<String, ValueAttributesInfo> getPropertyAttributes() {

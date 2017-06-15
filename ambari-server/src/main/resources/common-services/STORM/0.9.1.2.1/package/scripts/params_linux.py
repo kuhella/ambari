@@ -33,7 +33,6 @@ from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import get_kinit_path
-from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 
 # server configurations
 config = Script.get_config()
@@ -116,9 +115,6 @@ security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 storm_ui_host = default("/clusterHostInfo/storm_ui_server_hosts", [])
 
-storm_user_nofile_limit = default('/configurations/storm-env/storm_user_nofile_limit', 128000)
-storm_user_nproc_limit = default('/configurations/storm-env/storm_user_noproc_limit', 65536)
-
 if security_enabled:
   _hostname_lowercase = config['hostname'].lower()
   _storm_principal_name = config['configurations']['storm-env']['storm_principal_name']
@@ -161,7 +157,7 @@ if has_metric_collector:
       'metrics_collector_vip_port' in config['configurations']['cluster-env']:
     metric_collector_port = config['configurations']['cluster-env']['metrics_collector_vip_port']
   else:
-    metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "localhost:6188")
+    metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188")
     if metric_collector_web_address.find(':') != -1:
       metric_collector_port = metric_collector_web_address.split(':')[1]
     else:
@@ -169,16 +165,9 @@ if has_metric_collector:
 
   metric_collector_report_interval = 60
   metric_collector_app_id = "nimbus"
-  if default("/configurations/ams-site/timeline.metrics.service.http.policy", "HTTP_ONLY") == "HTTPS_ONLY":
-    metric_collector_protocol = 'https'
-  else:
-    metric_collector_protocol = 'http'
-  metric_truststore_path= default("/configurations/ams-ssl-client/ssl.client.truststore.location", "")
-  metric_truststore_type= default("/configurations/ams-ssl-client/ssl.client.truststore.type", "")
-  metric_truststore_password= default("/configurations/ams-ssl-client/ssl.client.truststore.password", "")
-  pass
+
 metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
-metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 10)
+metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 60)
 metric_collector_sink_jar = "/usr/lib/storm/lib/ambari-metrics-storm-sink*.jar"
 
 # ranger host
@@ -299,7 +288,6 @@ import functools
 HdfsResource = functools.partial(
   HdfsResource,
   user=hdfs_user,
-  hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore",
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
@@ -307,6 +295,5 @@ HdfsResource = functools.partial(
   hadoop_conf_dir = hadoop_conf_dir,
   principal_name = hdfs_principal_name,
   hdfs_site = hdfs_site,
-  default_fs = default_fs,
-  immutable_paths = get_not_managed_resources()
+  default_fs = default_fs
 )

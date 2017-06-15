@@ -253,8 +253,7 @@ describe('App.ChartLinearTimeView', function () {
         chartLinearTimeView.setProperties({
           currentTimeIndex: item.currentTimeIndex,
           customStartTime: item.customStartTime,
-          customEndTime: item.customEndTime,
-          timeUnitSeconds: 3600
+          customEndTime: item.customEndTime
         });
         var requestData = Em.Object.create(chartLinearTimeView.getDataForAjaxRequest());
         expect(requestData.getProperties(['fromSeconds', 'toSeconds'])).to.eql({
@@ -269,56 +268,31 @@ describe('App.ChartLinearTimeView', function () {
 
     var view,
       cases = [
-        {
-          parent: 1,
-          child: 2,
-          result: 2,
-          title: 'child and parent have currentTimeRangeIndex'
-        },
-        {
-          parent: undefined,
-          child: 2,
-          result: 2,
-          title: 'only child has currentTimeRangeIndex'
-        },
-        {
-          parent: 1,
-          child: undefined,
-          result: 1,
-          title: 'only parent has currentTimeRangeIndex'
-        }
-      ],
-      isReadyCases = [
-        {
-          inWidget: true,
-          isClusterMetricsWidget: true,
-          parentViewIsLoaded: true,
-          isReady: false,
-          title: 'cluster metrics widget'
-        },
-        {
-          inWidget: true,
-          isClusterMetricsWidget: false,
-          parentViewIsLoaded: false,
-          isReady: true,
-          title: 'enhanced service widget'
-        },
-        {
-          inWidget: false,
-          isClusterMetricsWidget: false,
-          parentViewIsLoaded: true,
-          isReady: false,
-          title: 'non-widget graph'
-        }
-      ];
+      {
+        parent: 1,
+        child: 2,
+        result: 2,
+        title: 'child and parent have currentTimeRangeIndex'
+      },
+      {
+        parent: undefined,
+        child: 2,
+        result: 2,
+        title: 'only child has currentTimeRangeIndex'
+      },
+      {
+        parent: 1,
+        child: undefined,
+        result: 1,
+        title: 'only parent has currentTimeRangeIndex'
+      }
+    ];
 
     beforeEach(function () {
       view = App.ChartLinearTimeView.create({
-        isReady: true,
         controller: {},
         parentView: Em.Object.create({
           currentTimeRangeIndex: 1,
-          isLoaded: true,
           parentView: Em.Object.create({
             currentTimeRangeIndex: 2
           })
@@ -333,33 +307,6 @@ describe('App.ChartLinearTimeView', function () {
         view.propertyDidChange('parentView.currentTimeRangeIndex');
         expect(view.get('currentTimeIndex')).to.equal(item.result);
       });
-    });
-
-    isReadyCases.forEach(function (item) {
-
-      describe(item.title, function () {
-
-        beforeEach(function () {
-          sinon.stub(App.ajax, 'abortRequests', Em.K);
-          view.set('inWidget', item.inWidget);
-          view.set('parentView.isClusterMetricsWidget', item.isClusterMetricsWidget);
-          view.propertyDidChange('parentView.currentTimeRangeIndex');
-        });
-
-        afterEach(function () {
-          App.ajax.abortRequests.restore();
-        });
-
-        it('parentView.isLoaded', function () {
-          expect(view.get('parentView.isLoaded')).to.eql(item.parentViewIsLoaded);
-        });
-
-        it('isReady', function () {
-          expect(view.get('isReady')).to.eql(item.isReady);
-        });
-
-      });
-
     });
 
   });
@@ -438,73 +385,6 @@ describe('App.ChartLinearTimeView', function () {
 
   });
 
-  describe('#localeTimeUnit', function () {
-
-    var cases = [
-      {
-        timeUnitSeconds: 240,
-        localeTimeUnit: '1 minute'
-      },
-      {
-        timeUnitSeconds: 172788,
-        localeTimeUnit: '719.95 minute'
-      },
-      {
-        timeUnitSeconds: 172800,
-        localeTimeUnit: 'day'
-      },
-      {
-        timeUnitSeconds: 1209599,
-        localeTimeUnit: 'day'
-      },
-      {
-        timeUnitSeconds: 1209600,
-        localeTimeUnit: 'week'
-      },
-      {
-        timeUnitSeconds: 5183999,
-        localeTimeUnit: 'week'
-      },
-      {
-        timeUnitSeconds: 5184000,
-        localeTimeUnit: 'month'
-      },
-      {
-        timeUnitSeconds: 62207999,
-        localeTimeUnit: 'month'
-      },
-      {
-        timeUnitSeconds: 622080000,
-        localeTimeUnit: 'year'
-      },
-      {
-        timeUnitSeconds: 700000000,
-        localeTimeUnit: 'year'
-      }
-    ];
-
-    beforeEach(function () {
-      sinon.stub(Rickshaw.Fixtures, 'Time').returns({
-        unit: function (name) {
-          return {
-            name: name
-          };
-        }
-      });
-    });
-
-    afterEach(function () {
-      Rickshaw.Fixtures.Time.restore();
-    });
-
-    cases.forEach(function (item) {
-      it(item.timeUnitSeconds + 's', function () {
-        expect(chartLinearTimeView.localeTimeUnit(item.timeUnitSeconds).name).to.equal(item.localeTimeUnit);
-      });
-    });
-
-  });
-
 });
 
 
@@ -575,8 +455,7 @@ describe('App.ChartLinearTimeView.LoadAggregator', function () {
       sinon.stub(App.ajax, 'send', function(){
         return {
           done: Em.K,
-          fail: Em.K,
-          always: Em.K
+          fail: Em.K
         }
       });
     });
@@ -586,12 +465,7 @@ describe('App.ChartLinearTimeView.LoadAggregator', function () {
       aggregator.formatRequestData.restore();
     });
     it("", function () {
-      var context = Em.Object.create({
-        content: {
-          hostName: 'host1'
-        },
-        runningRequests: []
-      });
+      var context = Em.Object.create({content: {hostName: 'host1'}});
       var requests = {
         'r1': {
           name: 'r1',

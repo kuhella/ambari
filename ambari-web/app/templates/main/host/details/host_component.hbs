@@ -134,7 +134,7 @@
         {{/if}}
 
       {{#each command in view.customCommands}}
-        <li {{bindAttr class="command.disabled:disabled"}}>
+        <li>
           <a href="javascript:void(null)" {{action "executeCustomCommand" command target="controller" href=true}}>{{command.label}}</a>
         </li>
       {{/each}}

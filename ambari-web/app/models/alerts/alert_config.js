@@ -237,7 +237,6 @@ App.AlertConfigProperties = {
     displayType: 'textField',
     unit: 'Minute',
     classNames: 'alert-interval-input',
-    stuckLeft: true,
     apiProperty: 'interval',
     isValid: function () {
       var value = this.get('value');
@@ -347,8 +346,8 @@ App.AlertConfigProperties = {
      * @type {bool}
      */
     wasChanged: function () {
-      return this.get('previousValue') !== null && this.get('value') !== this.get('previousValue') ||
-      this.get('previousText') !== null && this.get('text') !== this.get('previousText');
+      return (this.get('previousValue') !== null && this.get('value') !== this.get('previousValue')) ||
+      (this.get('previousText') !== null && this.get('text') !== this.get('previousText'));
     }.property('value', 'text', 'previousValue', 'previousText'),
 
     /**
@@ -435,27 +434,6 @@ App.AlertConfigProperties = {
         console.error('Wrong format of URI');
       }
       return result;
-    }.property('value')
-  }),
-
-  ConnectionTimeout: App.AlertConfigProperty.extend({
-    name: 'connection_timeout',
-    label: 'Connection Timeout',
-    displayType: 'textField',
-    classNames: 'alert-connection-timeout',
-    badge: 'CRITICAL',
-    /**
-     * Custom css-class for different badges
-     * type {string}
-     */
-    badgeCssClass: function () {
-      return 'alert-state-' + this.get('badge');
-    }.property('badge'),
-    apiProperty: 'source.uri.connection_timeout',
-    unit: 'Seconds',
-    isValid: function () {
-      var value = this.get('value');
-      return numericUtils.isPositiveNumber(value);
     }.property('value')
   }),
 
@@ -594,7 +572,7 @@ App.AlertConfigProperties.Thresholds = {
      */
     getNewValue: function () {
       var value = this.get('value');
-      return value && !isNaN(value) ? Number(value) * 100 + '' : value;
+      return (value && !isNaN(value)) ? (Number(value) * 100) + '' : value;
     },
 
     /**
@@ -603,7 +581,7 @@ App.AlertConfigProperties.Thresholds = {
      */
     getNewDisplayValue: function () {
       var displayValue = this.get('displayValue');
-      return displayValue && !isNaN(displayValue) ? Number(displayValue) / 100 + '' : displayValue;
+      return (displayValue && !isNaN(displayValue)) ? (Number(displayValue) / 100) + '' : displayValue;
     }
 
   }),

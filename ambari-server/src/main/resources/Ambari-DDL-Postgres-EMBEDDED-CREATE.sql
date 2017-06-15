@@ -681,7 +681,6 @@ CREATE TABLE ambari.topology_host_info (
   id BIGINT NOT NULL,
   group_id BIGINT NOT NULL,
   fqdn VARCHAR(255),
-  host_id BIGINT,
   host_count INTEGER,
   predicate VARCHAR(2048),
   rack_info VARCHAR(255),
@@ -727,7 +726,6 @@ GRANT ALL PRIVILEGES ON TABLE ambari.topology_logical_task TO :username;
 -- tasks indices --
 CREATE INDEX idx_stage_request_id ON ambari.stage (request_id);
 CREATE INDEX idx_hrc_request_id ON ambari.host_role_command (request_id);
-CREATE INDEX idx_hrc_status_role ON ambari.host_role_command (status, role);
 CREATE INDEX idx_rsc_request_id ON ambari.role_success_criteria (request_id);
 
 --------altering tables by creating unique constraints----------
@@ -809,7 +807,6 @@ ALTER TABLE ambari.widget_layout_user_widget ADD CONSTRAINT FK_widget_id FOREIGN
 ALTER TABLE ambari.topology_request ADD CONSTRAINT FK_topology_request_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters(cluster_id);
 ALTER TABLE ambari.topology_hostgroup ADD CONSTRAINT FK_hostgroup_req_id FOREIGN KEY (request_id) REFERENCES ambari.topology_request(id);
 ALTER TABLE ambari.topology_host_info ADD CONSTRAINT FK_hostinfo_group_id FOREIGN KEY (group_id) REFERENCES ambari.topology_hostgroup(id);
-ALTER TABLE ambari.topology_host_info ADD CONSTRAINT FK_hostinfo_host_id FOREIGN KEY (host_id) REFERENCES ambari.hosts(host_id);
 ALTER TABLE ambari.topology_logical_request ADD CONSTRAINT FK_logicalreq_req_id FOREIGN KEY (request_id) REFERENCES ambari.topology_request(id);
 ALTER TABLE ambari.topology_host_request ADD CONSTRAINT FK_hostreq_logicalreq_id FOREIGN KEY (logical_request_id) REFERENCES ambari.topology_logical_request(id);
 ALTER TABLE ambari.topology_host_request ADD CONSTRAINT FK_hostreq_group_id FOREIGN KEY (group_id) REFERENCES ambari.topology_hostgroup(id);
@@ -990,7 +987,6 @@ CREATE TABLE ambari.upgrade (
   skip_failures SMALLINT DEFAULT 0 NOT NULL,
   skip_sc_failures SMALLINT DEFAULT 0 NOT NULL,
   downgrade_allowed SMALLINT DEFAULT 1 NOT NULL,
-  suspended SMALLINT DEFAULT 0 NOT NULL,
   PRIMARY KEY (upgrade_id),
   FOREIGN KEY (cluster_id) REFERENCES ambari.clusters(cluster_id),
   FOREIGN KEY (request_id) REFERENCES ambari.request(request_id)
@@ -1145,7 +1141,7 @@ INSERT INTO ambari.adminprivilege (privilege_id, permission_id, resource_id, pri
   SELECT 1, 1, 1, 1;
 
 INSERT INTO ambari.metainfo (metainfo_key, metainfo_value)
-  SELECT 'version', '${ambariSchemaVersion}';
+  SELECT 'version', '${ambariVersion}';
 COMMIT;
 
 -- Quartz tables

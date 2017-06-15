@@ -18,31 +18,15 @@
 
 package org.apache.ambari.server.upgrade;
 
-import java.io.StringWriter;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.regex.Matcher;
-
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -63,23 +47,23 @@ import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
-import org.apache.ambari.server.state.Cluster;
+
+
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.alert.SourceType;
-import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
-import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
-import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
+import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
@@ -92,11 +76,28 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.Transactional;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.StringWriter;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.regex.Matcher;
 
 /**
  * Upgrade catalog for version 2.2.0.
@@ -383,9 +384,7 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
               if (!authorizationProviderExists) {
                 NodeList nodeList = root.getElementsByTagName("gateway");
                 if (nodeList != null && nodeList.getLength() > 0) {
-                  boolean rangerPluginEnabled = isConfigEnabled(cluster,
-                    AbstractUpgradeCatalog.CONFIGURATION_TYPE_RANGER_KNOX_PLUGIN_PROPERTIES,
-                    AbstractUpgradeCatalog.PROPERTY_RANGER_KNOX_PLUGIN_ENABLED);
+                  boolean rangerPluginEnabled = isRangerPluginEnabled(cluster);
 
                   Node gatewayNode = nodeList.item(0);
                   Element newProvider = topologyXml.createElement("provider");
@@ -599,32 +598,11 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
   }
 
   /**
-   * Find the single Repo Version for the given stack and version, and return
-   * its upgrade_package column. Because the upgrade_package column is going to
-   * be removed from this entity, must use raw SQL instead of the entity class.
-   * <p/>
-   * It's possible that there is an invalid version listed in the upgrade table.
-   * For example:
-   *
-   * <pre>
-   * upgrade
-   * 1 2 1295  2.2.0.0-2041  2.2.4.2-2     UPGRADE
-   * 2 2 1296  2.2.0.0-2041  2.2.0.0-2041  DOWNGRADE
-   * 3 2 1299  2.2.0.0-2041  2.2.4.2       UPGRADE
-   *
-   * repo_version
-   * 1  2.2.0.0-2041  HDP-2.2.0.0-2041  upgrade-2.2
-   * 2  2.2.4.2-2     HDP-2.2.4.2-2     upgrade-2.2
-   * </pre>
-   *
-   * Notice that it's possible for the {@code upgrade} table to include entries
-   * for a repo version which does not exist; {@code 2.2.4.2}. In these cases,
-   * this method will attempt a "best match".
-   *
-   * @param stack
-   *          Stack
-   * @param version
-   *          Stack version
+   * Find the single Repo Version for the given stack and version, and return its upgrade_package column.
+   * Because the upgrade_package column is going to be removed from this entity, must use raw SQL
+   * instead of the entity class.
+   * @param stack Stack
+   * @param version Stack version
    * @return The value of the upgrade_package column, or null if not found.
    */
 
@@ -633,20 +611,6 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
     // Find the corresponding repo_version, and extract its upgrade_package
     if (null != version && null != stack) {
       RepositoryVersionEntity repoVersion = repositoryVersionDAO.findByStackNameAndVersion(stack.getStackName(), version);
-
-      // a null repoVersion means there's mismatch between the upgrade and repo_version table;
-      // use a best-guess approach based on the Stack
-      if( null == repoVersion ){
-        List<RepositoryVersionEntity> bestMatches = repositoryVersionDAO.findByStack(new StackId(stack));
-        if (!bestMatches.isEmpty()) {
-          repoVersion = bestMatches.get(0);
-        }
-      }
-
-      // our efforts have failed; we have no idea what to use; return null as per the contract of the method
-      if( null == repoVersion ) {
-        return null;
-      }
 
       Statement statement = null;
       ResultSet rs = null;
@@ -1053,7 +1017,7 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
         String content = hbaseEnvConfig.getProperties().get(CONTENT_PROPERTY);
         if (content != null) {
           if (!content.contains("-Djava.io.tmpdir")) {
-            content += "\n\nexport HBASE_OPTS=\"${HBASE_OPTS} -Djava.io.tmpdir={{java_io_tmpdir}}\"";
+            content += "\n\nexport HBASE_OPTS=\"-Djava.io.tmpdir={{java_io_tmpdir}}\"";
             updateConfig = true;
           }
           if (stackId != null && stackId.getStackName().equals("HDP") &&

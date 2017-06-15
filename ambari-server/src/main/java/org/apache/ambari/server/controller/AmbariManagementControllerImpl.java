@@ -46,7 +46,6 @@ import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
@@ -152,7 +151,6 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -172,7 +170,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_R
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MAX_DURATION_OF_RETRIES;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.PACKAGE_LIST;
@@ -518,7 +515,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       ServiceComponent sc = s.getServiceComponent(
           request.getComponentName());
 
-      setRestartRequiredServices(s, request.getComponentName());
+      setRestartRequiredServices(s, request.getHostname());
 
       Host host;
       try {
@@ -659,12 +656,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   private void setRestartRequiredServices(
-          Service service, String componentName) throws AmbariException {
+          Service service, String hostName) throws AmbariException {
+
     Cluster cluster = service.getCluster();
     StackId stackId = cluster.getCurrentStackVersion();
-    if (service.getServiceComponent(componentName).isClientComponent()) {
-      return;
-    }
     Set<String> needRestartServices = ambariMetaInfo.getRestartRequiredServicesNames(
         stackId.getStackName(), stackId.getStackVersion());
 
@@ -672,13 +667,16 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       Map<String, ServiceComponent> m = service.getServiceComponents();
       for (Entry<String, ServiceComponent> entry : m.entrySet()) {
         ServiceComponent serviceComponent = entry.getValue();
-        Map<String, ServiceComponentHost> schMap = serviceComponent.getServiceComponentHosts();
-
-          for (Entry<String, ServiceComponentHost> sch : schMap.entrySet()) {
-            ServiceComponentHost serviceComponentHost = sch.getValue();
-            serviceComponentHost.setRestartRequired(true);
+        if (serviceComponent.isMasterComponent()) {
+          Map<String, ServiceComponentHost> schMap = serviceComponent.getServiceComponentHosts();
+          //schMap will only contain hostName when deleting a host; when adding a host the test skips the loop
+          if(schMap.containsKey(hostName)) {
+            for (Entry<String, ServiceComponentHost> sch : schMap.entrySet()) {
+              ServiceComponentHost serviceComponentHost = sch.getValue();
+              serviceComponentHost.setRestartRequired(true);
+            }
           }
-
+        }
       }
     }
   }
@@ -1436,9 +1434,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             isConfigurationCreationNeeded = true;
             break;
           } else {
-            if ( cluster.getServiceByConfigType(clusterConfig.getType()) != null &&  clusterConfig.getServiceConfigVersions().isEmpty() ) {
-
-              //If there's no service config versions containing this config (except cluster configs), recreate it even if exactly equal
+            if (clusterConfig.getServiceConfigVersions().isEmpty()) {
+              //If there's no service config versions containing this config, recreate it even if exactly equal
               LOG.warn("Existing desired config doesn't belong to any service config version, " +
                   "forcing config recreation, " +
                   "clusterName={}, type = {}, tag={}", cluster.getClusterName(), clusterConfig.getType(),
@@ -1600,30 +1597,25 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         } catch (KerberosOperationException e) {
           throw new IllegalArgumentException(e.getMessage(), e);
         }
-      } else {
-        // If force_toggle_kerberos is not specified, null will be returned. Therefore, perform an
-        // equals check to yield true if the result is Boolean.TRUE, otherwise false.
-        boolean forceToggleKerberos = kerberosHelper.getForceToggleKerberosDirective(requestProperties);
+      } else if (cluster.getSecurityType() != securityType) {
+        LOG.info("Received cluster security type change request from {} to {}",
+            cluster.getSecurityType().name(), securityType.name());
 
-        if (forceToggleKerberos || (cluster.getSecurityType() != securityType)) {
-          LOG.info("Received cluster security type change request from {} to {} (forced: {})",
-              cluster.getSecurityType().name(), securityType.name(), forceToggleKerberos);
-          if ((securityType == SecurityType.KERBEROS) || (securityType == SecurityType.NONE)) {
-            // Since the security state of the cluster has changed, invoke toggleKerberos to handle
-            // adding or removing Kerberos from the cluster. This may generate multiple stages
-            // or not depending the current state of the cluster.
-            try {
-              requestStageContainer = kerberosHelper.toggleKerberos(cluster, securityType, requestStageContainer,
-                  kerberosHelper.getManageIdentitiesDirective(requestProperties));
-            } catch (KerberosOperationException e) {
-              throw new IllegalArgumentException(e.getMessage(), e);
-            }
-          } else {
-            throw new IllegalArgumentException(String.format("Unexpected security type encountered: %s", securityType.name()));
+        if ((securityType == SecurityType.KERBEROS) || (securityType == SecurityType.NONE)) {
+          // Since the security state of the cluster has changed, invoke toggleKerberos to handle
+          // adding or removing Kerberos from the cluster. This may generate multiple stages
+          // or not depending the current state of the cluster.
+          try {
+            requestStageContainer = kerberosHelper.toggleKerberos(cluster, securityType, requestStageContainer,
+                kerberosHelper.getManageIdentitiesDirective(requestProperties));
+          } catch (KerberosOperationException e) {
+            throw new IllegalArgumentException(e.getMessage(), e);
           }
-
-          cluster.setSecurityType(securityType);
+        } else {
+          throw new IllegalArgumentException(String.format("Unexpected security type encountered: %s", securityType.name()));
         }
+
+        cluster.setSecurityType(securityType);
       }
     }
 
@@ -1932,31 +1924,17 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     Host host = clusters.getHost(scHost.getHostName());
 
-    LOG.info("Adding service type info in createHostAction:: " + serviceInfo.getServiceType());
-    execCmd.setServiceType(serviceInfo.getServiceType());
-    
     execCmd.setConfigurations(configurations);
     execCmd.setConfigurationAttributes(configurationAttributes);
     execCmd.setConfigurationTags(configTags);
+
+
 
     // Create a local copy for each command
     Map<String, String> commandParams = new TreeMap<String, String>();
     if (commandParamsInp != null) { // if not defined
       commandParams.putAll(commandParamsInp);
     }
-
-    //Propogate HCFS service type info
-    Iterator<Service> it = cluster.getServices().values().iterator();
-    while(it.hasNext()) {
-       ServiceInfo serviceInfoInstance = ambariMetaInfo.getService(stackId.getStackName(),stackId.getStackVersion(), it.next().getName());
-       LOG.info("Iterating service type Instance in createHostAction:: " + serviceInfoInstance.getName());
-       if(serviceInfoInstance.getServiceType() != null) {
-           LOG.info("Adding service type info in createHostAction:: " + serviceInfoInstance.getServiceType());
-            commandParams.put("dfs_type",serviceInfoInstance.getServiceType());
-           break;
-       }
-    }
-
     boolean isInstallCommand = roleCommand.equals(RoleCommand.INSTALL);
     String agentDefaultCommandTimeout = configs.getDefaultAgentTaskTimeout(isInstallCommand);
     String scriptCommandTimeout = "";
@@ -2009,10 +1987,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
         commandParams.put(MAX_DURATION_OF_RETRIES, Integer.toString(retryMaxTime));
         commandParams.put(COMMAND_RETRY_ENABLED, Boolean.toString(retryEnabled));
-        
-        ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
-        if (effectiveClusterVersion != null) {
-         commandParams.put(VERSION, effectiveClusterVersion.getRepositoryVersion().getVersion());
+        ClusterVersionEntity currentClusterVersion = cluster.getCurrentClusterVersion();
+        if (currentClusterVersion != null) {
+         commandParams.put(VERSION, currentClusterVersion.getRepositoryVersion().getVersion());
         }
         if (script.getTimeout() > 0) {
           scriptCommandTimeout = String.valueOf(script.getTimeout());
@@ -2071,10 +2048,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     String groupList = gson.toJson(groupSet);
     hostParams.put(GROUP_LIST, groupList);
 
-    Set<String> notManagedHdfsPathSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.NOT_MANAGED_HDFS_PATH, cluster);
-    String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
-    hostParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
-
     DatabaseType databaseType = configs.getDatabaseType();
     if (databaseType == DatabaseType.ORACLE) {
       hostParams.put(DB_DRIVER_FILENAME, configs.getOjdbcJarName());
@@ -2093,14 +2066,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     execCmd.setHostLevelParams(hostParams);
 
     Map<String, String> roleParams = new TreeMap<String, String>();
-
-    // !!! consistent with where custom commands put variables
-    // !!! after-INSTALL hook checks this such that the stack selection tool won't
-    // select-all to a version that is not being upgraded, breaking RU
-    if (cluster.isUpgradeSuspended()) {
-      roleParams.put(KeyNames.UPGRADE_SUSPENDED, Boolean.TRUE.toString().toLowerCase());
-    }
-
     execCmd.setRoleParams(roleParams);
 
     if ((execCmd != null) && (execCmd.getConfigurationTags().containsKey("cluster-env"))) {
@@ -2590,13 +2555,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     ec.setClusterHostInfo(
         StageUtils.getClusterHostInfo(cluster));
 
-    if (null != cluster) {
-      // Generate localComponents
-      for (ServiceComponentHost sch : cluster.getServiceComponentHosts(scHost.getHostName())) {
-        ec.getLocalComponents().add(sch.getServiceComponentName());
-      }
-    }
-
     // Hack - Remove passwords from configs
     if ((ec.getRole().equals(Role.HIVE_CLIENT.toString()) ||
             ec.getRole().equals(Role.WEBHCAT_SERVER.toString()) ||
@@ -2939,7 +2897,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             "DISABLED/INIT/INSTALLED/INSTALL_FAILED/UNKNOWN state. Current=" + componentHost.getState() + ".");
       }
 
-      setRestartRequiredServices(service, request.getComponentName());
+      setRestartRequiredServices(service, request.getHostname());
 
       if (!safeToRemoveSCHs.containsKey(component)) {
         safeToRemoveSCHs.put(component, new HashSet<ServiceComponentHost>());

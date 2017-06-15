@@ -199,7 +199,23 @@ class OozieUpgrade(Script):
       command = format("{kinit_path_local} -kt {oozie_keytab} {oozie_principal_with_host}")
       Execute(command, user=params.oozie_user, logoutput=True)
 
-    oozie.prepare_war()
+    # setup environment
+    environment = { "CATALINA_BASE" : "/usr/hdp/current/oozie-server/oozie-server",
+      "OOZIE_HOME" : "/usr/hdp/current/oozie-server" }
+
+    # prepare the oozie WAR
+    command = format("{oozie_setup_sh} prepare-war {oozie_secure} -d {oozie_libext_dir}")
+    return_code, oozie_output = shell.call(command, user=params.oozie_user,
+      logoutput=False, quiet=False, env=environment)
+
+    # set it to "" in to prevent a possible iteration issue
+    if oozie_output is None:
+      oozie_output = ""
+
+    if return_code != 0 or "New Oozie WAR file with added".lower() not in oozie_output.lower():
+      message = "Unexpected Oozie WAR preparation output {0}".format(oozie_output)
+      Logger.error(message)
+      raise Fail(message)
 
 
   def upgrade_oozie_database_and_sharelib(self, env):
@@ -218,8 +234,6 @@ class OozieUpgrade(Script):
     import params
     env.set_params(params)
 
-    Logger.info("Will upgrade the Oozie database")
-
     # get the kerberos token if necessary to execute commands as oozie
     if params.security_enabled:
       oozie_principal_with_host = params.oozie_principal.replace("_HOST", params.hostname)
@@ -233,7 +247,7 @@ class OozieUpgrade(Script):
     stack_version = upgrade_stack[1]
 
     # upgrade oozie DB
-    Logger.info(format('Upgrading the Oozie database, using version {stack_version}'))
+    Logger.info('Upgrading the Oozie database...')
 
     # the database upgrade requires the db driver JAR, but since we have
     # not yet run hdp-select to upgrade the current points, we have to use

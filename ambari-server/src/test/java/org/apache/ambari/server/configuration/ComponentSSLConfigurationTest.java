@@ -29,12 +29,12 @@ import org.junit.Test;
 public class ComponentSSLConfigurationTest {
 
   public static ComponentSSLConfiguration getConfiguration(String path,
-      String pass, String type, boolean isSslEnabled) {
+      String pass, String type, boolean gangliaSSL) {
     Properties ambariProperties = new Properties();
     ambariProperties.setProperty(Configuration.SSL_TRUSTSTORE_PATH_KEY, path);
     ambariProperties.setProperty(Configuration.SSL_TRUSTSTORE_PASSWORD_KEY, pass);
     ambariProperties.setProperty(Configuration.SSL_TRUSTSTORE_TYPE_KEY, type);
-    ambariProperties.setProperty(Configuration.AMRABI_METRICS_HTTPS_ENABLED_KEY, Boolean.toString(isSslEnabled));
+    ambariProperties.setProperty(Configuration.GANGLIA_HTTPS_KEY, Boolean.toString(gangliaSSL));
 
     Configuration configuration =  new TestConfiguration(ambariProperties);
 
@@ -70,7 +70,7 @@ public class ComponentSSLConfigurationTest {
   public void testIsGangliaSSL() throws Exception {
     ComponentSSLConfiguration sslConfiguration = getConfiguration("tspath",
         "tspass", "tstype", true);
-    Assert.assertTrue(sslConfiguration.isHttpsEnabled());
+    Assert.assertTrue(sslConfiguration.isGangliaSSL());
   }
 
   private static class TestConfiguration extends Configuration {

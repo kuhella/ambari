@@ -983,6 +983,7 @@ class TestHDP22StackAdvisor(TestCase):
       },
       'hive-env': {
         'properties': {
+          'cost_based_optimizer': 'On',
           'hive_exec_orc_storage_strategy': 'SPEED',
           'hive_security_authorization': 'None',
           'hive_timeline_logging_enabled': 'true',
@@ -992,10 +993,11 @@ class TestHDP22StackAdvisor(TestCase):
       'hive-site': {
         'properties': {
           'hive.server2.enable.doAs': 'true',
-          'hive.server2.tez.default.queues': "queue1,queue2",
+          'hive.server2.tez.default.queues': "default",
           'hive.server2.tez.initialize.default.sessions': 'false',
           'hive.server2.tez.sessions.per.default.queue': '1',
           'hive.auto.convert.join.noconditionaltask.size': '268435456',
+          'hive.cbo.enable': 'true',
           'hive.compactor.initiator.on': 'false',
           'hive.compactor.worker.threads': '0',
           'hive.compute.query.using.stats': 'true',
@@ -1037,16 +1039,7 @@ class TestHDP22StackAdvisor(TestCase):
          'hive.server2.authentication.kerberos.keytab': {'delete': 'true'}, 
          'hive.server2.authentication.ldap.url': {'delete': 'true'},
          'hive.server2.tez.default.queues': {
-           "entries": [
-             {
-               "value": "queue1",
-               "label": "queue1 queue"
-             },
-             {
-               "value": "queue2",
-               "label": "queue2 queue"
-             }
-           ]
+           'entries': [{'value': 'default', 'label': 'default queue'}]
           }
         }
       },
@@ -1147,8 +1140,7 @@ class TestHDP22StackAdvisor(TestCase):
             "hive.server2.authentication.kerberos.keytab": "",
             "hive.server2.authentication.kerberos.principal": "",
             "hive.server2.authentication.pam.services": "",
-            "hive.server2.custom.authentication.class": "",
-            "hive.cbo.enable": "true"
+            "hive.server2.custom.authentication.class": ""
           }
         },
         "hiveserver2-site": {
@@ -1223,8 +1215,7 @@ class TestHDP22StackAdvisor(TestCase):
             "hive.server2.authentication.kerberos.keytab": "",
             "hive.server2.authentication.kerberos.principal": "",
             "hive.server2.authentication.pam.services": "",
-            "hive.server2.custom.authentication.class": "",
-            "hive.cbo.enable": "true"
+            "hive.server2.custom.authentication.class": ""
           }
         },
         "hiveserver2-site": {
@@ -1288,8 +1279,10 @@ class TestHDP22StackAdvisor(TestCase):
     #test recommendations
     services["configurations"]["hive-site"]["properties"]["hive.cbo.enable"] = "false"
     services["configurations"]["hive-env"]["properties"]["hive_security_authorization"] = "sqlstdauth"
-    services["changed-configurations"] = [{"type": "hive-env", "name": "hive_security_authorization"}]
+    services["changed-configurations"] = [{"type": "hive-site", "name": "hive.cbo.enable"},
+                                          {"type": "hive-env", "name": "hive_security_authorization"}]
     expected["hive-env"]["properties"]["hive_security_authorization"] = "sqlstdauth"
+    expected["hive-site"]["properties"]["hive.cbo.enable"] = "false"
     expected["hive-site"]["properties"]["hive.stats.fetch.partition.stats"]="false"
     expected["hive-site"]["properties"]["hive.stats.fetch.column.stats"]="false"
     expected["hive-site"]["properties"]["hive.security.authorization.enabled"]="true"
@@ -1366,9 +1359,9 @@ class TestHDP22StackAdvisor(TestCase):
                                    "yarn.scheduler.capacity.root.default.user-limit-factor=1\n"
                                    "yarn.scheduler.capacity.root.queues=default"}
 
-    expected['hive-site']['properties']['hive.server2.tez.default.queues'] = 'a1,a2,b'
+    expected['hive-site']['properties']['hive.server2.tez.default.queues'] = 'default.a.a1,default.a.a2,default.b'
     expected['hive-site']['property_attributes']['hive.server2.tez.default.queues'] = {
-           'entries': [{'value': 'a1', 'label': 'a1 queue'}, {'value': 'a2', 'label': 'a2 queue'}, {'value': 'b', 'label': 'b queue'}]
+           'entries': [{'value': 'default.a.a1', 'label': 'default.a.a1 queue'}, {'value': 'default.a.a2', 'label': 'default.a.a2 queue'}, {'value': 'default.b', 'label': 'default.b queue'}]
           }
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations['hive-site']['property_attributes']['hive.server2.tez.default.queues'], expected['hive-site']['property_attributes']['hive.server2.tez.default.queues'])
@@ -1994,17 +1987,8 @@ class TestHDP22StackAdvisor(TestCase):
     expected = {
       "ams-hbase-env": {
         "properties": {
-          "hbase_master_xmn_size": "192",
-          "hbase_master_heapsize": "512",
-          "hbase_regionserver_heapsize": "768"
-        }
-      },
-      "ams-grafana-env": {
-        "properties" : {},
-        "property_attributes": {
-          "metrics_grafana_password": {
-            "visible": "false"
-          }
+          "hbase_master_xmn_size": "128",
+          "hbase_master_heapsize": "512"
         }
       },
       "ams-env": {
@@ -2029,10 +2013,7 @@ class TestHDP22StackAdvisor(TestCase):
         "properties": {
           "timeline.metrics.cluster.aggregate.splitpoints": " ",
           "timeline.metrics.host.aggregate.splitpoints": " ",
-          "timeline.metrics.host.aggregator.ttl": "86400",
-          "timeline.metrics.service.handler.thread.count": "20",
-          'timeline.metrics.service.webapp.address': 'host1:6188',
-          'timeline.metrics.service.watcher.disabled': 'false'
+          "timeline.metrics.host.aggregator.ttl": "86400"
         }
       }
     }
@@ -2137,7 +2118,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     ]
     expected["ams-hbase-env"]['properties']['hbase_master_heapsize'] = '2432'
-    expected["ams-hbase-env"]['properties']['hbase_master_xmn_size'] = '512'
+    expected["ams-hbase-env"]['properties']['hbase_master_xmn_size'] = '448'
     expected["ams-env"]['properties']['metrics_collector_heapsize'] = '640'
 
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
@@ -2210,8 +2191,6 @@ class TestHDP22StackAdvisor(TestCase):
     expected['ams-hbase-env']['properties']['hbase_regionserver_heapsize'] = '512'
     expected["ams-hbase-env"]['properties']['hbase_master_xmn_size'] = '102'
     expected['ams-hbase-env']['properties']['regionserver_xmn_size'] = '384'
-    expected['ams-site']['properties']['timeline.metrics.host.aggregator.ttl'] = '259200'
-    expected['ams-site']['properties']['timeline.metrics.service.watcher.disabled'] = 'true'
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
@@ -2268,7 +2247,7 @@ class TestHDP22StackAdvisor(TestCase):
       },
       "hbase-env": {
         "properties": {
-          "hbase_master_heapsize": "1024",
+          "hbase_master_heapsize": "8192",
           "hbase_regionserver_heapsize": "8192",
           }
       }
@@ -2505,7 +2484,7 @@ class TestHDP22StackAdvisor(TestCase):
       },
       "hbase-env": {
         "properties": {
-          "hbase_master_heapsize": "1024",
+          "hbase_master_heapsize": "8192",
           "hbase_regionserver_heapsize": "8192",
         },
         "property_attributes": {
@@ -2626,8 +2605,8 @@ class TestHDP22StackAdvisor(TestCase):
 
     # Test when Ranger plugin HBase is enabled in kerberos environment
     configurations['hbase-site']['properties'].pop('hbase.coprocessor.region.classes', None)
-    services['configurations']['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'org.apache.hadoop.hbase.security.access.AccessController'
-    services['configurations']['hbase-site']['properties']['hbase.coprocessor.master.classes'] = 'org.apache.hadoop.hbase.security.access.AccessController'
+    services['configurations']['hbase-site']['properties']['hbase.coprocessor.region.classes'] = ''
+    services['configurations']['hbase-site']['properties']['hbase.coprocessor.master.classes'] = ''
     services['configurations']['hbase-site']['properties']['hbase.security.authentication'] = 'kerberos'
     services['configurations']['hbase-site']['properties']['hbase.security.authorization'] = 'false'
     services['configurations']['ranger-hbase-plugin-properties']['properties']['ranger-hbase-plugin-enabled'] = 'Yes'
@@ -3058,31 +3037,26 @@ class TestHDP22StackAdvisor(TestCase):
     recommendedDefaults = {'tez.task.resource.memory.mb': '1024',
                            'tez.runtime.io.sort.mb' : '256',
                            'tez.runtime.unordered.output.buffer.size-mb' : '256',
-                           'tez.am.resource.memory.mb' : '1024',
-                           'tez.tez-ui.history-url.base' : 'https://host:8443/#/main/views/TEZ/0.7.0.2.3.0.0-2155/TEZ_CLUSTER_INSTANCE'}
+                           'tez.am.resource.memory.mb' : '1024'}
 
     properties = {'tez.task.resource.memory.mb': '2050',
                   'tez.runtime.io.sort.mb' : '256',
                   'tez.runtime.unordered.output.buffer.size-mb' : '256',
-                  'tez.am.resource.memory.mb' : '2050',
-                  'tez.tez-ui.history-url.base' : 'http://host:8080/#/main/views/TEZ/0.7.0.2.3.0.0-2155/TEZ_CLUSTER_INSTANCE'}
+                  'tez.am.resource.memory.mb' : '2050'}
 
 
-    res_expected = [{'config-name': 'tez.tez-ui.history-url.base',
-                     'config-type': 'tez-site',
-                     'level': 'WARN',
-                     'message': "It is recommended to set value https://host:8443/#/main/views/TEZ/0.7.0.2.3.0.0-2155/TEZ_CLUSTER_INSTANCE for property tez.tez-ui.history-url.base",
-                     'type': 'configuration'},
-                    {'config-name': 'tez.am.resource.memory.mb',
-                     'config-type': 'tez-site',
-                     'level': 'WARN',
-                     'message': "tez.am.resource.memory.mb should be less than YARN max allocation size (2048)",
-                     'type': 'configuration'},
+    res_expected = [{'config-name': 'tez.am.resource.memory.mb',
+                 'config-type': 'tez-site',
+                 'level': 'WARN',
+                 'message': "tez.am.resource.memory.mb should be less than YARN max allocation size (2048)",
+                 'type': 'configuration',
+                 'level': 'WARN'},
                     {'config-name': 'tez.task.resource.memory.mb',
-                     'config-type': 'tez-site',
-                     'level': 'WARN',
-                     'message': "tez.task.resource.memory.mb should be less than YARN max allocation size (2048)",
-                     'type': 'configuration'}]
+                 'config-type': 'tez-site',
+                 'level': 'WARN',
+                 'message': "tez.task.resource.memory.mb should be less than YARN max allocation size (2048)",
+                 'type': 'configuration',
+                 'level': 'WARN'}]
 
     res = self.stackAdvisor.validateTezConfigurations(properties, recommendedDefaults, configurations, '', '')
     self.assertEquals(res, res_expected)

@@ -32,7 +32,6 @@ import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.stack.StackManagerFactory;
@@ -110,7 +109,6 @@ public class StageUtilsTest extends EasyMockSupport {
         bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
         bind(ServiceComponentHostFactory.class).toInstance(createNiceMock(ServiceComponentHostFactory.class));
         bind(PersistedState.class).toInstance(createNiceMock(PersistedState.class));
-        bind(HostRoleCommandDAO.class).toInstance(createNiceMock(HostRoleCommandDAO.class));
       }
     });
 

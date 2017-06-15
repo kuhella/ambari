@@ -167,20 +167,6 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
    */
   seriesTemplate: null,
 
-  /**
-   * Incomplete metrics requests
-   * @type {array}
-   * @default []
-   */
-  runningRequests: [],
-
-  /**
-   * Incomplete metrics requests for detailed view
-   * @type {array}
-   * @default []
-   */
-  runningPopupRequests: [],
-
   _containerSelector: function () {
     return '#' + this.get('id') + '-container';
   }.property('id'),
@@ -279,6 +265,26 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
   },
 
   /**
+   * Maps server data for Kafka Broker Topic and Controller Status metrics
+   * into series format ready for export to graph and JSON formats
+   * @param jsonData
+   * @returns {Array}
+   */
+  getKafkaData: function (jsonData) {
+    var dataArray = [],
+      template = this.get('seriesTemplate'),
+      data = Em.get(jsonData, template.path);
+    for (var name in data) {
+      var displayName = template.displayName(name);
+      dataArray.push({
+        name: displayName,
+        data: Em.get(data, name + '.1MinuteRate')
+      });
+    }
+    return dataArray;
+  },
+
+  /**
    * Function to map data into graph series
    * @param jsonData
    * @returns {Array}
@@ -313,7 +319,6 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
     this.$("[rel='ZoomInTooltip']").tooltip('destroy');
     $(this.get('_containerSelector') + ' li.line').off();
     $(this.get('_popupSelector') + ' li.line').off();
-    App.ajax.abortRequests(this.get('runningRequests'));
   },
 
   registerGraph: function () {
@@ -326,26 +331,16 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
   },
 
   loadData: function () {
-    var self = this,
-      isPopup = this.get('isPopup');
-    if (this.get('loadGroup') && !isPopup) {
+    if (this.get('loadGroup') && !this.get('isPopup')) {
       return App.ChartLinearTimeView.LoadAggregator.add(this, this.get('loadGroup'));
     } else {
-      var requestsArrayName = isPopup ? 'runningPopupRequests' : 'runningRequests',
-        request = App.ajax.send({
-          name: this.get('ajaxIndex'),
-          sender: this,
-          data: this.getDataForAjaxRequest(),
-          success: 'loadDataSuccessCallback',
-          error: 'loadDataErrorCallback',
-          callback: function () {
-            self.set(requestsArrayName, self.get(requestsArrayName).reject(function (item) {
-              return item === request;
-            }));
-          }
-        });
-      this.get(requestsArrayName).push(request);
-      return request;
+      return App.ajax.send({
+        name: this.get('ajaxIndex'),
+        sender: this,
+        data: this.getDataForAjaxRequest(),
+        success: 'loadDataSuccessCallback',
+        error: 'loadDataErrorCallback'
+      });
     }
   },
 
@@ -385,17 +380,15 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
   },
 
   loadDataErrorCallback: function (xhr, textStatus, errorThrown) {
-    if (!xhr.isForcedAbort) {
-      this.set('isReady', true);
-      if (xhr.readyState == 4 && xhr.status) {
-        textStatus = xhr.status + " " + textStatus;
-      }
-      this._showMessage('warn', this.t('graphs.error.title'), this.t('graphs.error.message').format(textStatus, errorThrown));
-      this.setProperties({
-        hasData: false,
-        isExportButtonHidden: true
-      });
+    this.set('isReady', true);
+    if (xhr.readyState == 4 && xhr.status) {
+      textStatus = xhr.status + " " + textStatus;
     }
+    this._showMessage('warn', this.t('graphs.error.title'), this.t('graphs.error.message').format(textStatus, errorThrown));
+    this.setProperties({
+      hasData: false,
+      isExportButtonHidden: true
+    });
   },
 
   /**
@@ -574,12 +567,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
     //if graph opened as modal popup
     var popup_path = $(this.get('_popupSelector'));
     var graph_container = $(this.get('_containerSelector'));
-    var seconds = this.get('parentView.graphSeconds');
     var container;
-    if (!Em.isNone(seconds)) {
-      this.set('timeUnitSeconds', seconds);
-      this.set('parentView.graphSeconds', null);
-    }
     if (popup_path.length) {
       popup_path.children().each(function () {
         $(this).children().remove();
@@ -635,27 +623,28 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
    * @return Rickshaw.Fixtures.Time
    */
   localeTimeUnit: function (timeUnitSeconds) {
-    var timeUnit = new Rickshaw.Fixtures.Time(),
-      unitName;
-    if (timeUnitSeconds < 172800) {
-      timeUnit = {
-        name: timeUnitSeconds / 240 + ' minute',
-        seconds: timeUnitSeconds / 4,
-        formatter: function (d) {
-          // format locale specific time
-          var minutes = dateUtils.dateFormatZeroFirst(d.getMinutes());
-          var hours = dateUtils.dateFormatZeroFirst(d.getHours());
-          return hours + ":" + minutes;
-        }
-      };
-    } else if (timeUnitSeconds < 1209600) {
-      timeUnit = timeUnit.unit('day');
-    } else if (timeUnitSeconds < 5184000) {
-      timeUnit = timeUnit.unit('week');
-    } else if (timeUnitSeconds < 62208000) {
-      timeUnit = timeUnit.unit('month');
-    } else {
-      timeUnit = timeUnit.unit('year');
+    var timeUnit = new Rickshaw.Fixtures.Time();
+    switch (timeUnitSeconds) {
+      case 604800:
+        timeUnit = timeUnit.unit('day');
+        break;
+      case 2592000:
+        timeUnit = timeUnit.unit('week');
+        break;
+      case 31104000:
+        timeUnit = timeUnit.unit('month');
+        break;
+      default:
+        timeUnit = {
+          name: timeUnitSeconds / 240 + ' minute',
+          seconds: timeUnitSeconds / 4,
+          formatter: function (d) {
+            // format locale specific time
+            var minutes = dateUtils.dateFormatZeroFirst(d.getMinutes());
+            var hours = dateUtils.dateFormatZeroFirst(d.getHours());
+            return hours + ":" + minutes;
+          }
+        };
     }
     return timeUnit;
   },
@@ -922,14 +911,6 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
     }
 
     this.set('isPopup', true);
-    if (this.get('inWidget') && !this.get('parentView.isClusterMetricsWidget')) {
-      this.setProperties({
-        currentTimeIndex: this.get('parentView.timeIndex'),
-        customStartTime: this.get('parentView.startTime'),
-        customEndTime: this.get('parentView.endTime'),
-        customDurationFormatted: this.get('parentView.durationFormatted')
-      });
-    }
     var self = this;
 
     App.ModalPopup.show({
@@ -1044,7 +1025,6 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
           customDurationFormatted: targetView.get('customDurationFormatted'),
           isPopup: false
         });
-        App.ajax.abortRequests(this.get('graph.runningPopupRequests'));
         this._super();
       },
 
@@ -1079,11 +1059,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
       reloadGraphByTime: function (index) {
         this.set('childViews.firstObject.currentTimeRangeIndex', index);
         this.set('currentTimeIndex', index);
-        self.setProperties({
-          currentTimeIndex: index,
-          isPopupReady: false
-        });
-        App.ajax.abortRequests(this.get('graph.runningPopupRequests'));
+        self.set('currentTimeIndex', index);
       },
       currentTimeIndex: self.get('currentTimeIndex'),
 
@@ -1132,42 +1108,19 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
       customEndTime: customEndTime,
       customDurationFormatted: customDurationFormatted
     });
-    if (index !== 8 || targetView.get('customStartTime') && targetView.get('customEndTime')) {
-      App.ajax.abortRequests(this.get('runningRequests'));
-      if (this.get('inWidget') && !this.get('parentView.isClusterMetricsWidget')) {
-        this.set('parentView.isLoaded', false);
-      } else {
-        this.set('isReady', false);
-      }
-    }
   }.observes('parentView.parentView.currentTimeRangeIndex', 'parentView.currentTimeRangeIndex', 'parentView.parentView.customStartTime', 'parentView.customStartTime', 'parentView.parentView.customEndTime', 'parentView.customEndTime'),
   timeUnitSeconds: 3600,
   timeUnitSecondsSetter: function () {
-    var index = this.get('currentTimeIndex'),
-      startTime = this.get('customStartTime'),
-      endTime = this.get('customEndTime'),
-      durationFormatted = this.get('customDurationFormatted'),
-      seconds;
+      var index = this.get('currentTimeIndex');
     if (index !== 8) {
       // Preset time range is specified by user
-      seconds = this.get('timeStates').objectAt(this.get('currentTimeIndex')).seconds;
-    } else if (!Em.isNone(startTime) && !Em.isNone(endTime)) {
-      // Custom start and end time is specified by user
-      seconds = (endTime - startTime) / 1000;
-    }
-    if (!Em.isNone(seconds)) {
+      var seconds = this.get('timeStates').objectAt(this.get('currentTimeIndex')).seconds;
       this.set('timeUnitSeconds', seconds);
-      if (this.get('inWidget') && !this.get('parentView.isClusterMetricsWidget')) {
-        this.get('parentView').setProperties({
-          graphSeconds: seconds,
-          timeIndex: index,
-          startTime: startTime,
-          endTime: endTime,
-          durationFormatted: durationFormatted
-        });
-      }
+    } else {
+      // Custom start and end time is specified by user
+      this.propertyDidChange('timeUnitSeconds');
     }
-  }.observes('currentTimeIndex', 'customStartTime', 'customEndTime')
+  }.observes('currentTimeIndex', 'parentView.childViews.lastObject.customStartTime', 'parentView.childViews.lastObject.customEndTime')
 
 });
 
@@ -1481,33 +1434,25 @@ App.ChartLinearTimeView.LoadAggregator = Em.Object.create({
       (function (_request) {
         var fields = self.formatRequestData(_request);
         var hostName = (_request.context.get('content')) ? _request.context.get('content.hostName') : "";
-        var xhr = App.ajax.send({
+
+        App.ajax.send({
           name: _request.name,
           sender: _request.context,
           data: {
             fields: fields,
             hostName: hostName
           }
-        });
-
-        xhr.done(function (response) {
+        }).done(function (response) {
           console.time('==== runRequestsDone');
           _request.subRequests.forEach(function (subRequest) {
             subRequest.context._refreshGraph.call(subRequest.context, response);
           }, this);
           console.timeEnd('==== runRequestsDone');
         }).fail(function (jqXHR, textStatus, errorThrown) {
-          if (!jqXHR.isForcedAbort) {
-            _request.subRequests.forEach(function (subRequest) {
-              subRequest.context.loadDataErrorCallback.call(subRequest.context, jqXHR, textStatus, errorThrown);
-            }, this);
-          }
-        }).always(function () {
-          _request.context.set('runningRequests', _request.context.get('runningRequests').reject(function (item) {
-            return item === xhr;
-          }));
+          _request.subRequests.forEach(function (subRequest) {
+            subRequest.context.loadDataErrorCallback.call(subRequest.context, jqXHR, textStatus, errorThrown);
+          }, this);
         });
-        _request.context.get('runningRequests').push(xhr);
       })(bulks[id]);
     }
   },

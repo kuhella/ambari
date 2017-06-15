@@ -252,7 +252,6 @@ public class AlertsDAOTest {
     history.setAlertTimestamp(Long.valueOf(1L));
     history.setHostName("h1");
     history.setAlertState(AlertState.OK);
-    m_dao.create(history);
 
     // current for the history
     AlertCurrentEntity current = new AlertCurrentEntity();
@@ -274,7 +273,6 @@ public class AlertsDAOTest {
     history2.setAlertTimestamp(Long.valueOf(1L));
     history2.setHostName("h2");
     history2.setAlertState(AlertState.OK);
-    m_dao.create(history);
 
     // current for the history
     AlertCurrentEntity current2 = new AlertCurrentEntity();
@@ -341,7 +339,6 @@ public class AlertsDAOTest {
     history.setAlertTimestamp(Long.valueOf(1L));
     history.setHostName(HOSTNAME);
     history.setAlertState(AlertState.OK);
-    m_dao.create(history);
 
     // current for the history
     AlertCurrentEntity current = new AlertCurrentEntity();
@@ -415,44 +412,6 @@ public class AlertsDAOTest {
   }
 
   /**
-   * Tests that the Ambari sort is correctly applied to JPA quuery.
-   *
-   * @throws Exception
-   */
-  @Test
-  public void testAlertCurrentSorting() throws Exception {
-    AlertCurrentRequest request = new AlertCurrentRequest();
-
-    Predicate clusterPredicate = new PredicateBuilder().property(
-        AlertResourceProvider.ALERT_CLUSTER_NAME).equals(m_cluster.getClusterName()).toPredicate();
-
-    request.Predicate = clusterPredicate;
-
-    SortRequestProperty sortRequestProperty = new SortRequestProperty(AlertResourceProvider.ALERT_ID, Order.ASC);
-    request.Sort = new SortRequestImpl(Collections.singletonList(sortRequestProperty));
-
-    List<AlertCurrentEntity> currentAlerts = m_dao.findAll(request);
-    assertTrue(currentAlerts.size() >= 5);
-    long lastId = Long.MIN_VALUE;
-    for (AlertCurrentEntity alert : currentAlerts) {
-      assertTrue(lastId < alert.getAlertId());
-      lastId = alert.getAlertId();
-    }
-
-    // change the sort to DESC
-    sortRequestProperty = new SortRequestProperty(AlertResourceProvider.ALERT_ID, Order.DESC);
-    request.Sort = new SortRequestImpl(Collections.singletonList(sortRequestProperty));
-
-    currentAlerts = m_dao.findAll(request);
-    assertTrue(currentAlerts.size() >= 5);
-    lastId = Long.MAX_VALUE;
-    for (AlertCurrentEntity alert : currentAlerts) {
-      assertTrue(lastId > alert.getAlertId());
-      lastId = alert.getAlertId();
-    }
-  }
-
-  /**
    * Tests that the {@link AlertCurrentEntity} fields are updated properly when
    * a new {@link AlertHistoryEntity} is associated.
    *
@@ -482,7 +441,6 @@ public class AlertsDAOTest {
     history.setAlertTimestamp(Long.valueOf(1L));
     history.setHostName("h2");
     history.setAlertState(AlertState.OK);
-    m_dao.create(history);
 
     // current for the history
     AlertCurrentEntity current = new AlertCurrentEntity();
@@ -926,7 +884,6 @@ public class AlertsDAOTest {
     history.setComponentName("");
     history.setHostName("h2");
     history.setServiceName("ServiceName");
-    m_dao.create(history);
 
     current = new AlertCurrentEntity();
     current.setAlertHistory(history);

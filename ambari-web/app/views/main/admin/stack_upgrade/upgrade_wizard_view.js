@@ -335,7 +335,7 @@ App.upgradeWizardView = Em.View.extend({
             item.tasks.forEach(function (task) {
               var detail = Em.get(task, 'Tasks.command_detail');
               if (detail && detail.startsWith('SERVICE_CHECK ')) {
-                skippedServiceChecks.push(App.format.role(detail.replace('SERVICE_CHECK ', ''), true));
+                skippedServiceChecks.push(App.format.role(detail.replace('SERVICE_CHECK ', '')));
               }
             });
           }
@@ -454,44 +454,8 @@ App.upgradeWizardView = Em.View.extend({
   },
 
   pauseUpgrade: function() {
-    var self = this;
-    this.get('controller').suspendUpgrade().done(function() {
-      self.get('parentView').closeWizard();
-    });
-  },
-
-  /**
-   * pause upgrade confirmation popup
-   * @param {object} event
-   */
-  confirmPauseUpgrade: function () {
-    var self = this;
-    return App.showConfirmationPopup(
-        function() {
-          self.pauseUpgrade();
-        },
-        Em.I18n.t('admin.stackUpgrade.pauseUpgrade.warning').format("upgrade"),
-        null,
-        Em.I18n.t('common.warning'),
-        Em.I18n.t('admin.stackUpgrade.pauseUpgrade')
-    );
-  },
-
-  /**
-   * pause downgrade confirmation popup
-   * @param {object} event
-   */
-  confirmPauseDowngrade: function () {
-    var self = this;
-    return App.showConfirmationPopup(
-        function() {
-          self.pauseUpgrade();
-        },
-        Em.I18n.t('admin.stackUpgrade.pauseUpgrade.warning').format("downgrade"),
-        null,
-        Em.I18n.t('common.warning'),
-        Em.I18n.t('admin.stackUpgrade.pauseDowngrade')
-    );
+    this.get('controller').suspendUpgrade();
+    this.get('parentView').closeWizard();
   },
 
   /**

@@ -27,7 +27,6 @@ import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.customactions.ActionDefinitionManager;
 import org.apache.ambari.server.events.AlertDefinitionDisabledEvent;
@@ -84,7 +83,6 @@ import java.util.Scanner;
 import java.util.Set;
 
 import static org.apache.ambari.server.controller.spi.Resource.InternalType.Component;
-import static org.apache.ambari.server.controller.spi.Resource.InternalType.HostComponent;
 import static org.apache.ambari.server.controller.utilities.PropertyHelper.AGGREGATE_FUNCTION_IDENTIFIERS;
 
 
@@ -336,7 +334,7 @@ public class AmbariMetaInfo {
 
     DependencyInfo foundDependency = null;
     List<DependencyInfo> componentDependencies = getComponentDependencies(
-      stackName, version, service, component);
+        stackName, version, service, component);
     Iterator<DependencyInfo> iter = componentDependencies.iterator();
     while (foundDependency == null && iter.hasNext()) {
       DependencyInfo dependency = iter.next();
@@ -364,7 +362,7 @@ public class AmbariMetaInfo {
     for (RepositoryInfo repo : repository) {
       if (!reposResult.containsKey(repo.getOsType())) {
         reposResult.put(repo.getOsType(),
-          new ArrayList<RepositoryInfo>());
+            new ArrayList<RepositoryInfo>());
       }
       reposResult.get(repo.getOsType()).add(repo);
     }
@@ -880,7 +878,7 @@ public class AmbariMetaInfo {
       try {
         map = gson.fromJson(new FileReader(svc.getMetricsFile()), type);
 
-        svc.setMetrics(processMetricDefinition(map));
+        svc.setMetrics(updateComponentMetricMapWithAggregateFunctionIds(map));
 
       } catch (Exception e) {
         LOG.error ("Could not read the metrics file", e);
@@ -893,47 +891,44 @@ public class AmbariMetaInfo {
 
   /**
    * Add aggregate function support for all stack defined metrics.
-   *
-   * Refactor Namenode RPC metrics for different kinds of ports.
    */
-  private Map<String, Map<String, List<MetricDefinition>>> processMetricDefinition(
-    Map<String, Map<String, List<MetricDefinition>>> metricMap) {
+  private Map<String, Map<String, List<MetricDefinition>>> updateComponentMetricMapWithAggregateFunctionIds(
+      Map<String, Map<String, List<MetricDefinition>>> metricMap) {
 
     if (!metricMap.isEmpty()) {
         // For every Component
-      for (Map.Entry<String, Map<String, List<MetricDefinition>>> componentMetricDefEntry : metricMap.entrySet()) {
-        String componentName = componentMetricDefEntry.getKey();
+      for (Map<String, List<MetricDefinition>> componentMetricDef :  metricMap.values()) {
         // For every Component / HostComponent category
-        for (Map.Entry<String, List<MetricDefinition>> metricDefEntry : componentMetricDefEntry.getValue().entrySet()) {
-          //For every metric definition
-          for (MetricDefinition metricDefinition : metricDefEntry.getValue()) {
-            for (Map.Entry<String, Map<String, Metric>> metricByCategory : metricDefinition.getMetricsByCategory().entrySet()) {
-              Iterator<Map.Entry<String, Metric>> iterator = metricByCategory.getValue().entrySet().iterator();
-              Map<String, Metric> newMetricsToAdd = new HashMap<>();
+        for (Map.Entry<String, List<MetricDefinition>> metricDefEntry : componentMetricDef.entrySet()) {
+          // NOTE: Only Component aggregates supported for now.
+          if (metricDefEntry.getKey().equals(Component.name())) {
+            //For every metric definition
+            for (MetricDefinition metricDefinition : metricDefEntry.getValue()) {
+              // Metrics System metrics only
+              if (metricDefinition.getType().equals("ganglia")) {
+                // Create a new map for each category
+                for (Map<String, Metric> metricByCategory : metricDefinition.getMetricsByCategory().values()) {
+                  Map<String, Metric> newMetrics = new HashMap<String, Metric>();
 
-              while (iterator.hasNext()) {
-                Map.Entry<String, Metric> metricEntry = iterator.next();
-                // Process Namenode rpc metrics
-                Map<String, Metric> processedMetrics = PropertyHelper.processRpcMetricDefinition(metricDefinition.getType(),
-                  componentName, metricEntry.getKey(), metricEntry.getValue());
-                if (processedMetrics != null) {
-                  iterator.remove(); // Remove current metric entry
-                  newMetricsToAdd.putAll(processedMetrics);
-                } else {
-                  processedMetrics = Collections.singletonMap(metricEntry.getKey(), metricEntry.getValue());
-                }
+                  // For every function id
+                  for (String identifierToAdd : AGGREGATE_FUNCTION_IDENTIFIERS) {
 
-                // NOTE: Only Component aggregates for AMS supported for now.
-                if (metricDefinition.getType().equals("ganglia") &&
-                  (metricDefEntry.getKey().equals(Component.name()) ||
-                    metricDefEntry.getKey().equals(HostComponent.name()))) {
-                  for (Map.Entry<String, Metric> processedMetric : processedMetrics.entrySet()) {
-                    newMetricsToAdd.putAll(getAggregateFunctionMetrics(processedMetric.getKey(),
-                      processedMetric.getValue()));
+                    for (Map.Entry<String, Metric> metricEntry : metricByCategory.entrySet()) {
+                      String newMetricKey = metricEntry.getKey() + identifierToAdd;
+                      Metric currentMetric = metricEntry.getValue();
+                      Metric newMetric = new Metric(
+                        currentMetric.getName() + identifierToAdd,
+                        currentMetric.isPointInTime(),
+                        currentMetric.isTemporal(),
+                        currentMetric.isAmsHostMetric(),
+                        currentMetric.getUnit()
+                      );
+                      newMetrics.put(newMetricKey, newMetric);
+                    }
                   }
+                  metricByCategory.putAll(newMetrics);
                 }
               }
-              metricByCategory.getValue().putAll(newMetricsToAdd);
             }
           }
         }
@@ -941,26 +936,6 @@ public class AmbariMetaInfo {
     }
 
     return metricMap;
-  }
-
-  private Map<String, Metric> getAggregateFunctionMetrics(String metricName, Metric currentMetric) {
-    Map<String, Metric> newMetrics = new HashMap<String, Metric>();
-    if (!PropertyHelper.hasAggregateFunctionSuffix(currentMetric.getName())) {
-      // For every function id
-      for (String identifierToAdd : AGGREGATE_FUNCTION_IDENTIFIERS) {
-        String newMetricKey = metricName + identifierToAdd;
-        Metric newMetric = new Metric(
-          currentMetric.getName() + identifierToAdd,
-          currentMetric.isPointInTime(),
-          currentMetric.isTemporal(),
-          currentMetric.isAmsHostMetric(),
-          currentMetric.getUnit()
-        );
-        newMetrics.put(newMetricKey, newMetric);
-      }
-    }
-
-    return newMetrics;
   }
 
   /**
@@ -971,8 +946,8 @@ public class AmbariMetaInfo {
       String serviceName, String componentName, String metricType)
       throws AmbariException {
 
-    Map<String, Map<String, List<MetricDefinition>>> map = getServiceMetrics(
-      stackName, stackVersion, serviceName);
+    Map<String, Map<String, List<MetricDefinition>>> map =
+      getServiceMetrics(stackName, stackVersion, serviceName);
 
     if (map != null && map.containsKey(componentName)) {
       if (map.get(componentName).containsKey(metricType)) {

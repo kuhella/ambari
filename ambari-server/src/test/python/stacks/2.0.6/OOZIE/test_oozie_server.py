@@ -25,68 +25,63 @@ from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 from resource_management.libraries import functions
 from resource_management.libraries.providers.hdfs_resource import WebHDFSUtil
+import hashlib
 import tempfile
 
+md5_mock = MagicMock()
+md5_mock.hexdigest.return_value = "abc123hash"
+
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
+@patch.object(hashlib, "md5", new=MagicMock(return_value=md5_mock))
 @patch.object(WebHDFSUtil, "run_command", new=MagicMock(return_value={}))
 @patch.object(tempfile, "gettempdir", new=MagicMock(return_value="/tmp"))
 class TestOozieServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "OOZIE/4.0.0.2.0/package"
   STACK_VERSION = "2.0.6"
   UPGRADE_STACK_VERSION = "2.2"
-  DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 
   def setUp(self):
     self.maxDiff = None
 
-  @patch.object(shell, "call")
-  def test_configure_default(self, call_mocks):
-    call_mocks = MagicMock(return_value=(0, "New Oozie WAR file with added"))
+  def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
                        classname = "OozieServer",
                        command = "configure",
                        config_file="default.json",
                        hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = call_mocks
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
     self.assertNoMoreResources()
 
-  @patch.object(shell, "call")
-  def test_configure_default_mysql(self, call_mocks):
-    call_mocks = MagicMock(return_value=(0, "New Oozie WAR file with added"))
+
+  def test_configure_default_mysql(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
                        classname = "OozieServer",
                        command = "configure",
                        config_file="default_oozie_mysql.json",
                        hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = call_mocks
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('HdfsResource', '/user/oozie',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
-        dfs_type = '',
         owner = 'oozie',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
         mode = 0775,
     )
     self.assertResourceCalled('HdfsResource', None,
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
-        dfs_type = '',
-        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
     self.assertResourceCalled('Directory', '/etc/oozie/conf',
@@ -107,17 +102,6 @@ class TestOozieServer(RMFTestCase):
                               content = InlineTemplate(self.getConfig()['configurations']['oozie-env']['content']),
                               owner = 'oozie',
                               group = 'hadoop',
-                              )
-    self.assertResourceCalled('Directory', '/etc/security/limits.d',
-                              owner = 'root',
-                              group = 'root',
-                              recursive=True,
-                              )
-    self.assertResourceCalled('File', '/etc/security/limits.d/oozie.conf',
-                              owner = 'root',
-                              group = 'root',
-                              mode=0644,
-                              content=Template("oozie.conf.j2"),
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/oozie-log4j.properties',
                               content = 'log4jproperties\nline2',
@@ -219,7 +203,7 @@ class TestOozieServer(RMFTestCase):
                               recursive = True,
                               )
     self.assertResourceCalled('Execute', ('tar', '-xvf', '/usr/lib/oozie/oozie-sharelib.tar.gz', '-C', '/usr/lib/oozie'),
-        not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1' || test -f /usr/lib/oozie/.hashcode && test -d /usr/lib/oozie/share",
+        not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1' || test -f /usr/lib/oozie/.hashcode && test -d /usr/lib/oozie/share && [[ `cat /usr/lib/oozie/.hashcode` == 'abc123hash' ]]",
         sudo = True,
     )
     self.assertResourceCalled('Execute', ('cp', '/usr/share/HDP-oozie/ext-2.2.zip', '/usr/lib/oozie/libext'),
@@ -254,31 +238,32 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'ambari-sudo.sh chown oozie:hadoop /usr/lib/oozie/libext/falcon-oozie-el-extension-*.jar',
         not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
     )
-
-    self.assertResourceCalled('File', '/usr/lib/oozie/.prepare_war_cmd',
-                              content = 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war',
-                              mode = 0644,
+    self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war ',
+        not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1' || test -f /usr/lib/oozie/.hashcode && test -d /usr/lib/oozie/share && [[ `cat /usr/lib/oozie/.hashcode` == 'abc123hash' ]] && test -f /usr/lib/oozie/.prepare_war_cmd && [[ `cat /usr/lib/oozie/.prepare_war_cmd` == 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war ' ]]",
+        user = 'oozie',
     )
     self.assertResourceCalled('File', '/usr/lib/oozie/.hashcode',
-                              mode = 0644,
+        content = 'abc123hash',
+        mode = 0644,
+    )
+    self.assertResourceCalled('File', '/usr/lib/oozie/.prepare_war_cmd',
+        content = 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war ',
+        mode = 0644,
     )
     self.assertResourceCalled('Execute', ('chown', '-R', 'oozie:hadoop', '/var/lib/oozie/oozie-server'),
         sudo = True,
     )
 
-  @patch.object(shell, "call")
-  def test_configure_existing_sqla(self, call_mocks):
-    call_mocks = MagicMock(return_value=(0, "New Oozie WAR file with added"))
+
+  def test_configure_existing_sqla(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
                        classname = "OozieServer",
                        command = "configure",
                        config_file="oozie_existing_sqla.json",
                        hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = call_mocks
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('HdfsResource', '/user/oozie',
-                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = False,
                               hadoop_bin_dir = '/usr/bin',
                               keytab = UnknownConfigurationMock(),
@@ -287,15 +272,13 @@ class TestOozieServer(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               principal_name = UnknownConfigurationMock(),
                               user = 'hdfs',
-                              dfs_type = '',
                               owner = 'oozie',
                               hadoop_conf_dir = '/etc/hadoop/conf',
                               type = 'directory',
-                              action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+                              action = ['create_on_execute'],
                               mode = 0775,
                               )
     self.assertResourceCalled('HdfsResource', None,
-                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = False,
                               hadoop_bin_dir = '/usr/bin',
                               keytab = UnknownConfigurationMock(),
@@ -304,8 +287,7 @@ class TestOozieServer(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               principal_name = UnknownConfigurationMock(),
                               user = 'hdfs',
-                              dfs_type = '',
-                              action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+                              action = ['execute'],
                               hadoop_conf_dir = '/etc/hadoop/conf',
                               )
     self.assertResourceCalled('Directory', '/etc/oozie/conf',
@@ -326,17 +308,6 @@ class TestOozieServer(RMFTestCase):
                               content = InlineTemplate(self.getConfig()['configurations']['oozie-env']['content']),
                               owner = 'oozie',
                               group = 'hadoop',
-                              )
-    self.assertResourceCalled('Directory', '/etc/security/limits.d',
-                              owner = 'root',
-                              group = 'root',
-                              recursive=True,
-                              )
-    self.assertResourceCalled('File', '/etc/security/limits.d/oozie.conf',
-                              owner = 'root',
-                              group = 'root',
-                              mode=0644,
-                              content=Template("oozie.conf.j2"),
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/oozie-log4j.properties',
                               content = 'log4jproperties\nline2',
@@ -435,9 +406,9 @@ class TestOozieServer(RMFTestCase):
                               recursive = True,
                               )
     self.assertResourceCalled('Execute', ('tar', '-xvf', '/usr/lib/oozie/oozie-sharelib.tar.gz', '-C', '/usr/lib/oozie'),
-        not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1' || test -f /usr/lib/oozie/.hashcode && test -d /usr/lib/oozie/share",
-        sudo = True,
-    )
+                              not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1' || test -f /usr/lib/oozie/.hashcode && test -d /usr/lib/oozie/share && [[ `cat /usr/lib/oozie/.hashcode` == 'abc123hash' ]]",
+                              sudo = True,
+                              )
     self.assertResourceCalled('Execute', ('cp', '/usr/share/HDP-oozie/ext-2.2.zip', '/usr/lib/oozie/libext'),
                               not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
                               sudo = True,
@@ -472,11 +443,16 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'ambari-sudo.sh chown oozie:hadoop /usr/lib/oozie/libext/falcon-oozie-el-extension-*.jar',
                               not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
                               )
-    self.assertResourceCalled('File', '/usr/lib/oozie/.prepare_war_cmd',
-                              content = 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war',
-                              mode = 0644,
+    self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war ',
+                              not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1' || test -f /usr/lib/oozie/.hashcode && test -d /usr/lib/oozie/share && [[ `cat /usr/lib/oozie/.hashcode` == 'abc123hash' ]] && test -f /usr/lib/oozie/.prepare_war_cmd && [[ `cat /usr/lib/oozie/.prepare_war_cmd` == 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war ' ]]",
+                              user = 'oozie',
                               )
     self.assertResourceCalled('File', '/usr/lib/oozie/.hashcode',
+                              content = 'abc123hash',
+                              mode = 0644,
+                              )
+    self.assertResourceCalled('File', '/usr/lib/oozie/.prepare_war_cmd',
+                              content = 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war ',
                               mode = 0644,
                               )
     self.assertResourceCalled('Execute', ('chown', '-R', u'oozie:hadoop', '/var/lib/oozie/oozie-server'),
@@ -484,18 +460,16 @@ class TestOozieServer(RMFTestCase):
                               )
     self.assertNoMoreResources()
 
-  @patch.object(shell, "call")
+
   @patch("os.path.isfile")
-  def test_start_default(self, isfile_mock, call_mocks):
+  def test_start_default(self, isfile_mock):
     isfile_mock.return_value = True
-    call_mocks = MagicMock(return_value=(0, "New Oozie WAR file with added"))
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
                          classname = "OozieServer",
                          command = "start",
                          config_file="default.json",
                          hdp_stack_version = self.STACK_VERSION,
-                         target = RMFTestCase.TARGET_COMMON_SERVICES,
-                         call_mocks = call_mocks
+                         target = RMFTestCase.TARGET_COMMON_SERVICES
         )
     self.assert_configure_default()
     self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/ooziedb.sh create -sqlfile oozie.sql -run',
@@ -508,24 +482,21 @@ class TestOozieServer(RMFTestCase):
         user = 'oozie',
     )
     self.assertResourceCalled('HdfsResource', '/user/oozie/share',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
         default_fs = 'hdfs://c6401.ambari.apache.org:8020',
         user = 'hdfs',
-        dfs_type = '',
         hdfs_site = self.getConfig()['configurations']['hdfs-site'],
         kinit_path_local = '/usr/bin/kinit',
         principal_name = UnknownConfigurationMock(),
         recursive_chmod = True,
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['create_on_execute'],
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
         mode = 0755,
     )
     self.assertResourceCalled('HdfsResource', None,
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -534,8 +505,7 @@ class TestOozieServer(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = UnknownConfigurationMock(),
         user = 'hdfs',
-        dfs_type = '',
-        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['execute'],
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
     self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-start.sh',
@@ -544,6 +514,7 @@ class TestOozieServer(RMFTestCase):
         user = 'oozie',
     )
     self.assertNoMoreResources()
+
 
   def test_stop_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
@@ -563,32 +534,27 @@ class TestOozieServer(RMFTestCase):
     )
     self.assertNoMoreResources()
 
-  @patch.object(shell, "call")
-  def test_configure_secured(self, call_mocks):
-    call_mocks = MagicMock(return_value=(0, "New Oozie WAR file with added"))
+
+  def test_configure_secured(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
                        classname = "OozieServer",
                        command = "configure",
                        config_file="secured.json",
                        hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = call_mocks
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
     self.assertNoMoreResources()
 
-  @patch.object(shell, "call")
   @patch("os.path.isfile")
-  def test_start_secured(self, isfile_mock, call_mocks):
+  def test_start_secured(self, isfile_mock):
     isfile_mock.return_value = True
-    call_mocks = MagicMock(return_value=(0, "New Oozie WAR file with added"))
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
                          classname = "OozieServer",
                          command = "start",
                          config_file="secured.json",
                          hdp_stack_version = self.STACK_VERSION,
-                         target = RMFTestCase.TARGET_COMMON_SERVICES,
-                         call_mocks = call_mocks
+                         target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
     self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/ooziedb.sh create -sqlfile oozie.sql -run',
@@ -605,24 +571,21 @@ class TestOozieServer(RMFTestCase):
         user = 'oozie',
     )
     self.assertResourceCalled('HdfsResource', '/user/oozie/share',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
         default_fs = 'hdfs://c6401.ambari.apache.org:8020',
         user = 'hdfs',
-        dfs_type = '',
         hdfs_site = self.getConfig()['configurations']['hdfs-site'],
         kinit_path_local = '/usr/bin/kinit',
         principal_name = 'hdfs',
         recursive_chmod = True,
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['create_on_execute'],
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
         mode = 0755,
     )
     self.assertResourceCalled('HdfsResource', None,
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -631,9 +594,8 @@ class TestOozieServer(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = 'hdfs',
         user = 'hdfs',
-        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['execute'],
         hadoop_conf_dir = '/etc/hadoop/conf',
-        dfs_type = ''
     )
     self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-start.sh',
         environment = {'OOZIE_CONFIG': '/etc/oozie/conf'},
@@ -660,30 +622,27 @@ class TestOozieServer(RMFTestCase):
     )
     self.assertNoMoreResources()
 
+
   def assert_configure_default(self):
     self.assertResourceCalled('HdfsResource', '/user/oozie',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_conf_dir = '/etc/hadoop/conf',
         keytab = UnknownConfigurationMock(),
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
-        dfs_type = '',
         owner = 'oozie',
         hadoop_bin_dir = '/usr/bin',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
         mode = 0775,
     )
     self.assertResourceCalled('HdfsResource', None,
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
-        dfs_type = '',
-        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
     self.assertResourceCalled('Directory', '/etc/oozie/conf',
@@ -703,17 +662,6 @@ class TestOozieServer(RMFTestCase):
                               owner = 'oozie',
                               content = InlineTemplate(self.getConfig()['configurations']['oozie-env']['content']),
                               group = 'hadoop',
-                              )
-    self.assertResourceCalled('Directory', '/etc/security/limits.d',
-                              owner = 'root',
-                              group = 'root',
-                              recursive=True,
-                              )
-    self.assertResourceCalled('File', '/etc/security/limits.d/oozie.conf',
-                              owner = 'root',
-                              group = 'root',
-                              mode=0644,
-                              content=Template("oozie.conf.j2"),
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/oozie-log4j.properties',
                               owner = 'oozie',
@@ -812,7 +760,7 @@ class TestOozieServer(RMFTestCase):
         recursive = True,
     )
     self.assertResourceCalled('Execute', ('tar', '-xvf', '/usr/lib/oozie/oozie-sharelib.tar.gz', '-C', '/usr/lib/oozie'),
-        not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1' || test -f /usr/lib/oozie/.hashcode && test -d /usr/lib/oozie/share",
+        not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1' || test -f /usr/lib/oozie/.hashcode && test -d /usr/lib/oozie/share && [[ `cat /usr/lib/oozie/.hashcode` == 'abc123hash' ]]",
         sudo = True,
     )
     self.assertResourceCalled('Execute', ('cp', '/usr/share/HDP-oozie/ext-2.2.zip', '/usr/lib/oozie/libext'),
@@ -833,45 +781,46 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'ambari-sudo.sh chown oozie:hadoop /usr/lib/oozie/libext/falcon-oozie-el-extension-*.jar',
         not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
     )
-
-    self.assertResourceCalled('File', '/usr/lib/oozie/.prepare_war_cmd',
-                              content = 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war',
-                              mode = 0644,
+    self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war ',
+        not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1' || test -f /usr/lib/oozie/.hashcode && test -d /usr/lib/oozie/share && [[ `cat /usr/lib/oozie/.hashcode` == 'abc123hash' ]] && test -f /usr/lib/oozie/.prepare_war_cmd && [[ `cat /usr/lib/oozie/.prepare_war_cmd` == 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war ' ]]",
+        user = 'oozie',
     )
     self.assertResourceCalled('File', '/usr/lib/oozie/.hashcode',
-                              mode = 0644,
+        content = 'abc123hash',
+        mode = 0644,
+    )
+    self.assertResourceCalled('File', '/usr/lib/oozie/.prepare_war_cmd',
+        content = 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war ',
+        mode = 0644,
     )
     self.assertResourceCalled('Execute', ('chown', '-R', 'oozie:hadoop', '/var/lib/oozie/oozie-server'),
         sudo = True,
     )
 
+
   def assert_configure_secured(self):
     self.assertResourceCalled('HdfsResource', '/user/oozie',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_conf_dir = '/etc/hadoop/conf',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
         
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
-        dfs_type = '',
         owner = 'oozie',
         hadoop_bin_dir = '/usr/bin',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
         mode = 0775,
     )
     self.assertResourceCalled('HdfsResource', None,
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
         
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
-        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
-        dfs_type = ''
     )
     self.assertResourceCalled('Directory', '/etc/oozie/conf',
                               owner = 'oozie',
@@ -890,17 +839,6 @@ class TestOozieServer(RMFTestCase):
                               owner = 'oozie',
                               content = InlineTemplate(self.getConfig()['configurations']['oozie-env']['content']),
                               group = 'hadoop',
-                              )
-    self.assertResourceCalled('Directory', '/etc/security/limits.d',
-                              owner = 'root',
-                              group = 'root',
-                              recursive=True,
-                              )
-    self.assertResourceCalled('File', '/etc/security/limits.d/oozie.conf',
-                              owner = 'root',
-                              group = 'root',
-                              mode=0644,
-                              content=Template("oozie.conf.j2"),
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/oozie-log4j.properties',
                               owner = 'oozie',
@@ -999,7 +937,7 @@ class TestOozieServer(RMFTestCase):
         recursive = True,
     )
     self.assertResourceCalled('Execute', ('tar', '-xvf', '/usr/lib/oozie/oozie-sharelib.tar.gz', '-C', '/usr/lib/oozie'),
-        not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1' || test -f /usr/lib/oozie/.hashcode && test -d /usr/lib/oozie/share",
+        not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1' || test -f /usr/lib/oozie/.hashcode && test -d /usr/lib/oozie/share && [[ `cat /usr/lib/oozie/.hashcode` == 'abc123hash' ]]",
         sudo = True,
     )
     self.assertResourceCalled('Execute', ('cp', '/usr/share/HDP-oozie/ext-2.2.zip', '/usr/lib/oozie/libext'),
@@ -1020,13 +958,17 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'ambari-sudo.sh chown oozie:hadoop /usr/lib/oozie/libext/falcon-oozie-el-extension-*.jar',
         not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
     )
-
-    self.assertResourceCalled('File', '/usr/lib/oozie/.prepare_war_cmd',
-                              content = 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war -secure',
-                              mode = 0644,
+    self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war -secure',
+        not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1' || test -f /usr/lib/oozie/.hashcode && test -d /usr/lib/oozie/share && [[ `cat /usr/lib/oozie/.hashcode` == 'abc123hash' ]] && test -f /usr/lib/oozie/.prepare_war_cmd && [[ `cat /usr/lib/oozie/.prepare_war_cmd` == 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war -secure' ]]",
+        user = 'oozie',
     )
     self.assertResourceCalled('File', '/usr/lib/oozie/.hashcode',
-                              mode = 0644,
+        content = 'abc123hash',
+        mode = 0644,
+    )
+    self.assertResourceCalled('File', '/usr/lib/oozie/.prepare_war_cmd',
+        content = 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war -secure',
+        mode = 0644,
     )
     self.assertResourceCalled('Execute', ('chown', '-R', 'oozie:hadoop', '/var/lib/oozie/oozie-server'),
         sudo = True,
@@ -1392,13 +1334,11 @@ class TestOozieServer(RMFTestCase):
       user = 'oozie', logoutput = True )
 
     self.assertResourceCalled('HdfsResource', '/user/oozie/share',
-      immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
       security_enabled = False,
       hadoop_bin_dir = '/usr/hdp/2.3.0.0-1234/hadoop/bin',
       keytab = UnknownConfigurationMock(),
       default_fs = 'hdfs://c6401.ambari.apache.org:8020',
       user = 'hdfs',
-      dfs_type = '',
       hdfs_site = UnknownConfigurationMock(),
       kinit_path_local = '/usr/bin/kinit',
       principal_name = UnknownConfigurationMock(),
@@ -1407,11 +1347,10 @@ class TestOozieServer(RMFTestCase):
       group = 'hadoop',
       hadoop_conf_dir = '/usr/hdp/2.3.0.0-1234/hadoop/conf',
       type = 'directory',
-      action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+      action = ['create_on_execute'],
       mode = 0755 )
 
     self.assertResourceCalled('HdfsResource', None,
-      immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
       security_enabled = False,
       hadoop_bin_dir = '/usr/hdp/2.3.0.0-1234/hadoop/bin',
       keytab = UnknownConfigurationMock(),
@@ -1420,8 +1359,7 @@ class TestOozieServer(RMFTestCase):
       kinit_path_local = '/usr/bin/kinit',
       principal_name = UnknownConfigurationMock(),
       user = 'hdfs',
-      dfs_type = '',
-      action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+      action = ['execute'],
       hadoop_conf_dir = '/usr/hdp/2.3.0.0-1234/hadoop/conf' )
 
     self.assertResourceCalled('Execute', '/usr/hdp/2.3.0.0-1234/oozie/bin/oozie-setup.sh sharelib create -fs hdfs://c6401.ambari.apache.org:8020',
@@ -1467,13 +1405,11 @@ class TestOozieServer(RMFTestCase):
       user = 'oozie', logoutput = True )
 
     self.assertResourceCalled('HdfsResource', '/user/oozie/share',
-      immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
       security_enabled = False,
       hadoop_bin_dir = '/usr/hdp/2.3.0.0-1234/hadoop/bin',
       keytab = UnknownConfigurationMock(),
       default_fs = 'hdfs://c6401.ambari.apache.org:8020',
       user = 'hdfs',
-      dfs_type = '',
       hdfs_site = UnknownConfigurationMock(),
       kinit_path_local = '/usr/bin/kinit',
       principal_name = UnknownConfigurationMock(),
@@ -1482,11 +1418,10 @@ class TestOozieServer(RMFTestCase):
       group = 'hadoop',
       hadoop_conf_dir = '/usr/hdp/2.3.0.0-1234/hadoop/conf',
       type = 'directory',
-      action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+      action = ['create_on_execute'],
       mode = 0755 )
 
     self.assertResourceCalled('HdfsResource', None,
-      immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
       security_enabled = False,
       hadoop_bin_dir = '/usr/hdp/2.3.0.0-1234/hadoop/bin',
       keytab = UnknownConfigurationMock(),
@@ -1495,8 +1430,7 @@ class TestOozieServer(RMFTestCase):
       kinit_path_local = '/usr/bin/kinit',
       principal_name = UnknownConfigurationMock(),
       user = 'hdfs',
-      dfs_type = '',
-      action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+      action = ['execute'],
       hadoop_conf_dir = '/usr/hdp/2.3.0.0-1234/hadoop/conf' )
 
     self.assertResourceCalled('Execute', '/usr/hdp/2.3.0.0-1234/oozie/bin/oozie-setup.sh sharelib create -fs hdfs://c6401.ambari.apache.org:8020',

@@ -78,8 +78,7 @@ App.supports = {
   showPageLoadTime: false,
   skipComponentStartAfterInstall: false,
   storeKDCCredentials: true,
-  preInstallChecks: false,
-  addingNewRepository: false
+  preInstallChecks: false
 };
 
 if (App.enableExperimental) {

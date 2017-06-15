@@ -118,14 +118,7 @@ public class KerberosDescriptorTest {
     Set<String> authToLocalProperties = descriptor.getAuthToLocalProperties();
     Assert.assertNotNull(authToLocalProperties);
     Assert.assertEquals(1, authToLocalProperties.size());
-    Assert.assertTrue(authToLocalProperties.contains("generic.name.rules"));
-
-    authToLocalProperties = descriptor.getAllAuthToLocalProperties();
-    Assert.assertNotNull(authToLocalProperties);
-    Assert.assertEquals(3, authToLocalProperties.size());
-    Assert.assertTrue(authToLocalProperties.contains("component.name.rules1"));
-    Assert.assertTrue(authToLocalProperties.contains("generic.name.rules"));
-    Assert.assertTrue(authToLocalProperties.contains("service.name.rules1"));
+    Assert.assertEquals("generic.name.rules", authToLocalProperties.iterator().next());
 
     Map<String, KerberosServiceDescriptor> serviceDescriptors = descriptor.getServices();
     Assert.assertNotNull(serviceDescriptors);

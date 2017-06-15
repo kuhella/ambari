@@ -23,9 +23,6 @@
     "clusterName": "c1", 
     "hostname": "c6402.ambari.apache.org", 
     "hostLevelParams": {
-        "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
-        "agent_stack_retry_count": "5",
-        "agent_stack_retry_on_unavailability": "false",
         "stack_name": "HDP", 
         "group_list": "[\"hadoop\",\"users\"]", 
         "host_sys_prepped": "false", 
@@ -80,7 +77,8 @@
             "hive_user": "hive", 
             "hive_database": "New MySQL Database", 
             "hive.heapsize": "703", 
-            "hcat_pid_dir": "/var/run/webhcat",
+            "hcat_pid_dir": "/var/run/webhcat", 
+            "cost_based_optimizer": "On", 
             "webhcat_user": "hcat", 
             "hive_security_authorization": "None", 
             "hive_exec_orc_storage_strategy": "SPEED", 
@@ -301,8 +299,7 @@
             "hive.security.authorization.enabled": "false"
         }, 
         "cluster-env": {
-            "managed_hdfs_resource_property_names": "",
-            "security_enabled": "false",
+            "security_enabled": "false", 
             "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab", 
             "ignore_groupsusers_create": "false", 
             "override_uid": "true", 

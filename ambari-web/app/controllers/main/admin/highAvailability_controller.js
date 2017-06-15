@@ -40,15 +40,6 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
       message.push(Em.I18n.t('admin.highAvailability.error.zooKeeperNum'));
     }
 
-    if(
-      hostComponents.filterProperty('isMaster', true).someProperty('passiveState', "ON") ||
-      hostComponents.filterProperty('isMaster', true).someProperty('passiveState', "IMPLIED_FROM_SERVICE_AND_HOST") ||
-      hostComponents.filterProperty('isMaster', true).someProperty('passiveState', "IMPLIED_FROM_HOST") ||
-      hostComponents.filterProperty('isMaster', true).someProperty('passiveState', "IMPLIED_FROM_SERVICE")
-    ) {
-      message.push(Em.I18n.t('admin.highAvailability.error.maintenanceMode'));
-    }
-
     if (App.router.get('mainHostController.hostsCountMap.TOTAL') < 3) {
       message.push(Em.I18n.t('admin.highAvailability.error.hostsNum'));
     }
@@ -85,33 +76,6 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
     App.router.transitionTo('main.services.enableRMHighAvailability');
     return true;
   },
-
-  /**
-   * add Hawq Standby
-   * @return {Boolean}
-   */
-  addHawqStandby: function () {
-    App.router.transitionTo('main.services.addHawqStandby');
-    return true;
-  },
-
-  /**
-   * remove Hawq Standby
-   * @return {Boolean}
-   */
-  removeHawqStandby: function () {
-    App.router.transitionTo('main.services.removeHawqStandby');
-    return true;
-  },
-
-  /**
-   * activate Hawq Standby
-   * @return {Boolean}
-   */
-  activateHawqStandby: function () {
-    App.router.transitionTo('main.services.activateHawqStandby');
-    return true;
-   },
 
   /**
    * enable Ranger Admin High Availability

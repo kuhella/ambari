@@ -23,7 +23,6 @@ from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
-from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
 
@@ -93,7 +92,7 @@ falcon_startup_properties = config['configurations']['falcon-startup.properties'
 smokeuser_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 falcon_env_sh_template = config['configurations']['falcon-env']['content']
 
-falcon_apps_dir = config['configurations']['falcon-env']['falcon_apps_hdfs_dir']
+flacon_apps_dir = '/apps/falcon'
 #for create_hdfs_directory
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 hostname = config["hostname"]
@@ -112,15 +111,12 @@ dfs_data_mirroring_dir = "/apps/data-mirroring"
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
 
-dfs_type = default("/commandParams/dfs_type", "")
-
 import functools
 #create partial functions with common arguments for every HdfsResource call
 #to create/delete hdfs directory/file/copyfromlocal we need to call params.HdfsResource in code
 HdfsResource = functools.partial(
   HdfsResource,
   user=hdfs_user,
-  hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore",
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
@@ -128,8 +124,6 @@ HdfsResource = functools.partial(
   hadoop_conf_dir = hadoop_conf_dir,
   principal_name = hdfs_principal_name,
   hdfs_site = hdfs_site,
-  default_fs = default_fs,
-  immutable_paths = get_not_managed_resources(),
-  dfs_type = dfs_type
+  default_fs = default_fs
  )
 

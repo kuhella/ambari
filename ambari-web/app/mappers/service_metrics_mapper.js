@@ -65,7 +65,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     upgrade_status: 'nameNodeComponent.host_components[0].metrics.dfs.namenode.UpgradeFinalized',
     safe_mode_status: 'nameNodeComponent.host_components[0].metrics.dfs.namenode.Safemode',
     name_node_cpu: 'nameNodeComponent.host_components[0].metrics.cpu.cpu_wio',
-    name_node_rpc: 'nameNodeComponent.host_components[0].metrics.rpc.client.RpcQueueTime_avg_time',
+    name_node_rpc: 'nameNodeComponent.host_components[0].metrics.rpc.RpcQueueTime_avg_time',
     data_nodes_started: 'data_nodes_started',
     data_nodes_installed: 'data_nodes_installed',
     data_nodes_total: 'data_nodes_total',
@@ -150,7 +150,6 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
   config3: {
     work_status: 'HostRoles.state',
     passive_state: 'HostRoles.maintenance_state',
-    display_name: 'HostRoles.display_name',
     component_name: 'HostRoles.component_name',
     host_id: 'HostRoles.host_name',
     host_name: 'HostRoles.host_name',
@@ -367,7 +366,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           if (hostComponent.display_name_advanced) {
             service.tool_tip_content += hostComponent.display_name_advanced + " " + App.HostComponentStatus.getTextStatus(hostComponent.work_status) + "<br/>";
           } else {
-            service.tool_tip_content += App.format.role(hostComponent.component_name, false) + " " + App.HostComponentStatus.getTextStatus(hostComponent.work_status) + "<br/>";
+            service.tool_tip_content += App.format.role(hostComponent.component_name) + " " + App.HostComponentStatus.getTextStatus(hostComponent.work_status) + "<br/>";
           }
         }
       }
@@ -388,8 +387,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       RANGER: [33],
       SPARK: [34],
       ACCUMULO: [35],
-      ATLAS: [36],
-      AMBARI_METRICS: [37]
+      ATLAS: [36]
     };
     if (quickLinks[item.ServiceInfo.service_name])
       finalJson.quick_links = quickLinks[item.ServiceInfo.service_name];
@@ -408,23 +406,20 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           var haState2 = Em.get(component.host_components[1], 'metrics.dfs.FSNamesystem.HAState');
           var active_name_node = [];
           var standby_name_nodes = [];
-          var namenodeName1 = component.host_components[0].HostRoles.host_name;
-          var namenodeName2 = component.host_components[1].HostRoles.host_name;
-
           switch (haState1) {
             case "active":
-              active_name_node.push(namenodeName1);
+              active_name_node.push(component.host_components[0].HostRoles.host_name);
               break;
             case "standby":
-              standby_name_nodes.push(namenodeName1);
+              standby_name_nodes.push(component.host_components[0].HostRoles.host_name);
               break;
           }
           switch (haState2) {
             case "active":
-              active_name_node.push(namenodeName2);
+              active_name_node.push(component.host_components[1].HostRoles.host_name);
               break;
             case "standby":
-              standby_name_nodes.push(namenodeName2);
+              standby_name_nodes.push(component.host_components[1].HostRoles.host_name);
               break;
           }
           item.active_name_node_id = null;
@@ -436,12 +431,6 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
               break;
           }
           switch (standby_name_nodes.length) {
-            case 0:
-              if (active_name_node.length === 1) {
-                var standbyNameNode =  (active_name_node[0] === namenodeName1) ? namenodeName2 : namenodeName1;
-                item.standby_name_node_id = 'NAMENODE' + '_' + standbyNameNode;
-              }
-              break;
             case 1:
               item.standby_name_node_id = 'NAMENODE' + '_' + standby_name_nodes[0];
               break;

@@ -29,7 +29,7 @@
       <components>
         <component>
           <name>SQOOP</name>
-          <displayName>Sqoop Client</displayName>
+          <displayName>Sqoop</displayName>
           <category>CLIENT</category>
           <cardinality>1+</cardinality>
           <versionAdvertised>true</versionAdvertised>

@@ -42,13 +42,6 @@ public enum ExecuteHostType {
   ANY,
 
   /**
-   * Run on a single host that is picked by alphabetically sorting all hosts that satisfy the condition of the {@link ExecuteTask}
-   * .
-   */
-  @XmlEnumValue("first")
-  FIRST,
-
-  /**
    * Run on all of the hosts.
    */
   @XmlEnumValue("all")

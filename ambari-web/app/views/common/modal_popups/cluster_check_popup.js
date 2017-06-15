@@ -30,7 +30,6 @@ var App = require('app');
 App.showClusterCheckPopup = function (data, popup, configs, upgradeVersion) {
   var fails = data.items.filterProperty('UpgradeChecks.status', 'FAIL'),
     warnings = data.items.filterProperty('UpgradeChecks.status', 'WARNING'),
-    bypass = data.items.filterProperty('UpgradeChecks.status', 'BYPASS'),
     hasConfigsMergeConflicts = !!(configs && configs.length),
     primary,
     secondary,
@@ -46,10 +45,9 @@ App.showClusterCheckPopup = function (data, popup, configs, upgradeVersion) {
     warningAlert: popup.warningAlert,
     templateName: require('templates/common/modal_popups/cluster_check_dialog'),
     fails: fails,
-    bypass: bypass, // errors that can be bypassed
     warnings: warnings,
     hasConfigsMergeConflicts: hasConfigsMergeConflicts,
-    isAllPassed: !fails.length && !warnings.length && !bypass.length && !hasConfigsMergeConflicts
+    isAllPassed: !fails.length && !warnings.length && !hasConfigsMergeConflicts
   };
   if (hasConfigsMergeConflicts) {
     popupBody.configsMergeTable = Em.View.extend({

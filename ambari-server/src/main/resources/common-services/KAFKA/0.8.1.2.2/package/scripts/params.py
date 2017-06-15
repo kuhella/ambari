@@ -30,7 +30,7 @@ from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import get_kinit_path
-from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
+
 
 # server configurations
 config = Script.get_config()
@@ -106,10 +106,6 @@ else:
 
 metric_collector_host = ""
 metric_collector_port = ""
-metric_collector_protocol = ""
-metric_truststore_path= default("/configurations/ams-ssl-client/ssl.client.truststore.location", "")
-metric_truststore_type= default("/configurations/ams-ssl-client/ssl.client.truststore.type", "")
-metric_truststore_password= default("/configurations/ams-ssl-client/ssl.client.truststore.password", "")
 
 ams_collector_hosts = default("/clusterHostInfo/metrics_collector_hosts", [])
 has_metric_collector = not len(ams_collector_hosts) == 0
@@ -124,22 +120,16 @@ if has_metric_collector:
       'metrics_collector_vip_port' in config['configurations']['cluster-env']:
     metric_collector_port = config['configurations']['cluster-env']['metrics_collector_vip_port']
   else:
-    metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "localhost:6188")
+    metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188")
     if metric_collector_web_address.find(':') != -1:
       metric_collector_port = metric_collector_web_address.split(':')[1]
     else:
       metric_collector_port = '6188'
-  if default("/configurations/ams-site/timeline.metrics.service.http.policy", "HTTP_ONLY") == "HTTPS_ONLY":
-    metric_collector_protocol = 'https'
-  else:
-    metric_collector_protocol = 'http'
   pass
 # Security-related params
 security_enabled = config['configurations']['cluster-env']['security_enabled']
-kafka_kerberos_enabled = (('security.inter.broker.protocol' in config['configurations']['kafka-broker']) and
-                         ((config['configurations']['kafka-broker']['security.inter.broker.protocol'] == "PLAINTEXTSASL") or
-                          (config['configurations']['kafka-broker']['security.inter.broker.protocol'] == "SASL_PLAINTEXT")))
-
+kafka_kerberos_enabled = ('security.inter.broker.protocol' in config['configurations']['kafka-broker'] and
+                          config['configurations']['kafka-broker']['security.inter.broker.protocol'] == "PLAINTEXTSASL")
 
 if security_enabled and hdp_stack_version != "" and 'kafka_principal_name' in config['configurations']['kafka-env'] and compare_versions(hdp_stack_version, '2.3') >= 0:
     _hostname_lowercase = config['hostname'].lower()
@@ -179,7 +169,7 @@ if has_ranger_admin and is_supported_kafka_ranger:
 
   ranger_env = config['configurations']['ranger-env']
   ranger_plugin_properties = config['configurations']['ranger-kafka-plugin-properties']
-
+  
   ranger_kafka_audit = config['configurations']['ranger-kafka-audit']
   ranger_kafka_audit_attrs = config['configuration_attributes']['ranger-kafka-audit']
   ranger_kafka_security = config['configurations']['ranger-kafka-security']
@@ -188,7 +178,7 @@ if has_ranger_admin and is_supported_kafka_ranger:
   ranger_kafka_policymgr_ssl_attrs = config['configuration_attributes']['ranger-kafka-policymgr-ssl']
 
   policy_user = config['configurations']['ranger-kafka-plugin-properties']['policy_user']
-
+  
   ranger_plugin_config = {
     'username' : config['configurations']['ranger-kafka-plugin-properties']['REPOSITORY_CONFIG_USERNAME'],
     'password' : unicode(config['configurations']['ranger-kafka-plugin-properties']['REPOSITORY_CONFIG_PASSWORD']),
@@ -276,7 +266,6 @@ import functools
 HdfsResource = functools.partial(
   HdfsResource,
   user=hdfs_user,
-  hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore",
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
@@ -284,6 +273,5 @@ HdfsResource = functools.partial(
   hadoop_conf_dir = hadoop_conf_dir,
   principal_name = hdfs_principal_name,
   hdfs_site = hdfs_site,
-  default_fs = default_fs,
-  immutable_paths = get_not_managed_resources()
+  default_fs = default_fs
 )

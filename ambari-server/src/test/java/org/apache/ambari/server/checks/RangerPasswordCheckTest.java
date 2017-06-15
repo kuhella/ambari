@@ -46,10 +46,6 @@ import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.google.inject.Provider;
 
@@ -58,8 +54,6 @@ import com.google.inject.Provider;
  * Unit tests for RangerPasswordCheck
  *
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(RangerPasswordCheck.class)
 public class RangerPasswordCheckTest {
 
   private static final String RANGER_URL = "http://foo:6080/";
@@ -84,7 +78,6 @@ public class RangerPasswordCheckTest {
   private Clusters m_clusters = EasyMock.createMock(Clusters.class);
   private Map<String, String> m_configMap = new HashMap<String, String>();
   private RangerPasswordCheck m_rpc = null;
-  private URLStreamProvider m_streamProvider = EasyMock.createMock(URLStreamProvider.class);
 
   @Before
   public void setup() throws Exception {
@@ -126,9 +119,6 @@ public class RangerPasswordCheckTest {
         return m_clusters;
       }
     };
-
-    EasyMock.reset(m_streamProvider);
-    PowerMockito.whenNew(URLStreamProvider.class).withAnyArguments().thenReturn(m_streamProvider);
   }
 
   @Test
@@ -168,6 +158,9 @@ public class RangerPasswordCheckTest {
   public void testMissingProps() throws Exception {
 
     HttpURLConnection conn = EasyMock.createMock(HttpURLConnection.class);
+    URLStreamProvider streamProvider = EasyMock.createMock(URLStreamProvider.class);
+
+    m_rpc.m_streamProvider = streamProvider;
 
     m_configMap.clear();
 
@@ -207,10 +200,10 @@ public class RangerPasswordCheckTest {
     expect(conn.getInputStream()).andReturn(new ByteArrayInputStream(GOOD_USER_RESPONSE.getBytes()));
     expect(conn.getResponseCode()).andReturn(200);
     expect(conn.getInputStream()).andReturn(new ByteArrayInputStream(GOOD_LOGIN_RESPONSE.getBytes()));
-    expect(m_streamProvider.processURL((String) anyObject(), (String) anyObject(),
+    expect(streamProvider.processURL((String) anyObject(), (String) anyObject(),
         (InputStream) anyObject(), (Map<String, List<String>>) anyObject())).andReturn(conn).anyTimes();
 
-    replay(conn, m_streamProvider);
+    replay(conn, streamProvider);
 
     m_configMap.put("ranger_admin_password", "r_pass");
     check = new PrerequisiteCheck(null, null);
@@ -224,6 +217,7 @@ public class RangerPasswordCheckTest {
   public void testNormal() throws Exception {
 
     HttpURLConnection conn = EasyMock.createMock(HttpURLConnection.class);
+    URLStreamProvider streamProvider = EasyMock.createMock(URLStreamProvider.class);
 
     expect(conn.getResponseCode()).andReturn(200);
     expect(conn.getInputStream()).andReturn(new ByteArrayInputStream(GOOD_LOGIN_RESPONSE.getBytes())).once();
@@ -232,17 +226,18 @@ public class RangerPasswordCheckTest {
     expect(conn.getResponseCode()).andReturn(200);
     expect(conn.getInputStream()).andReturn(new ByteArrayInputStream(GOOD_LOGIN_RESPONSE.getBytes())).once();
 
-    expect(m_streamProvider.processURL((String) anyObject(), (String) anyObject(),
+    expect(streamProvider.processURL((String) anyObject(), (String) anyObject(),
         (InputStream) anyObject(), (Map<String, List<String>>) anyObject())).andReturn(conn).anyTimes();
 
-    replay(conn, m_streamProvider);
+    replay(conn, streamProvider);
+    m_rpc.m_streamProvider = streamProvider;
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     m_rpc.perform(check, new PrereqCheckRequest("cluster"));
 
     assertEquals(PrereqCheckStatus.PASS, check.getStatus());
 
-    verify(conn, m_streamProvider);
+    verify(conn, streamProvider);
   }
 
   @SuppressWarnings("unchecked")
@@ -250,23 +245,25 @@ public class RangerPasswordCheckTest {
   public void testNoUser() throws Exception {
 
     HttpURLConnection conn = EasyMock.createMock(HttpURLConnection.class);
+    URLStreamProvider streamProvider = EasyMock.createMock(URLStreamProvider.class);
 
     expect(conn.getResponseCode()).andReturn(200);
     expect(conn.getInputStream()).andReturn(new ByteArrayInputStream(GOOD_LOGIN_RESPONSE.getBytes())).once();
     expect(conn.getResponseCode()).andReturn(200);
     expect(conn.getInputStream()).andReturn(new ByteArrayInputStream(NO_USER_RESPONSE.getBytes())).once();
 
-    expect(m_streamProvider.processURL((String) anyObject(), (String) anyObject(),
+    expect(streamProvider.processURL((String) anyObject(), (String) anyObject(),
         (InputStream) anyObject(), (Map<String, List<String>>) anyObject())).andReturn(conn).anyTimes();
 
-    replay(conn, m_streamProvider);
+    replay(conn, streamProvider);
+    m_rpc.m_streamProvider = streamProvider;
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     m_rpc.perform(check, new PrereqCheckRequest("cluster"));
 
     assertEquals(PrereqCheckStatus.PASS, check.getStatus());
 
-    verify(conn, m_streamProvider);
+    verify(conn, streamProvider);
   }
 
   @SuppressWarnings("unchecked")
@@ -274,6 +271,7 @@ public class RangerPasswordCheckTest {
   public void testBadUserParsing() throws Exception {
 
     HttpURLConnection conn = EasyMock.createMock(HttpURLConnection.class);
+    URLStreamProvider streamProvider = EasyMock.createMock(URLStreamProvider.class);
 
     expect(conn.getResponseCode()).andReturn(200);
     expect(conn.getInputStream()).andReturn(new ByteArrayInputStream(GOOD_LOGIN_RESPONSE.getBytes())).once();
@@ -281,10 +279,11 @@ public class RangerPasswordCheckTest {
     expect(conn.getInputStream()).andReturn(new ByteArrayInputStream(
         "some really bad non-json".getBytes()));
 
-    expect(m_streamProvider.processURL((String) anyObject(), (String) anyObject(),
+    expect(streamProvider.processURL((String) anyObject(), (String) anyObject(),
         (InputStream) anyObject(), (Map<String, List<String>>) anyObject())).andReturn(conn).anyTimes();
 
-    replay(conn, m_streamProvider);
+    replay(conn, streamProvider);
+    m_rpc.m_streamProvider = streamProvider;
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     m_rpc.perform(check, new PrereqCheckRequest("cluster"));
@@ -296,7 +295,7 @@ public class RangerPasswordCheckTest {
     assertEquals(PrereqCheckStatus.WARNING, check.getStatus());
     assertEquals(error, check.getFailReason());
 
-    verify(conn, m_streamProvider);
+    verify(conn, streamProvider);
   }
 
   @SuppressWarnings("unchecked")
@@ -304,6 +303,7 @@ public class RangerPasswordCheckTest {
   public void testJsonCasting() throws Exception {
 
     HttpURLConnection conn = EasyMock.createMock(HttpURLConnection.class);
+    URLStreamProvider streamProvider = EasyMock.createMock(URLStreamProvider.class);
 
     expect(conn.getResponseCode()).andReturn(200);
     expect(conn.getInputStream()).andReturn(new ByteArrayInputStream(GOOD_LOGIN_RESPONSE.getBytes()));
@@ -311,10 +311,11 @@ public class RangerPasswordCheckTest {
     expect(conn.getInputStream()).andReturn(new ByteArrayInputStream(
         "{ \"data\": \"bad\", \"vXUsers\": \"xyz\" }".getBytes()));
 
-    expect(m_streamProvider.processURL((String) anyObject(), (String) anyObject(),
+    expect(streamProvider.processURL((String) anyObject(), (String) anyObject(),
         (InputStream) anyObject(), (Map<String, List<String>>) anyObject())).andReturn(conn).anyTimes();
 
-    replay(conn, m_streamProvider);
+    replay(conn, streamProvider);
+    m_rpc.m_streamProvider = streamProvider;
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     m_rpc.perform(check, new PrereqCheckRequest("cluster"));
@@ -326,7 +327,7 @@ public class RangerPasswordCheckTest {
     assertEquals(PrereqCheckStatus.WARNING, check.getStatus());
     assertEquals(error, check.getFailReason());
 
-    verify(conn, m_streamProvider);
+    verify(conn, streamProvider);
   }
 
 
@@ -335,13 +336,15 @@ public class RangerPasswordCheckTest {
   public void testAdminUnauthorized() throws Exception {
 
     HttpURLConnection conn = EasyMock.createMock(HttpURLConnection.class);
+    URLStreamProvider streamProvider = EasyMock.createMock(URLStreamProvider.class);
 
     expect(conn.getResponseCode()).andReturn(401);
 
-    expect(m_streamProvider.processURL((String) anyObject(), (String) anyObject(),
+    expect(streamProvider.processURL((String) anyObject(), (String) anyObject(),
         (InputStream) anyObject(), (Map<String, List<String>>) anyObject())).andReturn(conn).anyTimes();
 
-    replay(conn, m_streamProvider);
+    replay(conn, streamProvider);
+    m_rpc.m_streamProvider = streamProvider;
 
     PrerequisiteCheck check = new PrerequisiteCheck(CheckDescription.SERVICES_RANGER_PASSWORD_VERIFY, null);
     m_rpc.perform(check, new PrereqCheckRequest("cluster"));
@@ -349,7 +352,7 @@ public class RangerPasswordCheckTest {
     assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
     assertEquals("Credentials for user 'admin' in Ambari do not match Ranger.", check.getFailReason());
 
-    verify(conn, m_streamProvider);
+    verify(conn, streamProvider);
   }
 
   @SuppressWarnings("unchecked")
@@ -357,14 +360,16 @@ public class RangerPasswordCheckTest {
   public void testAdminUnauthorizedByRedirect() throws Exception {
 
     HttpURLConnection conn = EasyMock.createMock(HttpURLConnection.class);
+    URLStreamProvider streamProvider = EasyMock.createMock(URLStreamProvider.class);
 
     expect(conn.getResponseCode()).andReturn(200);
     expect(conn.getInputStream()).andReturn(new ByteArrayInputStream(BAD_LOGIN_RESPONSE.getBytes()));
 
-    expect(m_streamProvider.processURL((String) anyObject(), (String) anyObject(),
+    expect(streamProvider.processURL((String) anyObject(), (String) anyObject(),
         (InputStream) anyObject(), (Map<String, List<String>>) anyObject())).andReturn(conn).anyTimes();
 
-    replay(conn, m_streamProvider);
+    replay(conn, streamProvider);
+    m_rpc.m_streamProvider = streamProvider;
 
     PrerequisiteCheck check = new PrerequisiteCheck(CheckDescription.SERVICES_RANGER_PASSWORD_VERIFY, null);
     m_rpc.perform(check, new PrereqCheckRequest("cluster"));
@@ -372,7 +377,7 @@ public class RangerPasswordCheckTest {
     assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
     assertEquals("Credentials for user 'admin' in Ambari do not match Ranger.", check.getFailReason());
 
-    verify(conn, m_streamProvider);
+    verify(conn, streamProvider);
   }
 
   @SuppressWarnings("unchecked")
@@ -380,13 +385,15 @@ public class RangerPasswordCheckTest {
   public void testAdminIOException() throws Exception {
 
     HttpURLConnection conn = EasyMock.createMock(HttpURLConnection.class);
+    URLStreamProvider streamProvider = EasyMock.createMock(URLStreamProvider.class);
 
     expect(conn.getResponseCode()).andThrow(new IOException("whoops"));
 
-    expect(m_streamProvider.processURL((String) anyObject(), (String) anyObject(),
+    expect(streamProvider.processURL((String) anyObject(), (String) anyObject(),
         (InputStream) anyObject(), (Map<String, List<String>>) anyObject())).andReturn(conn).anyTimes();
 
-    replay(conn, m_streamProvider);
+    replay(conn, streamProvider);
+    m_rpc.m_streamProvider = streamProvider;
 
     PrerequisiteCheck check = new PrerequisiteCheck(CheckDescription.SERVICES_RANGER_PASSWORD_VERIFY, null);
     m_rpc.perform(check, new PrereqCheckRequest("cluster"));
@@ -394,7 +401,7 @@ public class RangerPasswordCheckTest {
     assertEquals(PrereqCheckStatus.WARNING, check.getStatus());
     assertEquals("Could not access Ranger to verify user 'admin' against " + RANGER_URL + "service/public/api/repository/count. whoops", check.getFailReason());
 
-    verify(conn, m_streamProvider);
+    verify(conn, streamProvider);
   }
 
   @SuppressWarnings("unchecked")
@@ -402,13 +409,15 @@ public class RangerPasswordCheckTest {
   public void testAdminBadResponse() throws Exception {
 
     HttpURLConnection conn = EasyMock.createMock(HttpURLConnection.class);
+    URLStreamProvider streamProvider = EasyMock.createMock(URLStreamProvider.class);
 
     expect(conn.getResponseCode()).andReturn(404);
 
-    expect(m_streamProvider.processURL((String) anyObject(), (String) anyObject(),
+    expect(streamProvider.processURL((String) anyObject(), (String) anyObject(),
         (InputStream) anyObject(), (Map<String, List<String>>) anyObject())).andReturn(conn).anyTimes();
 
-    replay(conn, m_streamProvider);
+    replay(conn, streamProvider);
+    m_rpc.m_streamProvider = streamProvider;
 
     PrerequisiteCheck check = new PrerequisiteCheck(CheckDescription.SERVICES_RANGER_PASSWORD_VERIFY, null);
     m_rpc.perform(check, new PrereqCheckRequest("cluster"));
@@ -416,7 +425,7 @@ public class RangerPasswordCheckTest {
     assertEquals(PrereqCheckStatus.WARNING, check.getStatus());
     assertEquals("Could not verify credentials for user 'admin'.  Response code 404 received from " + RANGER_URL + "service/public/api/repository/count", check.getFailReason());
 
-    verify(conn, m_streamProvider);
+    verify(conn, streamProvider);
   }
 
   @SuppressWarnings("unchecked")
@@ -424,6 +433,7 @@ public class RangerPasswordCheckTest {
   public void testUserUnauthorized() throws Exception {
 
     HttpURLConnection conn = EasyMock.createMock(HttpURLConnection.class);
+    URLStreamProvider streamProvider = EasyMock.createMock(URLStreamProvider.class);
 
     expect(conn.getResponseCode()).andReturn(200);
     expect(conn.getInputStream()).andReturn(new ByteArrayInputStream(GOOD_LOGIN_RESPONSE.getBytes())).once();
@@ -431,10 +441,11 @@ public class RangerPasswordCheckTest {
     expect(conn.getInputStream()).andReturn(new ByteArrayInputStream(GOOD_USER_RESPONSE.getBytes())).once();
     expect(conn.getResponseCode()).andReturn(401);
 
-    expect(m_streamProvider.processURL((String) anyObject(), (String) anyObject(),
+    expect(streamProvider.processURL((String) anyObject(), (String) anyObject(),
         (InputStream) anyObject(), (Map<String, List<String>>) anyObject())).andReturn(conn).anyTimes();
 
-    replay(conn, m_streamProvider);
+    replay(conn, streamProvider);
+    m_rpc.m_streamProvider = streamProvider;
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     m_rpc.perform(check, new PrereqCheckRequest("cluster"));
@@ -442,7 +453,7 @@ public class RangerPasswordCheckTest {
     assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
     assertEquals("Credentials for user 'r_admin' in Ambari do not match Ranger.", check.getFailReason());
 
-    verify(conn, m_streamProvider);
+    verify(conn, streamProvider);
   }
 
   @SuppressWarnings("unchecked")
@@ -450,6 +461,7 @@ public class RangerPasswordCheckTest {
   public void testUserUnauthorizedByRedirect() throws Exception {
 
     HttpURLConnection conn = EasyMock.createMock(HttpURLConnection.class);
+    URLStreamProvider streamProvider = EasyMock.createMock(URLStreamProvider.class);
 
     expect(conn.getResponseCode()).andReturn(200);
     expect(conn.getInputStream()).andReturn(new ByteArrayInputStream(GOOD_LOGIN_RESPONSE.getBytes())).once();
@@ -458,10 +470,11 @@ public class RangerPasswordCheckTest {
     expect(conn.getResponseCode()).andReturn(200);
     expect(conn.getInputStream()).andReturn(new ByteArrayInputStream(BAD_LOGIN_RESPONSE.getBytes())).once();
 
-    expect(m_streamProvider.processURL((String) anyObject(), (String) anyObject(),
+    expect(streamProvider.processURL((String) anyObject(), (String) anyObject(),
         (InputStream) anyObject(), (Map<String, List<String>>) anyObject())).andReturn(conn).anyTimes();
 
-    replay(conn, m_streamProvider);
+    replay(conn, streamProvider);
+    m_rpc.m_streamProvider = streamProvider;
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     m_rpc.perform(check, new PrereqCheckRequest("cluster"));
@@ -469,7 +482,7 @@ public class RangerPasswordCheckTest {
     assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
     assertEquals("Credentials for user 'r_admin' in Ambari do not match Ranger.", check.getFailReason());
 
-    verify(conn, m_streamProvider);
+    verify(conn, streamProvider);
   }
 
   @SuppressWarnings("unchecked")
@@ -477,6 +490,7 @@ public class RangerPasswordCheckTest {
   public void testUserIOException() throws Exception {
 
     HttpURLConnection conn = EasyMock.createMock(HttpURLConnection.class);
+    URLStreamProvider streamProvider = EasyMock.createMock(URLStreamProvider.class);
 
     expect(conn.getResponseCode()).andReturn(200);
     expect(conn.getInputStream()).andReturn(new ByteArrayInputStream(GOOD_LOGIN_RESPONSE.getBytes())).once();
@@ -484,10 +498,11 @@ public class RangerPasswordCheckTest {
     expect(conn.getInputStream()).andReturn(new ByteArrayInputStream(GOOD_USER_RESPONSE.getBytes())).once();
     expect(conn.getResponseCode()).andThrow(new IOException("again!"));
 
-    expect(m_streamProvider.processURL((String) anyObject(), (String) anyObject(),
+    expect(streamProvider.processURL((String) anyObject(), (String) anyObject(),
         (InputStream) anyObject(), (Map<String, List<String>>) anyObject())).andReturn(conn).anyTimes();
 
-    replay(conn, m_streamProvider);
+    replay(conn, streamProvider);
+    m_rpc.m_streamProvider = streamProvider;
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     m_rpc.perform(check, new PrereqCheckRequest("cluster"));
@@ -495,7 +510,7 @@ public class RangerPasswordCheckTest {
     assertEquals(PrereqCheckStatus.WARNING, check.getStatus());
     assertEquals("Could not access Ranger to verify user 'r_admin' against " + RANGER_URL + "service/public/api/repository/count. again!", check.getFailReason());
 
-    verify(conn, m_streamProvider);
+    verify(conn, streamProvider);
   }
 
   @SuppressWarnings("unchecked")
@@ -503,6 +518,7 @@ public class RangerPasswordCheckTest {
   public void testUserBadResponse() throws Exception {
 
     HttpURLConnection conn = EasyMock.createMock(HttpURLConnection.class);
+    URLStreamProvider streamProvider = EasyMock.createMock(URLStreamProvider.class);
 
     expect(conn.getResponseCode()).andReturn(200);
     expect(conn.getInputStream()).andReturn(new ByteArrayInputStream(GOOD_LOGIN_RESPONSE.getBytes())).once();
@@ -510,11 +526,11 @@ public class RangerPasswordCheckTest {
     expect(conn.getInputStream()).andReturn(new ByteArrayInputStream(GOOD_USER_RESPONSE.getBytes())).once();
     expect(conn.getResponseCode()).andReturn(500);
 
-    expect(m_streamProvider.processURL((String) anyObject(), (String) anyObject(),
-        (InputStream) anyObject(), (Map<String, List<String>>) anyObject())).andReturn(
-            conn).anyTimes();
+    expect(streamProvider.processURL((String) anyObject(), (String) anyObject(),
+        (InputStream) anyObject(), (Map<String, List<String>>) anyObject())).andReturn(conn).anyTimes();
 
-    replay(conn, m_streamProvider);
+    replay(conn, streamProvider);
+    m_rpc.m_streamProvider = streamProvider;
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     m_rpc.perform(check, new PrereqCheckRequest("cluster"));
@@ -522,6 +538,6 @@ public class RangerPasswordCheckTest {
     assertEquals(PrereqCheckStatus.WARNING, check.getStatus());
     assertEquals("Could not verify credentials for user 'r_admin'.  Response code 500 received from " + RANGER_URL + "service/public/api/repository/count", check.getFailReason());
 
-    verify(conn, m_streamProvider);
+    verify(conn, streamProvider);
   }
 }

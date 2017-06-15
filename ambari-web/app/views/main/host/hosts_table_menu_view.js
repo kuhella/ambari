@@ -45,16 +45,6 @@ App.HostTableMenuView = Em.View.extend({
       componentNameFormatted: Em.I18n.t('dashboard.services.yarn.nodeManagers')
     }),
     Em.Object.create({
-      serviceName: 'HAWQ',
-      componentName: 'HAWQSEGMENT',
-      componentNameFormatted: Em.I18n.t('dashboard.services.hawq.hawqSegments')
-    }),
-     Em.Object.create({
-      serviceName: 'PXF',
-      componentName: 'PXF',
-      componentNameFormatted: Em.I18n.t('dashboard.services.pxf.pxfHosts')
-    }),
-    Em.Object.create({
       serviceName: 'HBASE',
       componentName: 'HBASE_REGIONSERVER',
       masterComponentName: 'HBASE_MASTER',
@@ -197,7 +187,7 @@ App.HostTableMenuView = Em.View.extend({
 
       tooltipMsg: function () {
         return (this.get('disabledElement') == 'disabled') ?
-           Em.I18n.t('hosts.decommission.tooltip.warning').format(this.get('content.message'),  App.format.role(this.get('content.componentName'), false)) : '';
+           Em.I18n.t('hosts.decommission.tooltip.warning').format(this.get('content.message'),  App.format.role(this.get('content.componentName'))) : '';
       }.property('disabledElement','content.componentName'),
 
       disabledElement: function () {
@@ -269,13 +259,6 @@ App.HostTableMenuView = Em.View.extend({
           operationData: Em.Object.create({
             action: 'RESTART',
             message: Em.I18n.t('hosts.table.menu.l2.restartAllComponents')
-          })
-        }),
-        Em.Object.create({
-          label: Em.I18n.t('hosts.table.menu.l2.reinstallFailedComponents'),
-          operationData: Em.Object.create({
-            action: 'REINSTALL',
-            message: Em.I18n.t('hosts.table.menu.l2.reinstallFailedComponents')
           })
         }),
         Em.Object.create({

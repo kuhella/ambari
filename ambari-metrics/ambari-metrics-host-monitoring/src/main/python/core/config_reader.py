@@ -34,38 +34,30 @@ class ConfigDefaults(object):
     pass
   def get_metric_file_path(self):
     pass
-  def get_ca_certs_file_path(self):
-    pass
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class ConfigDefaultsWindows(ConfigDefaults):
   def __init__(self):
     self._CONFIG_FILE_PATH = "conf\\metric_monitor.ini"
     self._METRIC_FILE_PATH = "conf\\metric_groups.conf"
-    self._METRIC_FILE_PATH = "conf\\ca.pem"
     pass
 
   def get_config_file_path(self):
     return self._CONFIG_FILE_PATH
   def get_metric_file_path(self):
     return self._METRIC_FILE_PATH
-  def get_ca_certs_file_path(self):
-    return self._CA_CERTS_FILE_PATH
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class ConfigDefaultsLinux(ConfigDefaults):
   def __init__(self):
     self._CONFIG_FILE_PATH = "/etc/ambari-metrics-monitor/conf/metric_monitor.ini"
     self._METRIC_FILE_PATH = "/etc/ambari-metrics-monitor/conf/metric_groups.conf"
-    self._CA_CERTS_FILE_PATH = "/etc/ambari-metrics-monitor/conf/ca.pem"
     pass
 
   def get_config_file_path(self):
     return self._CONFIG_FILE_PATH
   def get_metric_file_path(self):
     return self._METRIC_FILE_PATH
-  def get_ca_certs_file_path(self):
-    return self._CA_CERTS_FILE_PATH
 
 configDefaults = ConfigDefaults()
 
@@ -73,7 +65,6 @@ config = ConfigParser.RawConfigParser()
 
 CONFIG_FILE_PATH = configDefaults.get_config_file_path()
 METRIC_FILE_PATH = configDefaults.get_metric_file_path()
-CA_CERTS_FILE_PATH = configDefaults.get_ca_certs_file_path()
 
 OUT_DIR = os.path.join(os.sep, "var", "log", "ambari-metrics-host-monitoring")
 SERVER_OUT_FILE = OUT_DIR + os.sep + "ambari-metrics-host-monitoring.out"
@@ -97,6 +88,7 @@ AMBARI_AGENT_CONF = '/etc/ambari-agent/conf/ambari-agent.ini'
 config_content = """
 [default]
 debug_level = INFO
+metrics_server = host:port
 enable_time_threshold = false
 enable_value_threshold = false
 
@@ -106,9 +98,6 @@ send_interval = 60
 [collector]
 collector_sleep_interval = 5
 max_queue_size = 5000
-host = localhost
-port = 6188
-https_enabled = false
 """
 
 metric_group_info = """
@@ -163,8 +152,7 @@ class Configuration:
       self.config.readfp(StringIO.StringIO(config_content))
     pass
     if os.path.exists(METRIC_FILE_PATH):
-      with open(METRIC_FILE_PATH, 'r') as f:
-        self.metric_groups = json.load(f)
+      self.metric_groups = json.load(open(METRIC_FILE_PATH))
     else:
       print 'No metric configs found at {0}'.format(METRIC_FILE_PATH)
       self.metric_groups = \
@@ -173,7 +161,7 @@ class Configuration:
         'process_metric_groups': []
       }
     pass
-    self._ca_cert_file_path = CA_CERTS_FILE_PATH
+
     self.hostname_script = None
     ambari_agent_config = ConfigParser.RawConfigParser()
     if os.path.exists(AMBARI_AGENT_CONF):
@@ -193,7 +181,7 @@ class Configuration:
 
   def get(self, section, key, default=None):
     try:
-      value = str(self.config.get(section, key)).strip()
+      value = self.config.get(section, key)
     except:
       return default
     return value
@@ -202,7 +190,10 @@ class Configuration:
     return int(self.get("emitter", "send_interval", 60))
 
   def get_collector_sleep_interval(self):
-    return int(self.get("collector", "collector_sleep_interval", 10))
+    return int(self.get("collector", "collector_sleep_interval", 5))
+
+  def get_server_address(self):
+    return self.get("default", "metrics_server")
 
   def get_hostname_config(self):
     return self.get("default", "hostname", None)
@@ -218,18 +209,3 @@ class Configuration:
 
   def get_max_queue_size(self):
     return int(self.get("collector", "max_queue_size", 5000))
-
-  def is_server_https_enabled(self):
-    return "true" == str(self.get("collector", "https_enabled")).lower()
-
-  def get_server_host(self):
-    return self.get("collector", "host")
-
-  def get_server_port(self):
-    try:
-      return int(self.get("collector", "port"))
-    except:
-      return 6188
-
-  def get_ca_certs(self):
-    return self._ca_cert_file_path

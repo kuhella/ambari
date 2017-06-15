@@ -19,14 +19,12 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.DoNotRetryIOException;
-import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.Function;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.ConnectionProvider;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixConnectionProvider;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
 import org.apache.phoenix.exception.PhoenixIOException;
 import org.easymock.EasyMock;
@@ -61,12 +59,7 @@ public class PhoenixHBaseAccessorTest {
     hbaseConf.setStrings(ZOOKEEPER_QUORUM, "quorum");
     Configuration metricsConf = new Configuration();
 
-    PhoenixConnectionProvider connectionProvider = new PhoenixConnectionProvider() {
-      @Override
-      public HBaseAdmin getHBaseAdmin() throws IOException {
-        return null;
-      }
-
+    ConnectionProvider connectionProvider = new ConnectionProvider() {
       @Override
       public Connection getConnection() throws SQLException {
         return null;
@@ -110,12 +103,7 @@ public class PhoenixHBaseAccessorTest {
     hbaseConf.setStrings(ZOOKEEPER_QUORUM, "quorum");
     Configuration metricsConf = new Configuration();
 
-    PhoenixConnectionProvider connectionProvider = new PhoenixConnectionProvider() {
-      @Override
-      public HBaseAdmin getHBaseAdmin() throws IOException {
-        return null;
-      }
-
+    ConnectionProvider connectionProvider = new ConnectionProvider() {
       @Override
       public Connection getConnection() throws SQLException {
         return null;
@@ -160,12 +148,7 @@ public class PhoenixHBaseAccessorTest {
     hbaseConf.setStrings(ZOOKEEPER_QUORUM, "quorum");
     Configuration metricsConf = new Configuration();
 
-    PhoenixConnectionProvider connectionProvider = new PhoenixConnectionProvider() {
-      @Override
-      public HBaseAdmin getHBaseAdmin() throws IOException {
-        return null;
-      }
-
+    ConnectionProvider connectionProvider = new ConnectionProvider() {
       @Override
       public Connection getConnection() throws SQLException {
         return null;
@@ -198,7 +181,7 @@ public class PhoenixHBaseAccessorTest {
     PowerMock.replayAll();
     EasyMock.replay(preparedStatementMock, rsMock, pioe1, pioe2, dnrioe);
     try {
-      accessor.getMetricRecords(condition, metricFunctions);
+      TimelineMetrics tml = accessor.getMetricRecords(condition, metricFunctions);
       fail();
     } catch (Exception e) {
       //NOP

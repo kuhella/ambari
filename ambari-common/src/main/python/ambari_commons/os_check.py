@@ -18,7 +18,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import re
 import os
 import sys
 import platform
@@ -56,8 +55,6 @@ RESOURCES_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "resou
 
 # family JSON data
 OSFAMILY_JSON_RESOURCE = "os_family.json"
-JSON_OS_MAPPING = "mapping"
-JSON_OS_ALIASES = "aliases"
 JSON_OS_TYPE = "distro"
 JSON_OS_VERSION = "versions"
 JSON_EXTENDS = "extends"
@@ -78,29 +75,12 @@ VER_NT_SERVER = 3
 _IS_ORACLE_LINUX = os.path.exists('/etc/oracle-release')
 _IS_REDHAT_LINUX = os.path.exists('/etc/redhat-release')
 
-SYSTEM_RELEASE_FILE = "/etc/system-release"
-
 def _is_oracle_linux():
   return _IS_ORACLE_LINUX
 
 def _is_redhat_linux():
   return _IS_REDHAT_LINUX
 
-def advanced_check(distribution):
-  distribution = list(distribution)
-  if os.path.exists(SYSTEM_RELEASE_FILE):
-    with open(SYSTEM_RELEASE_FILE, "rb") as fp:
-      issue_content = fp.read()
-  
-    if "Amazon" in issue_content:
-      distribution[0] = "amazon"
-      search_groups = re.search('(\d+\.\d+)', issue_content)
-      
-      if search_groups:
-        distribution[1] = search_groups.group(1)
-      
-  return tuple(distribution)
-    
 
 class OS_CONST_TYPE(type):
 
@@ -118,24 +98,16 @@ class OS_CONST_TYPE(type):
       f = open(os.path.join(RESOURCES_DIR, OSFAMILY_JSON_RESOURCE))
       json_data = eval(f.read())
       f.close()
-      
-      if JSON_OS_MAPPING not in json_data:
-        raise Exception("Invalid {0}".format(OSFAMILY_JSON_RESOURCE))
-      
-      json_mapping_data = json_data[JSON_OS_MAPPING]
-      
-      for family in json_mapping_data:
+      for family in json_data:
         cls.FAMILY_COLLECTION += [family]
-        cls.OS_COLLECTION += json_mapping_data[family][JSON_OS_TYPE]
+        cls.OS_COLLECTION += json_data[family][JSON_OS_TYPE]
         cls.OS_FAMILY_COLLECTION += [{
           'name': family,
-          'os_list': json_mapping_data[family][JSON_OS_TYPE]
+          'os_list': json_data[family][JSON_OS_TYPE]
         }]
         
-        if JSON_EXTENDS in json_mapping_data[family]:
-          cls.OS_FAMILY_COLLECTION[-1][JSON_EXTENDS] = json_mapping_data[family][JSON_EXTENDS]
-          
-        cls.OS_TYPE_ALIASES = json_data[JSON_OS_ALIASES] if JSON_OS_ALIASES in json_data else {}
+        if JSON_EXTENDS in json_data[family]:
+          cls.OS_FAMILY_COLLECTION[-1][JSON_EXTENDS] = json_data[family][JSON_EXTENDS]
     except:
       raise Exception("Couldn't load '%s' file" % OSFAMILY_JSON_RESOURCE)
 
@@ -195,35 +167,13 @@ class OSCheck:
         distribution = platform.dist()
       else:
         distribution = platform.linux_distribution()
-        
-    
 
-    if distribution[0] == '':
-      distribution = advanced_check(distribution)
-    
-      if platform.system().lower() == 'darwin':
-        # mac - used for unit tests
-        distribution = ("Darwin", "TestOnly", "1.1.1", "1.1.1", "1.1")
+    if distribution[0] == '' and platform.system().lower() == 'darwin':
+      # mac - used for unit tests
+      distribution = ("Darwin", "TestOnly", "1.1.1", "1.1.1", "1.1")
     
     return distribution
-  
-  @staticmethod
-  def get_alias(os_type, os_version):
-    version_parts = os_version.split('.')
-    full_os_and_major_version = os_type + version_parts[0]
 
-    if full_os_and_major_version in OSConst.OS_TYPE_ALIASES:
-      alias = OSConst.OS_TYPE_ALIASES[full_os_and_major_version]
-      re_groups = re.search('(\D+)(\d+)$', alias).groups()
-      os_type = re_groups[0]
-      os_major_version = re_groups[1]
-      
-      version_parts[0] = os_major_version
-      os_version = '.'.join(version_parts)
-      
-    return os_type, os_version
-      
-    
   @staticmethod
   def get_os_type():
     """
@@ -234,10 +184,6 @@ class OSCheck:
 
     In case cannot detect - exit.
     """
-    return OSCheck.get_alias(OSCheck._get_os_type(), OSCheck._get_os_version())[0]
-
-  @staticmethod
-  def _get_os_type():
     # Read content from /etc/*-release file
     # Full release name
     dist = OSCheck.os_distribution()
@@ -245,18 +191,18 @@ class OSCheck:
 
     # special cases
     if _is_oracle_linux():
-      operatingSystem = 'oraclelinux'
+      return 'oraclelinux'
     elif operatingSystem.startswith('suse linux enterprise server'):
-      operatingSystem = 'sles'
+      return 'sles'
     elif operatingSystem.startswith('red hat enterprise linux'):
-      operatingSystem = 'redhat'
+      return 'redhat'
     elif operatingSystem.startswith('darwin'):
-      operatingSystem = 'mac'
+      return 'mac'
 
-    if operatingSystem == '':
+    if operatingSystem != '':
+      return operatingSystem
+    else:
       raise Exception("Cannot detect os type. Exiting...")
-    
-    return operatingSystem
 
   @staticmethod
   def get_os_family():
@@ -290,15 +236,11 @@ class OSCheck:
 
     In case cannot detect raises exception.
     """
-    return OSCheck.get_alias(OSCheck._get_os_type(), OSCheck._get_os_version())[1]
-    
-  @staticmethod
-  def _get_os_version():
     # Read content from /etc/*-release file
     # Full release name
     dist = OSCheck.os_distribution()
     dist = dist[1]
-    
+
     if dist:
       return dist
     else:

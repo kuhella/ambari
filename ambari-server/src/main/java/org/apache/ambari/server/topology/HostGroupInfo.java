@@ -26,16 +26,11 @@ import java.util.Map;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.PredicateCompiler;
 import org.apache.ambari.server.controller.spi.Predicate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Host Group information specific to a cluster instance.
  */
 public class HostGroupInfo {
-
-  private final static Logger LOG = LoggerFactory.getLogger(HostGroupInfo.class);
-
   /**
    * predicate compiler
    */
@@ -130,11 +125,7 @@ public class HostGroupInfo {
    */
   public void addHost(String hostName) {
     synchronized(hostNames) {
-      String lowerHostName = hostName.toLowerCase();
-      if (!hostName.equals(lowerHostName)) {
-        LOG.warn("Host name {} contains upper case letters, will be converted to lowercase!", hostName );
-      }
-      hostNames.add(lowerHostName);
+      hostNames.add(hostName);
     }
   }
 
@@ -229,16 +220,6 @@ public class HostGroupInfo {
   public Map<String, String> getHostRackInfo() {
     synchronized (hostRackInfo) {
       return new HashMap<>(hostRackInfo);
-    }
-  }
-
-  /**
-   * Removes hostname from group
-   * @param hostname
-   */
-  public void removeHost(String hostname) {
-    synchronized (hostNames) {
-      hostNames.remove(hostname);
     }
   }
 

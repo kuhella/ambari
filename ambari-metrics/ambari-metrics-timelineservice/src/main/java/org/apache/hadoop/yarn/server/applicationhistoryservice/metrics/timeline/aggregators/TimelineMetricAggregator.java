@@ -31,11 +31,4 @@ public interface TimelineMetricAggregator extends Runnable {
    * @return true/false
    */
   public boolean isDisabled();
-
-  /**
-   * Return aggregator Interval
-   * @return Interval in Millis
-   */
-  public Long getSleepIntervalMillis();
-
-  }
+}

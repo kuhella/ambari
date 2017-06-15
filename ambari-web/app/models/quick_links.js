@@ -343,18 +343,6 @@ App.QuickLinks.FIXTURES = [
     regex: '^(\\d+)$',
     default_http_port: 21000,
     default_https_port: 21443
-  },
-  {
-    id:37,
-    label:'Grafana',
-    url:'%@://%@:%@',
-    service_id: 'AMBARI_METRICS',
-    template:'%@://%@:%@',
-    http_config: 'port',
-    site: 'ams-grafana-ini',
-    regex: '^(\\d+)$',
-    default_http_port: 3000,
-    default_https_port: 3000
   }
 
 ];

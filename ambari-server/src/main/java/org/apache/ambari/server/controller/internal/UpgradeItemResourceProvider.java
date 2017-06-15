@@ -49,8 +49,6 @@ import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
 import org.apache.ambari.server.state.UpgradeHelper;
 
 import com.google.inject.Inject;
-import org.apache.ambari.server.utils.SecretReference;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * Manages the ability to get the status of upgrades.
@@ -227,13 +225,8 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
             Resource r = resultMap.get(l);
             if (null != r) {
               for (String propertyId : StageResourceProvider.PROPERTY_IDS) {
-                // Attempt to mask any passwords in fields that are property maps.
-                Object value = stage.getPropertyValue(propertyId);
-                if (StageResourceProvider.PROPERTIES_TO_MASK_PASSWORD_IN.contains(propertyId) &&
-                    value.getClass().equals(String.class) && !StringUtils.isBlank((String) value)) {
-                  value = SecretReference.maskPasswordInPropertyMap((String) value);
-                }
-                setResourceProperty(r, STAGE_MAPPED_IDS.get(propertyId), value, requestPropertyIds);
+                setResourceProperty(r, STAGE_MAPPED_IDS.get(propertyId),
+                  stage.getPropertyValue(propertyId), requestPropertyIds);
               }
             }
           }

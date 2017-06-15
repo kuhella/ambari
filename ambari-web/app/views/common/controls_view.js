@@ -291,33 +291,6 @@ App.ServiceConfigTextAreaContent = Ember.TextArea.extend(App.ServiceConfigPopove
   classNames: ['span10']
 });
 
-
-
-/**
- * Special config type for Capacity Scheduler
- */
-App.CapacitySceduler = App.ServiceConfigTextArea.extend({
-
-  rows: 16,
-
-  sendRequestRorDependentConfigs: function(config, controller) {
-    if (!config.get('isValid') && config.get('isNotDefaultValue')) return $.Deferred().resolve().promise();
-    controller = controller || this.get('controller');
-    if (controller && ['mainServiceInfoConfigsController','wizardStep7Controller'].contains(controller.get('name'))) {
-      return controller.getRecommendationsForDependencies(config.get('value').split('\n').map(function (_property) {
-        return {
-          "type": 'capacity-scheduler',
-          "name": _property.split('=')[0]
-        }
-      }), false);
-    }
-
-    return $.Deferred().resolve().promise();
-  }
-
-});
-
-
 /**
  * Textarea control with bigger height
  * @type {*}

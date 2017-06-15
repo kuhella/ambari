@@ -168,7 +168,7 @@ public class Stack {
       String serviceName = stackService.getServiceName();
       parseComponents(serviceName);
       parseExcludedConfigurations(stackService);
-      parseConfigurations(stackService);
+      parseConfigurations(serviceName);
       registerConditionalDependencies();
     }
 
@@ -477,9 +477,8 @@ public class Stack {
   public String getServiceForConfigType(String config) {
     for (Map.Entry<String, Map<String, Map<String, ConfigProperty>>> entry : serviceConfigurations.entrySet()) {
       Map<String, Map<String, ConfigProperty>> typeMap = entry.getValue();
-      String serviceName = entry.getKey();
-      if (typeMap.containsKey(config) && !getExcludedConfigurationTypes(serviceName).contains(config)) {
-        return serviceName;
+      if (typeMap.containsKey(config)) {
+        return entry.getKey();
       }
     }
     throw new IllegalArgumentException(
@@ -647,15 +646,13 @@ public class Stack {
   /**
    * Parse configurations for the specified service from the stack definition.
    *
-   * @param stackService  service to parse the stack configuration for
+   * @param service  service name
    *
    * @throws AmbariException an exception occurred getting configurations from the stack definition
    */
-  private void parseConfigurations(StackServiceResponse stackService) throws AmbariException {
-    String service = stackService.getServiceName();
+  private void parseConfigurations(String service) throws AmbariException {
     Map<String, Map<String, ConfigProperty>> mapServiceConfig = new HashMap<String, Map<String, ConfigProperty>>();
     Map<String, Map<String, ConfigProperty>> mapRequiredServiceConfig = new HashMap<String, Map<String, ConfigProperty>>();
-
 
     serviceConfigurations.put(service, mapServiceConfig);
     requiredServiceConfigurations.put(service, mapRequiredServiceConfig);
@@ -685,16 +682,6 @@ public class Stack {
           mapRequiredServiceConfig.put(type, requiredTypeConfig);
         }
         requiredTypeConfig.put(config.getPropertyName(), configProperty);
-      }
-    }
-
-    // So far we added only config types that have properties defined
-    // in stack service definition. Since there might be config types
-    // with no properties defined we need to add those separately
-    Set<String> configTypes = stackService.getConfigTypes().keySet();
-    for (String configType: configTypes) {
-      if (!mapServiceConfig.containsKey(configType)) {
-        mapServiceConfig.put(configType, Collections.<String, ConfigProperty>emptyMap());
       }
     }
   }

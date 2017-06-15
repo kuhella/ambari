@@ -23,14 +23,14 @@ import os
 from resource_management import *
 from resource_management.core.logger import Logger
 
-def ranger(name=None, upgrade_type=None):
+def ranger(name=None):
   if name == 'ranger_admin':
-    setup_ranger_admin(upgrade_type=upgrade_type)
+    setup_ranger_admin()
 
   if name == 'ranger_usersync':
-    setup_usersync(upgrade_type=upgrade_type)
+    setup_usersync()
 
-def setup_ranger_admin(upgrade_type=None):
+def setup_ranger_admin():
   import params
 
   check_db_connnection()
@@ -84,7 +84,7 @@ def setup_ranger_admin(upgrade_type=None):
     group = params.unix_group
   )
 
-def setup_usersync(upgrade_type=None):
+def setup_usersync():
   import params
 
   PropertiesFile(format("{usersync_home}/install.properties"),

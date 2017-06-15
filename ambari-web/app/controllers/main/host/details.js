@@ -424,7 +424,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       this.loadConfigs('loadHiveConfigs');
     } else if (data.componentName == 'WEBHCAT_SERVER') {
       this.set('deleteWebHCatServer', true);
-      this.loadConfigs('loadWebHCatConfigs');
+      this.loadConfigs('loadHiveConfigs');
     } else if (data.componentName == 'HIVE_SERVER') {
       this.set('deleteHiveServer', true);
       this.loadConfigs('loadHiveConfigs');
@@ -597,7 +597,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       case 'WEBHCAT_SERVER':
         returnFunc = App.showConfirmationPopup(function () {
           self.set('webhcatServerHost', hostName);
-          self.loadConfigs("loadWebHCatConfigs");
+          self.loadConfigs("loadHiveConfigs");
         }, Em.I18n.t('hosts.host.addComponent.' + componentName) + manualKerberosWarning);
         break;
       case 'NIMBUS':
@@ -666,7 +666,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     if (subComponentNames && subComponentNames.length > 0) {
       var dns = [];
       subComponentNames.forEach(function (scn) {
-        dns.push(App.format.role(scn, false));
+        dns.push(App.format.role(scn));
       });
       displayName += " (" + dns.join(", ") + ")";
     }
@@ -830,28 +830,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @param {object} data
    * @method loadHiveConfigs
    */
-  loadWebHCatConfigs: function (data) {
-    return App.ajax.send({
-      name: 'admin.get.all_configurations',
-      sender: this,
-      data: {
-        webHCat: true,
-        urlParams: [
-          '(type=hive-site&tag=' + data.Clusters.desired_configs['hive-site'].tag + ')',
-          '(type=webhcat-site&tag=' + data.Clusters.desired_configs['webhcat-site'].tag + ')',
-          '(type=hive-env&tag=' + data.Clusters.desired_configs['hive-env'].tag + ')',
-          '(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')'
-        ].join('|')
-      },
-      success: 'onLoadHiveConfigs'
-    });
-  },
-
-  /**
-   * Success callback for load configs request
-   * @param {object} data
-   * @method loadHiveConfigs
-   */
   loadHiveConfigs: function (data) {
     return App.ajax.send({
       name: 'admin.get.all_configurations',
@@ -871,11 +849,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   /**
    * update and save Hive related configs to server
    * @param {object} data
-   * @param {object} opt
-   * @param {object} params
    * @method onLoadHiveConfigs
    */
-  onLoadHiveConfigs: function (data, opt, params) {
+  onLoadHiveConfigs: function (data) {
     var
       hiveMetastoreHost = this.get('hiveMetastoreHost'),
       webhcatServerHost = this.get('webhcatServerHost'),
@@ -903,12 +879,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     }
     configs['hive-site']['hive.metastore.uris'] = hiveMSHosts.join(',');
     configs['webhcat-site']['templeton.hive.properties'] = configs['webhcat-site']['templeton.hive.properties'].replace(/thrift.+[0-9]{2,},/i, hiveMSHosts.join('\\,') + ",");
-    if (params.webHCat) {
-        configs['core-site']['hadoop.proxyuser.' + webhcatUser + '.hosts'] = hiveMasterHosts;
-    } else {
-        configs['core-site']['hadoop.proxyuser.' + hiveUser + '.hosts'] = hiveMasterHosts;
-    }
-    
+    configs['core-site']['hadoop.proxyuser.' + hiveUser + '.hosts'] = hiveMasterHosts;
+    configs['core-site']['hadoop.proxyuser.' + webhcatUser + '.hosts'] = hiveMasterHosts;
     var groups = [
       {
         properties: {
@@ -958,7 +930,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           "tag": tag,
           "properties": properties[site],
           "properties_attributes": group.properties_attributes[site],
-          "service_config_version_note": Em.I18n.t('hosts.host.configs.save.note').format(App.format.role(componentName, false))
+          "service_config_version_note": Em.I18n.t('hosts.host.configs.save.note').format(App.format.role(componentName))
         });
       }
       if (desiredConfigs.length > 0) {
@@ -1447,28 +1419,23 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         templateName: require('templates/main/host/details/installComponentPopup')
       }),
       onPrimary: function () {
-        var _this = this;
-        App.get('router.mainAdminKerberosController').getSecurityType(function () {
-          App.get('router.mainAdminKerberosController').getKDCSessionState(function () {
-            _this.hide();
+        this.hide();
 
-            App.ajax.send({
-              name: 'common.host.host_component.update',
-              sender: self,
-              data: {
-                hostName: self.get('content.hostName'),
-                serviceName: component.get('service.serviceName'),
-                componentName: componentName,
-                component: component,
-                context: Em.I18n.t('requestInfo.installHostComponent') + " " + displayName,
-                HostRoles: {
-                  state: 'INSTALLED'
-                }
-              },
-              success: 'installComponentSuccessCallback',
-              error: 'ajaxErrorCallback'
-            });
-          })
+        App.ajax.send({
+          name: 'common.host.host_component.update',
+          sender: self,
+          data: {
+            hostName: self.get('content.hostName'),
+            serviceName: component.get('service.serviceName'),
+            componentName: componentName,
+            component: component,
+            context: Em.I18n.t('requestInfo.installHostComponent') + " " + displayName,
+            HostRoles: {
+              state: 'INSTALLED'
+            }
+          },
+          success: 'installComponentSuccessCallback',
+          error: 'ajaxErrorCallback'
         });
       }
     });
@@ -2481,11 +2448,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
 
   executeCustomCommandSuccessCallback: function (data, ajaxOptions, params) {
     if (data.Requests.id) {
-      App.router.get('userSettingsController').dataLoading('show_bg').done(function (initValue) {
-        if (initValue) {
-          App.router.get('backgroundOperationsController').showPopup();
-        }
-      });
+      App.router.get('backgroundOperationsController').showPopup();
     } else {
       console.warn('Error during execution of ' + params.command + ' custom command on' + params.componentName);
     }

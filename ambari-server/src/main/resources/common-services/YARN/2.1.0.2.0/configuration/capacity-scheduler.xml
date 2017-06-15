@@ -23,7 +23,6 @@
     <description>
       Maximum number of applications that can be pending and running.
     </description>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
   </property>
 
   <property>
@@ -34,7 +33,6 @@
       application masters i.e. controls number of concurrent running
       applications.
     </description>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
   </property>
 
   <property>
@@ -43,7 +41,6 @@
     <description>
       The queues at the this level (root is the root queue).
     </description>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
   </property>
 
   <property>
@@ -55,14 +52,12 @@
       The child queues capacity should add up to their parent queue's capacity
       or less.
     </description>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
   </property>
 
   <property>
     <name>yarn.scheduler.capacity.root.default.capacity</name>
     <value>100</value>
     <description>Default queue target capacity.</description>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
   </property>
 
   <property>
@@ -71,7 +66,6 @@
     <description>
       Default queue user limit a percentage from 0.0 to 1.0.
     </description>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
   </property>
 
   <property>
@@ -80,7 +74,6 @@
     <description>
       The maximum capacity of the default queue. 
     </description>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
   </property>
 
   <property>
@@ -89,7 +82,6 @@
     <description>
       The state of the default queue. State can be one of RUNNING or STOPPED.
     </description>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
   </property>
 
   <property>
@@ -98,7 +90,6 @@
     <description>
       The ACL of who can submit jobs to the default queue.
     </description>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
   </property>
 
   <property>
@@ -107,7 +98,6 @@
     <description>
       The ACL of who can administer jobs on the default queue.
     </description>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
   </property>
 
   <property>
@@ -117,7 +107,6 @@
       The ACL for who can administer this queue i.e. change sub-queue 
       allocations.
     </description>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
   </property>
   
   <property>
@@ -129,7 +118,6 @@
       Typically this should be set to number of nodes in the cluster, By default is setting
       approximately number of nodes in one rack which is 40.
     </description>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
   </property>
 
   <property>
@@ -138,7 +126,6 @@
     <description>
       Default minimum queue resource limit depends on the number of users who have submitted applications.
     </description>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
   </property>
 
 

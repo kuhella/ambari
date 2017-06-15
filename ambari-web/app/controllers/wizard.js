@@ -90,7 +90,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       dbHosts[hostName].hostComponents.forEach(function (componentName) {
         hostComponents.push(Em.Object.create({
           componentName: componentName,
-          displayName: App.format.role(componentName, false)
+          displayName: App.format.role(componentName)
         }));
       });
       dbHosts[hostName].disk_info.forEach(function (disk) {
@@ -870,13 +870,11 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       installedServiceNamesMap[name] = true;
     });
     stepController.get('stepConfigs').forEach(function (_content) {
+
       if (_content.serviceName === 'YARN') {
         _content.set('configs', App.config.textareaIntoFileConfigs(_content.get('configs'), 'capacity-scheduler.xml'));
       }
       _content.get('configs').forEach(function (_configProperties) {
-        if (!Em.isNone(_configProperties.get('group'))) {
-          return false;
-        }
         var configProperty = App.config.createDefaultConfig(
           _configProperties.get('name'),
           _configProperties.get('serviceName'),
@@ -1010,7 +1008,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       var name = (componentName === 'HDFS_CLIENT') ? 'CLIENT' : componentName;
       var component = {
         componentName: name,
-        displayName: App.format.role(name, false),
+        displayName: App.format.role(name),
         hosts: [],
         isInstalled: true
       };
@@ -1029,7 +1027,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       hosts.setEach('isInstalled', false);
       result.push({
         componentName: component.get('componentName'),
-        displayName: App.format.role(component.get('componentName'), false),
+        displayName: App.format.role(component.get('componentName')),
         hosts: hosts,
         isInstalled: false
       })

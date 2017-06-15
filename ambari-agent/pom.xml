@@ -19,14 +19,14 @@
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
-    <version>2.2.2.0.0</version>
+    <version>2.2.1.0.0</version>
     <relativePath>../ambari-project</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-agent</artifactId>
   <packaging>pom</packaging>
-  <version>2.2.2.0.0</version>
+  <version>2.2.1.0.0</version>
   <name>Ambari Agent</name>
   <description>Ambari Agent</description>
   <properties>
@@ -237,6 +237,18 @@
               <directoryIncluded>false</directoryIncluded>
               <sources>
                 <source>
+                  <location>../ambari-common/src/main/unix/ambari-python-wrap</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/var/lib/ambari-agent/</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <directoryIncluded>false</directoryIncluded>
+              <sources>
+                <source>
                   <location>conf/unix/ambari-sudo.sh</location>
                 </source>
               </sources>
@@ -395,17 +407,6 @@
               <filemode>755</filemode>
               <username>root</username>
               <groupname>root</groupname>
-            </mapping>
-            <mapping>
-              <directory>/etc/init</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-              <sources>
-                <source>
-                  <location>etc/init/ambari-agent.conf</location>
-                </source>
-              </sources>
             </mapping>
             <mapping>
               <directory>${init.d.dir}</directory>
@@ -619,22 +620,22 @@
               </mapper>
             </data>
             <data>
-              <src>etc/init/ambari-agent.conf</src>
+              <src>${basedir}/target/src/version</src>
               <type>file</type>
               <mapper>
                 <type>perm</type>
-                <prefix>/etc/init</prefix>
+                <prefix>/var/lib/${project.artifactId}/data</prefix>
                 <user>root</user>
                 <group>root</group>
                 <filemode>755</filemode>
               </mapper>
             </data>
             <data>
-              <src>${basedir}/target/src/version</src>
+              <src>../ambari-common/src/main/unix/ambari-python-wrap</src>
               <type>file</type>
               <mapper>
                 <type>perm</type>
-                <prefix>/var/lib/${project.artifactId}/data</prefix>
+                <prefix>/var/lib/ambari-agent</prefix>
                 <user>root</user>
                 <group>root</group>
                 <filemode>755</filemode>

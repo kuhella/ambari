@@ -94,7 +94,6 @@ with patch("platform.linux_distribution", return_value = os_distro_value):
         from ambari_server_main import get_ulimit_open_files, ULIMIT_OPEN_FILES_KEY, ULIMIT_OPEN_FILES_DEFAULT
         from ambari_server.serverClassPath import ServerClassPath
         from ambari_server.hostUpdate import update_host_names
-        from ambari_server.checkDatabase import check_database
 
 CURR_AMBARI_VERSION = "2.0.0"
 
@@ -839,8 +838,6 @@ class TestAmbariServer(TestCase):
     del args.database_name
     del args.database_username
     del args.database_password
-    del args.init_script_file
-    del args.drop_script_file
 
     properties = Properties()
     properties.process_pair(JDBC_PASSWORD_PROPERTY, get_alias_string("mypwdalias"))
@@ -870,8 +867,6 @@ class TestAmbariServer(TestCase):
     del args.database_name
     del args.database_username
     del args.database_password
-    del args.init_script_file
-    del args.drop_script_file
 
     properties = Properties()
 
@@ -900,8 +895,6 @@ class TestAmbariServer(TestCase):
     del args.database_name
     del args.database_username
     del args.database_password
-    del args.init_script_file
-    del args.drop_script_file
 
     properties = Properties()
 
@@ -1541,20 +1534,18 @@ class TestAmbariServer(TestCase):
     read_ambari_user_method.return_value = "user"
     #Case #1: if client ssl is on and user didnt choose
     #disable ssl option and choose import certs and keys
-    p.get_property.side_effect = ["key_dir", "5555", "6666", "true", "5555", "true", "true", "5555"]
+    p.get_property.side_effect = ["key_dir", "5555", "6666", "true"]
     get_YN_input_mock.side_effect = [False, True]
     get_validated_string_input_mock.side_effect = ["4444"]
     get_property_expected = "[call('security.server.keys_dir'),\n" + \
                             " call('client.api.ssl.port'),\n" + \
-                            " call('client.api.ssl.port'),\n call('api.ssl'),\n" + \
-                            " call('client.api.ssl.port'),\n call('api.ssl'),\n" + \
-                            " call('api.ssl'),\n call('client.api.ssl.port')]"
+                            " call('client.api.ssl.port'),\n call('api.ssl')]"
     process_pair_expected = "[call('client.api.ssl.port', '4444')]"
     set_silent(False)
     setup_https(args)
 
     self.assertTrue(p.process_pair.called)
-    self.assertTrue(p.get_property.call_count == 8)
+    self.assertTrue(p.get_property.call_count == 4)
     self.assertEqual(str(p.get_property.call_args_list), get_property_expected)
     self.assertEqual(str(p.process_pair.call_args_list), process_pair_expected)
     self.assertTrue(p.store.called)
@@ -1566,18 +1557,16 @@ class TestAmbariServer(TestCase):
     import_cert_and_key_action_mock.reset_mock()
 
     #Case #2: if client ssl is on and user choose to disable ssl option
-    p.get_property.side_effect = ["key_dir", "", "true", "", "true", "false", ""]
+    p.get_property.side_effect = ["key_dir", "", "true"]
     get_YN_input_mock.side_effect = [True]
     get_validated_string_input_mock.side_effect = ["4444"]
     get_property_expected = "[call('security.server.keys_dir'),\n" + \
-                            " call('client.api.ssl.port'),\n call('api.ssl'),\n" + \
-                            " call('client.api.ssl.port'),\n call('api.ssl'),\n" + \
-                            " call('api.ssl')]"
+                            " call('client.api.ssl.port'),\n call('api.ssl')]"
     process_pair_expected = "[call('api.ssl', 'false')]"
     setup_https(args)
 
     self.assertTrue(p.process_pair.called)
-    self.assertTrue(p.get_property.call_count == 6)
+    self.assertTrue(p.get_property.call_count == 3)
     self.assertEqual(str(p.get_property.call_args_list), get_property_expected)
     self.assertEqual(str(p.process_pair.call_args_list), process_pair_expected)
     self.assertTrue(p.store.called)
@@ -1590,18 +1579,16 @@ class TestAmbariServer(TestCase):
 
     #Case #3: if client ssl is off and user choose option
     #to import cert and keys
-    p.get_property.side_effect = ["key_dir", "", None, "", None, None, ""]
+    p.get_property.side_effect = ["key_dir", "", None]
     get_YN_input_mock.side_effect = [True, True]
     get_validated_string_input_mock.side_effect = ["4444"]
     get_property_expected = "[call('security.server.keys_dir'),\n" + \
-                            " call('client.api.ssl.port'),\n call('api.ssl'),\n" + \
-                            " call('client.api.ssl.port'),\n call('api.ssl'),\n" + \
-                            " call('api.ssl'),\n call('client.api.ssl.port')]"
+                            " call('client.api.ssl.port'),\n call('api.ssl')]"
     process_pair_expected = "[call('client.api.ssl.port', '4444')]"
     setup_https(args)
 
     self.assertTrue(p.process_pair.called)
-    self.assertTrue(p.get_property.call_count == 7)
+    self.assertTrue(p.get_property.call_count == 3)
     self.assertEqual(str(p.get_property.call_args_list), get_property_expected)
     self.assertEqual(str(p.process_pair.call_args_list), process_pair_expected)
     self.assertTrue(p.store.called)
@@ -1614,17 +1601,16 @@ class TestAmbariServer(TestCase):
 
     #Case #4: if client ssl is off and
     #user did not choose option to import cert and keys
-    p.get_property.side_effect = ["key_dir", "", None, "", None]
+    p.get_property.side_effect = ["key_dir", "", None]
     get_YN_input_mock.side_effect = [False]
     get_validated_string_input_mock.side_effect = ["4444"]
     get_property_expected = "[call('security.server.keys_dir'),\n" + \
-                            " call('client.api.ssl.port'),\n call('api.ssl'),\n" + \
                             " call('client.api.ssl.port'),\n call('api.ssl')]"
     process_pair_expected = "[]"
     setup_https(args)
 
     self.assertFalse(p.process_pair.called)
-    self.assertTrue(p.get_property.call_count == 5)
+    self.assertTrue(p.get_property.call_count == 3)
     self.assertEqual(str(p.get_property.call_args_list), get_property_expected)
     self.assertEqual(str(p.process_pair.call_args_list), process_pair_expected)
     self.assertFalse(p.store.called)
@@ -1636,17 +1622,16 @@ class TestAmbariServer(TestCase):
     import_cert_and_key_action_mock.reset_mock()
 
     #Case #5: if cert must be imported but didnt imported
-    p.get_property.side_effect = ["key_dir", "", "false", "", "false"]
+    p.get_property.side_effect = ["key_dir", "", "false"]
     get_YN_input_mock.side_effect = [True]
     import_cert_and_key_action_mock.side_effect = [False]
     get_validated_string_input_mock.side_effect = ["4444"]
     get_property_expected = "[call('security.server.keys_dir'),\n" + \
-                            " call('client.api.ssl.port'),\n call('api.ssl'),\n" + \
                             " call('client.api.ssl.port'),\n call('api.ssl')]"
     process_pair_expected = "[call('client.api.ssl.port', '4444')]"
     self.assertFalse(setup_https(args))
     self.assertTrue(p.process_pair.called)
-    self.assertTrue(p.get_property.call_count == 5)
+    self.assertTrue(p.get_property.call_count == 3)
     self.assertEqual(str(p.get_property.call_args_list), get_property_expected)
     self.assertEqual(str(p.process_pair.call_args_list), process_pair_expected)
     self.assertFalse(p.store.called)
@@ -3008,8 +2993,6 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       del args.persistence_type
       del args.sid_or_sname
       del args.jdbc_url
-      del args.init_script_file
-      del args.drop_script_file
 
       args.jdbc_driver= None
       args.jdbc_db = None
@@ -3300,8 +3283,6 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     del args.database_username
     del args.database_password
     del args.persistence_type
-    del args.init_script_file
-    del args.drop_script_file
 
     set_silent(True)
 
@@ -6832,41 +6813,6 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEquals(runOSCommandMock.call_args[0][0], '/path/to/java -cp test:path12 '
                           'org.apache.ambari.server.update.HostUpdateHelper /testFileWithChanges > '
                           '/var/log/ambari-server/ambari-server.out 2>&1')
-
-    pass
-
-  @patch.object(ServerClassPath, "get_full_ambari_classpath_escaped_for_shell", new = MagicMock(return_value = 'test' + os.pathsep + 'path12'))
-  @patch("ambari_server.serverUtils.is_server_runing")
-  @patch("ambari_commons.os_utils.run_os_command")
-  @patch("ambari_server.setupSecurity.generate_env")
-  @patch("ambari_server.setupSecurity.ensure_can_start_under_current_user")
-  @patch("ambari_server.serverConfiguration.read_ambari_user")
-  @patch("ambari_server.dbConfiguration.ensure_jdbc_driver_is_installed")
-  @patch("ambari_server.serverConfiguration.parse_properties_file")
-  @patch("ambari_server.serverConfiguration.get_ambari_properties")
-  @patch("ambari_server.serverConfiguration.get_java_exe_path")
-  def test_check_database(self, getJavaExePathMock,
-                             getAmbariPropertiesMock, parsePropertiesFileMock, ensureDriverInstalledMock, readAmbariUserMock,
-                             ensureCanStartUnderCurrentUserMock, generateEnvMock, runOSCommandMock, isServerRunningMock):
-    properties = Properties()
-    properties.process_pair("server.jdbc.database", "embedded")
-
-    getJavaExePathMock.return_value = "/path/to/java"
-    getAmbariPropertiesMock.return_value = properties
-    readAmbariUserMock.return_value = "test_user"
-    ensureCanStartUnderCurrentUserMock.return_value = "test_user"
-    generateEnvMock.return_value = {}
-    runOSCommandMock.return_value = (0, "", "")
-    isServerRunningMock.return_value = (False, 1)
-
-    check_database(properties)
-
-    self.assertTrue(getJavaExePathMock.called)
-    self.assertTrue(readAmbariUserMock.called)
-    self.assertTrue(ensureCanStartUnderCurrentUserMock.called)
-    self.assertTrue(generateEnvMock.called)
-
-    self.assertEquals(runOSCommandMock.call_args[0][0], '/path/to/java -cp test:path12 org.apache.ambari.server.checks.CheckDatabaseHelper')
 
     pass
 

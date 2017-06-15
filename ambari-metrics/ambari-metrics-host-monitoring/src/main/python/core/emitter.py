@@ -20,13 +20,13 @@ limitations under the License.
 
 import logging
 import threading
-
-from security import CachedHTTPSConnection, CachedHTTPConnection
+import time
+import urllib2
 
 logger = logging.getLogger()
 
 class Emitter(threading.Thread):
-  AMS_METRICS_POST_URL = "/ws/v1/timeline/metrics/"
+  COLLECTOR_URL = "http://{0}/ws/v1/timeline/metrics"
   RETRY_SLEEP_INTERVAL = 5
   MAX_RETRY_COUNT = 3
   """
@@ -36,19 +36,10 @@ class Emitter(threading.Thread):
     threading.Thread.__init__(self)
     logger.debug('Initializing Emitter thread.')
     self.lock = threading.Lock()
+    self.collector_address = config.get_server_address()
     self.send_interval = config.get_send_interval()
     self._stop_handler = stop_handler
     self.application_metric_map = application_metric_map
-    timeout = int(self.send_interval - 10)
-    if config.is_server_https_enabled():
-      self.connection = CachedHTTPSConnection(config.get_server_host(),
-                                              config.get_server_port(),
-                                              timeout=timeout,
-                                              ca_certs=config.get_ca_certs())
-    else:
-      self.connection = CachedHTTPConnection(config.get_server_host(),
-                                             config.get_server_port(),
-                                             timeout=timeout)
 
   def run(self):
     logger.info('Running Emitter thread: %s' % threading.currentThread().getName())
@@ -63,7 +54,7 @@ class Emitter(threading.Thread):
         logger.info('Shutting down Emitter thread')
         return
     pass
-
+  
   def submit_metrics(self):
     retry_count = 0
     # This call will acquire lock on the map and clear contents before returning
@@ -82,8 +73,8 @@ class Emitter(threading.Thread):
       except Exception, e:
         logger.warn('Error sending metrics to server. %s' % str(e))
       pass
-
-      if response and response.status == 200:
+  
+      if response and response.getcode() == 200:
         retry_count = self.MAX_RETRY_COUNT
       else:
         logger.warn("Retrying after {0} ...".format(self.RETRY_SLEEP_INTERVAL))
@@ -93,17 +84,17 @@ class Emitter(threading.Thread):
           return
       pass
     pass
-
+  
   def push_metrics(self, data):
-    headers = {"Content-Type" : "application/json",
-               "Accept" : "*/*",
-               "Connection":" Keep-Alive"}
+    headers = {"Content-Type" : "application/json", "Accept" : "*/*"}
+    server = self.COLLECTOR_URL.format(self.collector_address.strip())
+    logger.info("server: %s" % server)
     logger.debug("message to sent: %s" % data)
-    self.connection.request("POST", self.AMS_METRICS_POST_URL, data, headers)
-    response = self.connection.getresponse()
+    req = urllib2.Request(server, data, headers)
+    response = urllib2.urlopen(req, timeout=int(self.send_interval - 10))
     if response:
-      logger.debug("POST response from server: retcode = {0}, reason = {1}"
-                   .format(response.status, response.reason))
+      logger.debug("POST response from server: retcode = {0}".format(response.getcode()))
       logger.debug(str(response.read()))
-
+    pass
     return response
+

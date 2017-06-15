@@ -186,12 +186,8 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
     var allConfigs = stepConfigs.mapProperty('configs').filterProperty('length').reduce(function(p, c) {
       return p && p.concat(c);
     });
-    // Do not clear the configs that are in excluded list
-    var excludedConfigs = ['hadoop.proxyuser', 'dfs.allow.truncate'];
     var cleanDependencies = this.get('_dependentConfigValues').reject(function(item) {
-      for (var i = 0; i < excludedConfigs.length; i++) {
-        if (Em.get(item, 'propertyName').contains(excludedConfigs[i])) return false;
-      }
+      if (Em.get(item, 'propertyName').contains('hadoop.proxyuser')) return false;
       if (installedServices.contains(Em.get(item, 'serviceName'))) {
         var stackProperty = App.StackConfigProperty.find(App.config.configId(item.propertyName, item.fileName));
         var parentConfigs = stackProperty && stackProperty.get('propertyDependsOn');
@@ -577,10 +573,10 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         var cp = configProperties.findProperty('name', propertyName);
         var stackProperty = stackConfigsMap[App.config.configId(propertyName, siteName)];
         var attributes = properties[propertyName] || {};
-        var fileName = App.config.getOriginalFileName(siteName);
         Em.keys(attributes).forEach(function (attributeName) {
           if (attributeName == 'delete' && cp) {
             if (!updateOnlyBoundaries) {
+              var fileName = App.config.getOriginalFileName(siteName);
               var modifiedFileNames = self.get('modifiedFileNames');
               var dependentProperty = self.get('_dependentConfigValues').filterProperty('propertyName', propertyName).filterProperty('fileName', siteName).findProperty('configGroup', group && Em.get(group,'name'));
               if (dependentProperty) {
@@ -625,12 +621,6 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
               }
             } else {
               Em.set(stackProperty.get('valueAttributes'), attributeName, attributes[attributeName]);
-              if (attributeName === 'visible') {
-                var p = self.findConfigProperty(propertyName, fileName);
-                if (p) {
-                  p.set('isVisible', attributes[attributeName]);
-                }
-              }
             }
           }
         });

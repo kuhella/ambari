@@ -20,7 +20,7 @@
   <services>
     <service>
       <name>SQOOP</name>
-      <version>1.4.6.2.3</version>
+      <version>1.4.6.1.4</version>
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>
@@ -32,7 +32,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat7,amazon2015,redhat6,suse11</osFamily>
+          <osFamily>redhat7,redhat6,suse11</osFamily>
           <packages>
             <package>
               <name>sqoop</name>

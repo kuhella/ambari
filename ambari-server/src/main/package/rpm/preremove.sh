@@ -23,9 +23,9 @@ if [ "$1" -eq 0 ]; then  # Action is uninstall
         mv /etc/ambari-server/conf.save /etc/ambari-server/conf_$(date '+%d_%m_%y_%H_%M').save
     fi
 
-    if [ -e "/usr/sbin/ambari-server" ]; then
+    if [ -e "/etc/init.d/ambari-server" ]; then
         # Remove link created during install
-        rm /usr/sbin/ambari-server
+        rm /etc/init.d/ambari-server
     fi
 
     mv /etc/ambari-server/conf /etc/ambari-server/conf.save

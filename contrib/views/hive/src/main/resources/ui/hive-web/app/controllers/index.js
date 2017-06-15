@@ -284,23 +284,19 @@ export default Ember.Controller.extend({
     queries = queryComponents.queryString.split(';');
     queries = queries.filter(Boolean);
 
-    var queriesLength = queries.length;
+    queries = queries.map(function (query) {
+      if (shouldExplain) {
+        query = query.replace(/explain formatted|explain/gi, '');
 
-    queries = queries.map(function (q, index) {
-      var newQuery = q.replace(/explain formatted|explain/gi, '');
-      return newQuery;
-    });
-
-    var lastQuery = queries[queriesLength - 1];
-
-    if(!Ember.isNone(lastQuery) && shouldExplain) {
-      if (shouldGetVisualExplain) {
-        lastQuery = constants.namingConventions.explainFormattedPrefix + lastQuery;
+        if (shouldGetVisualExplain) {
+          return constants.namingConventions.explainFormattedPrefix + query;
+        } else {
+          return constants.namingConventions.explainPrefix + query;
+        }
       } else {
-        lastQuery = constants.namingConventions.explainPrefix + lastQuery;
+        return query;
       }
-      queries[queriesLength - 1] = lastQuery;
-    }
+    });
 
     if (queryComponents.files.length) {
       finalQuery += queryComponents.files.join("\n") + "\n\n";
@@ -310,7 +306,8 @@ export default Ember.Controller.extend({
       finalQuery += queryComponents.udfs.join("\n") + "\n\n";
     }
 
-    finalQuery += queries.join(";") + ";";
+    finalQuery += queries.join(";");
+    finalQuery += ";";
     return finalQuery.trim();
   },
 
@@ -491,6 +488,8 @@ export default Ember.Controller.extend({
             self = this,
             defer = Ember.RSVP.defer();
 
+        self.createJob = this.createJob;
+
         this.send('openModal', 'modal-save', {
           heading: "modals.authenticationLDAP.heading",
           text:"",
@@ -507,26 +506,21 @@ export default Ember.Controller.extend({
             var hiveViewName = pathNameArray[4];
             var ldapAuthURL = "/api/v1/views/HIVE/versions/"+ hiveViewVersion + "/instances/" + hiveViewName + "/jobs/auth";
 
+
             $.ajax({
                 url: ldapAuthURL,
+                dataType: "json",
                 type: 'post',
                 headers: {'X-Requested-With': 'XMLHttpRequest', 'X-Requested-By': 'ambari'},
                 contentType: 'application/json',
                 data: JSON.stringify({ "password" : password}),
                 success: function( data, textStatus, jQxhr ){
-
-                  self.get('databaseService').getDatabases().then(function (databases) {
-                    var selectedDatabase = self.get('databaseService.selectedDatabase.name') || 'default';
-                    self.get('databaseService').setDatabaseByName( selectedDatabase);
-                    return self.send('executeQuery', 'job', self.get('openQueries.currentQuery.fileContent') );
-                  }).catch(function (error) {
-                    self.get('notifyService').error( "Error in accessing databases." );
-                  });
-
+                    console.log( "LDAP done: " + data );
+                    self.createJob (job,originalModel);
                 },
                 error: function( jqXhr, textStatus, errorThrown ){
                     console.log( "LDAP fail: " + errorThrown );
-                    self.get('notifyService').error( "Wrong Credentials." );
+                        self.get('notifyService').error( "Wrong Credentials." );
                 }
             });
 

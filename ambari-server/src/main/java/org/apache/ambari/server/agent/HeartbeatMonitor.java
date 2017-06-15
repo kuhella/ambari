@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionManager;
@@ -139,10 +140,6 @@ public class HeartbeatMonitor implements Runnable {
     List<Host> allHosts = clusters.getHosts();
     long now = System.currentTimeMillis();
     for (Host hostObj : allHosts) {
-      if (hostObj.getState() == HostState.HEARTBEAT_LOST) {
-        //do not check if host already known be lost
-        continue;
-      }
       String host = hostObj.getHostName();
       HostState hostState = hostObj.getState();
       String hostname = hostObj.getHostName();
@@ -215,8 +212,6 @@ public class HeartbeatMonitor implements Runnable {
         switch (sch.getState()) {
           case INIT:
           case INSTALLING:
-          case STARTING:
-          case STOPPING:
             //don't send commands until component is installed at least
             continue;
           default:
@@ -263,37 +258,40 @@ public class HeartbeatMonitor implements Runnable {
         continue;
       }
 
-      // cluster config for 'global'
-      Map<String, String> props = new HashMap<>(clusterConfig.getProperties());
+      if (clusterConfig != null) {
+        // cluster config for 'global'
+        Map<String, String> props = new HashMap<String, String>(clusterConfig.getProperties());
 
-      Map<String, Map<String, String>> configTags = new HashMap<>();
+        Map<String, Map<String, String>> configTags = new HashMap<String,
+                Map<String, String>>();
 
-      for (Map.Entry<String, Map<String, String>> entry : allConfigTags.entrySet()) {
-        if (entry.getKey().equals(clusterConfig.getType())) {
-          configTags.put(clusterConfig.getType(), entry.getValue());
+        for (Map.Entry<String, Map<String, String>> entry : allConfigTags.entrySet()) {
+          if (entry.getKey().equals(clusterConfig.getType())) {
+            configTags.put(clusterConfig.getType(), entry.getValue());
+          }
         }
-      }
 
-      Map<String, Map<String, String>> properties = configHelper
-              .getEffectiveConfigProperties(cluster, configTags);
+        Map<String, Map<String, String>> properties = configHelper
+                .getEffectiveConfigProperties(cluster, configTags);
 
-      if (!properties.isEmpty()) {
-        for (Map<String, String> propertyMap : properties.values()) {
-          props.putAll(propertyMap);
+        if (!properties.isEmpty()) {
+          for (Map<String, String> propertyMap : properties.values()) {
+            props.putAll(propertyMap);
+          }
         }
+
+        configurations.put(clusterConfig.getType(), props);
+
+        Map<String, Map<String, String>> attrs = new TreeMap<String, Map<String, String>>();
+        configHelper.cloneAttributesMap(clusterConfig.getPropertiesAttributes(), attrs);
+
+        Map<String, Map<String, Map<String, String>>> attributes = configHelper
+            .getEffectiveConfigAttributes(cluster, configTags);
+        for (Map<String, Map<String, String>> attributesMap : attributes.values()) {
+          configHelper.cloneAttributesMap(attributesMap, attrs);
+        }
+        configurationAttributes.put(clusterConfig.getType(), attrs);
       }
-
-      configurations.put(clusterConfig.getType(), props);
-
-      Map<String, Map<String, String>> attrs = new TreeMap<>();
-      configHelper.cloneAttributesMap(clusterConfig.getPropertiesAttributes(), attrs);
-
-      Map<String, Map<String, Map<String, String>>> attributes = configHelper
-          .getEffectiveConfigAttributes(cluster, configTags);
-      for (Map<String, Map<String, String>> attributesMap : attributes.values()) {
-        configHelper.cloneAttributesMap(attributesMap, attrs);
-      }
-      configurationAttributes.put(clusterConfig.getType(), attrs);
     }
 
     StatusCommand statusCmd = new StatusCommand();
@@ -340,6 +338,7 @@ public class HeartbeatMonitor implements Runnable {
     hostLevelParams.put(JDK_LOCATION, ambariManagementController.getJdkResourceUrl());
     hostLevelParams.put(STACK_NAME, stackId.getStackName());
     hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
+
 
     if (statusCmd.getPayloadLevel() == StatusCommand.StatusCommandPayload.EXECUTION_COMMAND) {
       ExecutionCommand ec = ambariManagementController.getExecutionCommand(cluster, sch, RoleCommand.START);

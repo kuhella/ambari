@@ -18,9 +18,7 @@
 
 package org.apache.ambari.server.orm.models;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.google.inject.Inject;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
@@ -30,7 +28,8 @@ import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.state.State;
 
-import com.google.inject.Inject;
+import java.util.ArrayList;
+import java.util.List;
 
 @StaticallyInject
 public class HostComponentSummary {
@@ -57,19 +56,15 @@ public class HostComponentSummary {
 
     HostEntity host = hostDao.findById(hostId);
     if (host != null) {
-      hostName = host.getHostName();
+      this.hostName = host.getHostName();
     }
 
     this.desiredState = desiredState;
     this.currentState = currentState;
   }
 
-  public long getHostId() {
-    return hostId;
-  }
-
   public String getHostName() {
-    return (hostName == null || hostName.isEmpty()) ? "" : hostName;
+    return (this.hostName == null || this.hostName.isEmpty()) ? "" : this.hostName;
   }
 
   public State getDesiredState() {

@@ -24,8 +24,6 @@ import java.util.Map;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.MaintenanceStateHelper;
-import org.apache.ambari.server.controller.RootServiceResponseFactory.Components;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
@@ -81,16 +79,6 @@ public class AlertReceivedListener {
    */
   @Inject
   Provider<Clusters> m_clusters;
-
-  /**
-   * Used to calculate the maintenance state of new alerts being created.
-   * Consider the case where you have disabled alerts for a component in MM.
-   * This means that there are no current alerts in the system since disabling
-   * them removes all current instances. New alerts being created for the
-   * component in MM must reflect the correct MM.
-   */
-  @Inject
-  private Provider<MaintenanceStateHelper> m_maintenanceStateHelper;
 
   /**
    * Receives and publishes {@link AlertEvent} instances.
@@ -165,7 +153,6 @@ public class AlertReceivedListener {
       }
 
       AlertCurrentEntity current;
-      AlertState alertState = alert.getState();
 
       if (StringUtils.isBlank(alert.getHostName()) || definition.isHostIgnored()) {
         current = m_alertsDao.findCurrentByNameNoHost(clusterId, alert.getName());
@@ -175,44 +162,21 @@ public class AlertReceivedListener {
       }
 
       if (null == current) {
-        // if there is no current alert and the state is skipped, then simple
-        // skip over this one as there is nothing to update in the databse
-        if (alertState == AlertState.SKIPPED) {
-          continue;
-        }
-
         AlertHistoryEntity history = createHistory(clusterId, definition, alert);
 
-        // this new alert must reflect the correct MM state for the
-        // service/component/host
-        MaintenanceState maintenanceState = MaintenanceState.OFF;
-        try {
-          maintenanceState = m_maintenanceStateHelper.get().getEffectiveState(clusterId, alert);
-        } catch (Exception exception) {
-          LOG.error("Unable to determine the maintenance mode state for {}, defaulting to OFF",
-              alert, exception);
-        }
-
         current = new AlertCurrentEntity();
-        current.setMaintenanceState(maintenanceState);
+        current.setMaintenanceState(MaintenanceState.OFF);
         current.setAlertHistory(history);
         current.setLatestTimestamp(alert.getTimestamp());
         current.setOriginalTimestamp(alert.getTimestamp());
 
         toCreate.put(alert, current);
 
-      } else if (alertState == current.getAlertHistory().getAlertState()
-          || alertState == AlertState.SKIPPED) {
-
-        // update the timestamp
+      } else if (alert.getState() == current.getAlertHistory().getAlertState()) {
         current.setLatestTimestamp(alert.getTimestamp());
-
-        // only update the text if the alert isn't being skipped
-        if (alertState != AlertState.SKIPPED) {
-          current.setLatestText(alert.getText());
-        }
-
+        current.setLatestText(alert.getText());
         toMerge.put(alert, current);
+
       } else {
         if (LOG.isDebugEnabled()) {
           LOG.debug(
@@ -333,15 +297,9 @@ public class AlertReceivedListener {
 
   /**
    * Gets whether the specified alert is valid for its reported cluster,
-   * service, component, and host. This method is necessary for the following
-   * cases
-   * <ul>
-   * <li>A service/component is removed, but an alert queued for reporting is
-   * received after that event.</li>
-   * <li>A host is removed from the cluster but the agent is still running and
-   * reporting</li>
-   * <li>A cluster is renamed</li>
-   * </ul>
+   * service, component, and host. This method is necessary for the case where a
+   * component has been removed from a host, but the alert data is going to be
+   * returned before the agent alert job can be unscheduled.
    *
    * @param alert
    *          the alert.
@@ -354,36 +312,18 @@ public class AlertReceivedListener {
     String componentName = alert.getComponent();
     String hostName = alert.getHostName();
 
-    // AMBARI/AMBARI_SERVER is always a valid service/component combination
-    String ambariServiceName = Services.AMBARI.name();
-    String ambariServerComponentName = Components.AMBARI_SERVER.name();
-    String ambariAgentComponentName = Components.AMBARI_AGENT.name();
-    if (ambariServiceName.equals(serviceName) && ambariServerComponentName.equals(componentName)) {
-      return true;
-    }
-
     // if the alert is not bound to a cluster, then it's most likely a
-    // host alert and is always valid as long as the host exists
-    if (StringUtils.isBlank(clusterName)) {
-      // no cluster, no host; return true out of respect for the unknown alert
-      if (StringUtils.isBlank(hostName)) {
-        return true;
-      }
-
-      // if a host is reported, it must be registered to some cluster somewhere
-      if (!m_clusters.get().hostExists(hostName)) {
-        LOG.error("Unable to process alert {} for an invalid host named {}",
-            alert.getName(), hostName);
-        return false;
-      }
-
-      // no cluster, valid host; return true
+    // host alert and is always valid
+    if( null == clusterName ){
       return true;
     }
 
-    // at this point the following criteria is guaranteed, so get the cluster
-    // - a cluster exists
-    // - this is not for AMBARI_SERVER component
+    // AMBARI is always a valid service
+    String ambariServiceName = Services.AMBARI.name();
+    if (ambariServiceName.equals(serviceName)) {
+      return true;
+    }
+
     final Cluster cluster;
     try {
       cluster = m_clusters.get().getCluster(clusterName);
@@ -405,50 +345,24 @@ public class AlertReceivedListener {
       return false;
     }
 
-    // at this point the following criteria is guaranteed
-    // - a cluster exists
-    // - this is not for AMBARI_SERVER component
-    //
-    // if the alert is for AMBARI/AMBARI_AGENT, then it's valid IFF
-    // the agent's host is still a part of the reported cluster
-    if (ambariServiceName.equals(serviceName) && ambariAgentComponentName.equals(componentName)) {
-      // agents MUST report a hostname
-      if (StringUtils.isBlank(hostName) || !m_clusters.get().hostExists(hostName)
-          || !m_clusters.get().isHostMappedToCluster(clusterName, hostName)) {
-        LOG.warn(
-            "Unable to process alert {} for cluster {} and host {} because the host is not a part of the cluster.",
-            alert.getName(), clusterName, hostName);
-
-        return false;
-      }
-
-      // AMBARI/AMBARI_AGENT and valid host; return true
-      return true;
-    }
-
-    // at this point the following criteria is guaranteed
-    // - a cluster exists
-    // - not for the AMBARI service
     if (StringUtils.isNotBlank(hostName)) {
       // if valid hostname
       if (!m_clusters.get().hostExists(hostName)) {
-        LOG.warn("Unable to process alert {} for an invalid host named {}",
+        LOG.error("Unable to process alert {} for an invalid host named {}",
             alert.getName(), hostName);
         return false;
       }
-
       if (!cluster.getServices().containsKey(serviceName)) {
-        LOG.warn("Unable to process alert {} for an invalid service named {}",
+        LOG.error("Unable to process alert {} for an invalid service named {}",
             alert.getName(), serviceName);
 
         return false;
       }
-
       // if the alert is for a host/component then verify that the component
       // is actually installed on that host
       if (null != componentName &&
           !cluster.getHosts(serviceName, componentName).contains(hostName)) {
-        LOG.warn(
+        LOG.error(
             "Unable to process alert {} for an invalid service {} and component {} on host {}",
             alert.getName(), serviceName, componentName, hostName);
         return false;
@@ -473,7 +387,6 @@ public class AlertReceivedListener {
       AlertDefinitionEntity definition, Alert alert) {
     AlertHistoryEntity history = new AlertHistoryEntity();
     history.setAlertDefinition(definition);
-    history.setAlertDefinitionId(definition.getDefinitionId());
     history.setAlertLabel(definition.getLabel());
     history.setAlertInstance(alert.getInstance());
     history.setAlertState(alert.getState());

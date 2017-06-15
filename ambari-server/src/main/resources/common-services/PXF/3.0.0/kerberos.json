@@ -6,9 +6,10 @@
                     "identities": [
                         {
                             "keytab": {
-                                "configuration": "pxf-site/pxf.service.kerberos.keytab",
+                                "configuration": null,
                                 "file": "${keytab_dir}/pxf.service.keytab",
                                 "group": {
+                                    "access": "",
                                     "name": "${cluster-env/user_group}"
                                 },
                                 "owner": {
@@ -18,7 +19,8 @@
                             },
                             "name": "pxf_client_pxf",
                             "principal": {
-                                "configuration": "pxf-site/pxf.service.kerberos.principal",
+                                "configuration": null,
+                                "local_username": null,
                                 "type": "service",
                                 "value": "pxf/_HOST@${realm}"
                             }

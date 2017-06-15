@@ -47,15 +47,6 @@ public class HostGroupInfoTest {
   }
 
   @Test
-  public void testHostName_isConvertedToLowercase() {
-    HostGroupInfo group = new HostGroupInfo("test-name");
-    // single host add
-    group.addHost("HOST1");
-    assertEquals(1, group.getHostNames().size());
-    assertTrue(group.getHostNames().contains("host1"));
-  }
-
-  @Test
   public void testSetGetHostNames() {
     HostGroupInfo group = new HostGroupInfo("test-name");
     // single host add
@@ -80,8 +71,6 @@ public class HostGroupInfoTest {
     assertTrue(hostNames.contains("host3"));
 
   }
-
-
 
   @Test
   public void testSetGetRequestedHostCount_explicit() {

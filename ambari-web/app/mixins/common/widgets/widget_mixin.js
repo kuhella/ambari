@@ -42,7 +42,7 @@ App.WidgetMixin = Ember.Mixin.create({
    * @type {RegExp}
    * @const
    */
-  VALUE_NAME_REGEX: /(\w+\s+\w+)?[\w\.\,\:\=\[\]]+/g,
+  VALUE_NAME_REGEX: /[\w\.\,\:\=\[\]]+/g,
 
   /**
    * @type {string}
@@ -64,7 +64,7 @@ App.WidgetMixin = Ember.Mixin.create({
   /**
    *
    */
-  aggregatorFunc: ['._sum', '._avg', '._min', '._max', '._rate'],
+  aggregatorFunc: ['._sum', '._avg', '._min', '._max'],
 
   /**
    * @type {boolean}
@@ -121,19 +121,9 @@ App.WidgetMixin = Ember.Mixin.create({
           context: this,
           startCallName: 'getHostComponentMetrics',
           successCallback: this.getHostComponentMetricsSuccessCallback,
-          errorCallback: this.getMetricsErrorCallback,
-          completeCallback: function (xhr) {
+          completeCallback: function () {
             requestCounter--;
             if (requestCounter === 0) this.onMetricsLoaded();
-            if (this.get('graphView')) {
-              var graph = this.get('childViews') && this.get('childViews').findProperty('runningRequests');
-              if (graph) {
-                var requestsArrayName = graph.get('isPopup') ? 'runningPopupRequests' : 'runningRequests';
-                graph.set(requestsArrayName, graph.get(requestsArrayName).reject(function (item) {
-                  return item === xhr;
-                }));
-              }
-            }
           }
         });
       } else {
@@ -142,19 +132,9 @@ App.WidgetMixin = Ember.Mixin.create({
           context: this,
           startCallName: 'getServiceComponentMetrics',
           successCallback: this.getMetricsSuccessCallback,
-          errorCallback: this.getMetricsErrorCallback,
-          completeCallback: function (xhr) {
+          completeCallback: function () {
             requestCounter--;
             if (requestCounter === 0) this.onMetricsLoaded();
-            if (this.get('graphView')) {
-              var graph = this.get('childViews') && this.get('childViews').findProperty('runningRequests');
-              if (graph) {
-                var requestsArrayName = graph.get('isPopup') ? 'runningPopupRequests' : 'runningRequests';
-                graph.set(requestsArrayName, graph.get(requestsArrayName).reject(function (item) {
-                  return item === xhr;
-                }));
-              }
-            }
           }
         });
       }
@@ -212,7 +192,7 @@ App.WidgetMixin = Ember.Mixin.create({
    * @returns {$.ajax}
    */
   getServiceComponentMetrics: function (request) {
-    var xhr = App.ajax.send({
+    return App.ajax.send({
       name: 'widgets.serviceComponent.metrics.get',
       sender: this,
       data: {
@@ -221,20 +201,10 @@ App.WidgetMixin = Ember.Mixin.create({
         metricPaths: this.prepareMetricPaths(request.metric_paths)
       }
     });
-    if (this.get('graphView')) {
-      var graph = this.get('childViews') && this.get('childViews').findProperty('runningRequests');
-      if (graph) {
-        var requestsArrayName = graph.get('isPopup') ? 'runningPopupRequests' : 'runningRequests';
-        graph.get(requestsArrayName).push(xhr);
-      }
-    }
-    return xhr;
   },
 
   /**
-   * aggregate all metric names in the query. Add time range and step to temporal queries
-   * @param {Array} metricPaths
-   * @returns {string}
+   *  aggregate all metric names in the query. Add time range and step to temporal queries
    */
   prepareMetricPaths: function(metricPaths) {
     var temporalMetrics = metricPaths.filterProperty('metric_type', 'TEMPORAL');
@@ -255,26 +225,15 @@ App.WidgetMixin = Ember.Mixin.create({
    * @returns {$.ajax}
    */
   getHostComponentMetrics: function (request) {
-    var metricPaths = this.prepareMetricPaths(request.metric_paths);
-
-    if (metricPaths.length) {
-      var xhr = App.ajax.send({
-          name: 'widgets.hostComponent.metrics.get',
-          sender: this,
-          data: {
-            componentName: request.component_name,
-            metricPaths: this.prepareMetricPaths(request.metric_paths),
-            hostComponentCriteria: this.computeHostComponentCriteria(request)
-          }
-        }),
-        graph = this.get('graphView') && this.get('childViews') && this.get('childViews').findProperty('runningRequests');
-      if (graph) {
-        var requestsArrayName = graph.get('isPopup') ? 'runningPopupRequests' : 'runningRequests';
-        graph.get(requestsArrayName).push(xhr);
+    return App.ajax.send({
+      name: 'widgets.hostComponent.metrics.get',
+      sender: this,
+      data: {
+        componentName: request.component_name,
+        metricPaths: this.prepareMetricPaths(request.metric_paths),
+        hostComponentCriteria: this.computeHostComponentCriteria(request)
       }
-      return xhr;
-    }
-    return jQuery.Deferred().reject().promise();
+    });
   },
 
   getHostComponentMetricsSuccessCallback: function (data) {
@@ -289,8 +248,6 @@ App.WidgetMixin = Ember.Mixin.create({
    */
   getMetricsSuccessCallback: function (data) {
     var metrics = [];
-    var atLeastOneMetricPresent = false;
-
     if (this.get('content.metrics')) {
       this.get('content.metrics').forEach(function (_metric) {
         var metric_path = _metric.metric_path;
@@ -314,55 +271,10 @@ App.WidgetMixin = Ember.Mixin.create({
           }, this);
         }
         if (!Em.isNone(metric_data)) {
-          atLeastOneMetricPresent = true;
           _metric.data = metric_data;
           this.get('metrics').pushObject(_metric);
         }
       }, this);
-
-      if (!atLeastOneMetricPresent) {
-        this.disableGraph();
-      }
-    }
-  },
-
-  /**
-   * if no metrics were received from server then disable graph
-   */
-  disableGraph: function() {
-    if (this.get('graphView')) {
-      var graph = this.get('childViews') && this.get('childViews').findProperty('_showMessage');
-      if (graph) {
-        graph.set('hasData', false);
-        this.set('isExportButtonHidden', true);
-        graph._showMessage('info', this.t('graphs.noData.title'), this.t('graphs.noDataAtTime.message'));
-        this.set('metrics', this.get('metrics').reject(function (item) {
-          return this.get('content.metrics').someProperty('name', item.name);
-        }, this));
-      }
-    }
-  },
-
-  /**
-   * error callback on getting aggregated metrics and host component metrics
-   * @param {object} xhr
-   * @param {string} textStatus
-   * @param {string} errorThrown
-   */
-  getMetricsErrorCallback: function (xhr, textStatus, errorThrown) {
-    if (this.get('graphView') && !xhr.isForcedAbort) {
-      var graph = this.get('childViews') && this.get('childViews').findProperty('_showMessage');
-      if (graph) {
-        if (xhr.readyState == 4 && xhr.status) {
-          textStatus = xhr.status + " " + textStatus;
-        }
-        graph.set('hasData', false);
-        this.set('isExportButtonHidden', true);
-        graph._showMessage('warn', this.t('graphs.error.title'), this.t('graphs.error.message').format(textStatus, errorThrown));
-        this.set('metrics', this.get('metrics').reject(function (item) {
-          return this.get('content.metrics').someProperty('name', item.name);
-        }, this));
-      }
     }
   },
 
@@ -466,12 +378,6 @@ App.WidgetMixin = Ember.Mixin.create({
       });
     }
   }.observes('isLoaded'),
-
-  willDestroyElement: function() {
-    this.$(".corner-icon > .icon-copy").tooltip('destroy');
-    this.$(".corner-icon > .icon-edit").tooltip('destroy');
-    this.$(".corner-icon > .icon-save").tooltip('destroy');
-  },
 
   /**
    * calculate series datasets for graph widgets
@@ -763,9 +669,6 @@ App.WidgetLoadAggregator = Em.Object.create({
     this.get('requests').push(request);
     if (Em.isNone(this.get('timeoutId'))) {
       this.set('timeoutId', window.setTimeout(function () {
-        //clear requests that are belongs to destroyed views
-        self.set('requests', self.get('requests').filterProperty('context.state', 'inDOM'));
-
         self.runRequests(self.get('requests'));
         self.get('requests').clear();
         clearTimeout(self.get('timeoutId'));
@@ -796,7 +699,6 @@ App.WidgetLoadAggregator = Em.Object.create({
         bulks[id].subRequests = [{
           context: request.context,
           successCallback: request.successCallback,
-          errorCallback: request.errorCallback,
           completeCallback: request.completeCallback
         }];
       } else {
@@ -804,7 +706,6 @@ App.WidgetLoadAggregator = Em.Object.create({
         bulks[id].subRequests.push({
           context: request.context,
           successCallback: request.successCallback,
-          errorCallback: request.errorCallback,
           completeCallback: request.completeCallback
         });
       }
@@ -826,17 +727,11 @@ App.WidgetLoadAggregator = Em.Object.create({
           _request.subRequests.forEach(function (subRequest) {
             subRequest.successCallback.call(subRequest.context, response);
           }, this);
-        }).fail(function (xhr, textStatus, errorThrown) {
-            _request.subRequests.forEach(function (subRequest) {
-              if (subRequest.errorCallback) {
-                subRequest.errorCallback.call(subRequest.context, xhr, textStatus, errorThrown);
-              }
-            }, this);
-          }).always(function (xhr) {
-              _request.subRequests.forEach(function (subRequest) {
-                subRequest.completeCallback.call(subRequest.context, xhr);
-              }, this);
-            });
+        }).complete(function () {
+          _request.subRequests.forEach(function (subRequest) {
+            subRequest.completeCallback.call(subRequest.context);
+          }, this);
+        });
       })(bulks[id]);
     }
   }

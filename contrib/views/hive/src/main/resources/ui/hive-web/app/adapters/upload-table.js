@@ -22,6 +22,12 @@ import application from './application';
 import FileUploader from './file-upload';
 
 export default application.extend({
+  hdrs : function(){
+    console.log("inside hdrs : headers : ",this.get('headers'));
+    var h = Ember.$.extend(true, {},this.get('headers'));
+    delete h['Content-Type'];
+    return h;
+  }.property('headers'),
 
   buildUploadURL: function (path) {
     return this.buildURL() + "/resources/upload/" + path;
@@ -34,10 +40,9 @@ export default application.extend({
     console.log("uploader : extras : ", extras);
     console.log("uploader : files : ", files);
 
-    var hdrs = Ember.$.extend(true, {},this.get('headers'));
-    delete hdrs['Content-Type'];
+    console.log("hdrs : ", this.get('hdrs'));
     var uploader = FileUploader.create({
-      headers: hdrs,
+      headers: this.get('hdrs'),
       url: uploadUrl
     });
 
@@ -48,46 +53,24 @@ export default application.extend({
   },
 
   createTable: function (tableData) {
-    console.log("creating table with data :", tableData);
-    return this.doPost("createTable",tableData);
+    var _this = this;
+    var postHeader = JSON.parse(JSON.stringify(this.get('headers')));
+    console.log("headers postHeadesfsfdfsfsfss : : " , postHeader);
+    return Ember.$.ajax(      {
+        url :  this.buildUploadURL("createTable"),
+        type : 'post',
+        data: JSON.stringify(tableData),
+        headers: this.get('headers'),
+        dataType : 'json'
+      }
+    );
   },
 
-  insertIntoTable: function(insertData){
-    console.log("inserting into table with data : ", insertData);
-    return this.doPost("insertIntoTable",insertData);
-  },
-
-  deleteTable: function(deleteData){
-    console.log("delete table with info : ", deleteData);
-    return this.doPost("deleteTable",deleteData);
-  },
-
-  doPost : function(path,inputData){
-    var self = this;
-    return new Ember.RSVP.Promise(function(resolve,reject){
-                 Ember.$.ajax({
-                     url :  self.buildUploadURL(path),
-                     type : 'post',
-                     data: JSON.stringify(inputData),
-                     headers: self.get('headers'),
-                     dataType : 'json'
-                 }).done(function(data) {
-                     console.log( "inside done : data : ", data );
-                     resolve(data);
-                 }).fail(function(error) {
-                     console.log( "inside fail error :  ", error );
-                     reject(error);
-                 });
-              });
-  },
-
-  previewFromHDFS : function(previewFromHdfsData){
-    console.log("preview from hdfs with info : ", previewFromHdfsData);
-    return this.doPost("previewFromHdfs",previewFromHdfsData)
-  },
-
-  uploadFromHDFS : function(uploadFromHdfsData){
-    console.log("upload from hdfs with info : ", uploadFromHdfsData);
-    return this.doPost("uploadFromHDFS",uploadFromHdfsData)
+  getCreateTableResult : function(jobId){
+    return Ember.$.ajax(this.buildUploadURL("createTable/status"),{
+      data : {"jobId":jobId},
+      type: "get",
+      headers: this.get('headers')
+    });
   }
 });

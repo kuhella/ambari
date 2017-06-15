@@ -32,7 +32,6 @@ from resource_management.core.exceptions import Fail
 class TestNamenode(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HDFS/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"
-  DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
@@ -96,7 +95,6 @@ class TestNamenode(RMFTestCase):
         logoutput=True
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         only_if=True,
         keytab = UnknownConfigurationMock(),
@@ -106,15 +104,13 @@ class TestNamenode(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = None,
         user = 'hdfs',
-        dfs_type = '',
         owner = 'hdfs',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['create_on_execute'],
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         only_if=True,
         keytab = UnknownConfigurationMock(),
@@ -124,15 +120,13 @@ class TestNamenode(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = None,
         user = 'hdfs',
-        dfs_type = '',
         owner = 'ambari-qa',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['create_on_execute'],
         mode = 0770,
     )
     self.assertResourceCalled('HdfsResource', None,
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         only_if=True,
         keytab = UnknownConfigurationMock(),
@@ -142,8 +136,7 @@ class TestNamenode(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = None,
         user = 'hdfs',
-        dfs_type = '',
-        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['execute'],
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
     self.assertNoMoreResources()
@@ -212,7 +205,6 @@ class TestNamenode(RMFTestCase):
         logoutput=True
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         only_if = True,
         keytab = UnknownConfigurationMock(),
@@ -222,15 +214,13 @@ class TestNamenode(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = None,
         user = 'hdfs',
-        dfs_type = '',
         owner = 'hdfs',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['create_on_execute'],
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         only_if = True,
         keytab = UnknownConfigurationMock(),
@@ -240,15 +230,13 @@ class TestNamenode(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = None,
         user = 'hdfs',
-        dfs_type = '',
         owner = 'ambari-qa',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['create_on_execute'],
         mode = 0770,
     )
     self.assertResourceCalled('HdfsResource', None,
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         only_if = True,
         keytab = UnknownConfigurationMock(),
@@ -258,8 +246,7 @@ class TestNamenode(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = None,
         user = 'hdfs',
-        dfs_type = '',
-        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['execute'],
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
     self.assertNoMoreResources()
@@ -344,45 +331,39 @@ class TestNamenode(RMFTestCase):
         logoutput=True
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
-        dfs_type = '',
         owner = 'hdfs',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
         mode = 0777,
         only_if = True
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
-        dfs_type = '',
         owner = 'ambari-qa',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
         mode = 0770,
         only_if = True
     )
     self.assertResourceCalled('HdfsResource', None,
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         only_if = True,
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
         hadoop_bin_dir = '/usr/bin',
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
-        dfs_type = '',
-        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
     self.assertNoMoreResources()
@@ -443,7 +424,6 @@ class TestNamenode(RMFTestCase):
         logoutput=True
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
@@ -453,15 +433,13 @@ class TestNamenode(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = None,
         user = 'hdfs',
-        dfs_type = '',
         owner = 'hdfs',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['create_on_execute'],
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
@@ -471,15 +449,13 @@ class TestNamenode(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = None,
         user = 'hdfs',
-        dfs_type = '',
         owner = 'ambari-qa',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['create_on_execute'],
         mode = 0770,
     )
     self.assertResourceCalled('HdfsResource', None,
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
@@ -489,8 +465,7 @@ class TestNamenode(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = None,
         user = 'hdfs',
-        dfs_type = '',
-        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['execute'],
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
     self.assertNoMoreResources()
@@ -543,7 +518,6 @@ class TestNamenode(RMFTestCase):
         logoutput=True
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
@@ -553,15 +527,13 @@ class TestNamenode(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = None,
         user = 'hdfs',
-        dfs_type = '',
         owner = 'hdfs',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['create_on_execute'],
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
@@ -571,15 +543,13 @@ class TestNamenode(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = None,
         user = 'hdfs',
-        dfs_type = '',
         owner = 'ambari-qa',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['create_on_execute'],
         mode = 0770,
     )
     self.assertResourceCalled('HdfsResource', None,
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
@@ -589,8 +559,7 @@ class TestNamenode(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = None,
         user = 'hdfs',
-        dfs_type = '',
-        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['execute'],
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
     self.assertNoMoreResources()
@@ -649,7 +618,6 @@ class TestNamenode(RMFTestCase):
         logoutput=True
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -659,15 +627,13 @@ class TestNamenode(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = 'hdfs',
         user = 'hdfs',
-        dfs_type = '',
         owner = 'hdfs',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['create_on_execute'],
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -677,15 +643,13 @@ class TestNamenode(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = 'hdfs',
         user = 'hdfs',
-        dfs_type = '',
         owner = 'ambari-qa',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['create_on_execute'],
         mode = 0770,
     )
     self.assertResourceCalled('HdfsResource', None,
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -695,8 +659,7 @@ class TestNamenode(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = 'hdfs',
         user = 'hdfs',
-        dfs_type = '',
-        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['execute'],
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
     self.assertNoMoreResources()
@@ -755,7 +718,6 @@ class TestNamenode(RMFTestCase):
         logoutput=True
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
@@ -765,15 +727,13 @@ class TestNamenode(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = None,
         user = 'hdfs',
-        dfs_type = '',
         owner = 'hdfs',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['create_on_execute'],
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
@@ -783,15 +743,13 @@ class TestNamenode(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = None,
         user = 'hdfs',
-        dfs_type = '',
         owner = 'ambari-qa',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['create_on_execute'],
         mode = 0770,
     )
     self.assertResourceCalled('HdfsResource', None,
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
@@ -801,8 +759,7 @@ class TestNamenode(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = None,
         user = 'hdfs',
-        dfs_type = '',
-        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['execute'],
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
     self.assertNoMoreResources()
@@ -860,7 +817,6 @@ class TestNamenode(RMFTestCase):
         logoutput=True
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn2 | grep active'",
         keytab = UnknownConfigurationMock(),
@@ -870,15 +826,13 @@ class TestNamenode(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = None,
         user = 'hdfs',
-        dfs_type = '',
         owner = 'hdfs',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['create_on_execute'],
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn2 | grep active'",
         keytab = UnknownConfigurationMock(),
@@ -888,15 +842,13 @@ class TestNamenode(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = None,
         user = 'hdfs',
-        dfs_type = '',
         owner = 'ambari-qa',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['create_on_execute'],
         mode = 0770,
     )
     self.assertResourceCalled('HdfsResource', None,
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn2 | grep active'",
         keytab = UnknownConfigurationMock(),
@@ -906,8 +858,7 @@ class TestNamenode(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = None,
         user = 'hdfs',
-        dfs_type = '',
-        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['execute'],
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
     self.assertNoMoreResources()
@@ -973,7 +924,6 @@ class TestNamenode(RMFTestCase):
                               logoutput=True
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
-                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = False,
                               only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn2 | grep active'",
                               keytab = UnknownConfigurationMock(),
@@ -983,15 +933,13 @@ class TestNamenode(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               principal_name = None,
                               user = 'hdfs',
-                              dfs_type = '',
                               owner = 'hdfs',
                               hadoop_conf_dir = '/etc/hadoop/conf',
                               type = 'directory',
-                              action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+                              action = ['create_on_execute'],
                               mode = 0777,
                               )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
-                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = False,
                               only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn2 | grep active'",
                               keytab = UnknownConfigurationMock(),
@@ -1001,15 +949,13 @@ class TestNamenode(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               principal_name = None,
                               user = 'hdfs',
-                              dfs_type = '',
                               owner = 'ambari-qa',
                               hadoop_conf_dir = '/etc/hadoop/conf',
                               type = 'directory',
-                              action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+                              action = ['create_on_execute'],
                               mode = 0770,
                               )
     self.assertResourceCalled('HdfsResource', None,
-                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = False,
                               only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn2 | grep active'",
                               keytab = UnknownConfigurationMock(),
@@ -1019,8 +965,7 @@ class TestNamenode(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               principal_name = None,
                               user = 'hdfs',
-                              dfs_type = '',
-                              action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+                              action = ['execute'],
                               hadoop_conf_dir = '/etc/hadoop/conf',
                               )
     self.assertNoMoreResources()

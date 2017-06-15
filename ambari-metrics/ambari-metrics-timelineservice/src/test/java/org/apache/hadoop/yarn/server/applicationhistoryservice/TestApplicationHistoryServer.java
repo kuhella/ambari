@@ -20,20 +20,16 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.service.Service.STATE;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultPhoenixDataSource;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
+  .timeline.PhoenixHBaseAccessor;
 import org.apache.zookeeper.ClientCnxn;
 import org.easymock.EasyMock;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -48,28 +44,22 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.Statement;
 
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.METRICS_SITE_CONFIGURATION_FILE;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.anyString;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
+  .timeline.TimelineMetricConfiguration.METRICS_SITE_CONFIGURATION_FILE;
 import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.*;
 import static org.easymock.EasyMock.expectLastCall;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-import static org.powermock.api.easymock.PowerMock.mockStatic;
-import static org.powermock.api.easymock.PowerMock.replayAll;
-import static org.powermock.api.easymock.PowerMock.verifyAll;
+import static org.junit.Assert.*;
+import static org.powermock.api.easymock.PowerMock.*;
 import static org.powermock.api.support.membermodification.MemberMatcher.method;
-import static org.powermock.api.support.membermodification.MemberModifier.suppress;
+import static org.powermock.api.support.membermodification.MemberModifier
+  .suppress;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ PhoenixHBaseAccessor.class, UserGroupInformation.class,
-  ClientCnxn.class, DefaultPhoenixDataSource.class, ConnectionFactory.class})
+  ClientCnxn.class, DefaultPhoenixDataSource.class})
 @PowerMockIgnore( {"javax.management.*"})
 public class TestApplicationHistoryServer {
 
@@ -166,27 +156,15 @@ public class TestApplicationHistoryServer {
 
     Connection connection = createNiceMock(Connection.class);
     Statement stmt = createNiceMock(Statement.class);
-    PreparedStatement preparedStatement = createNiceMock(PreparedStatement.class);
-    ResultSet rs = createNiceMock(ResultSet.class);
     mockStatic(DriverManager.class);
     expect(DriverManager.getConnection("jdbc:phoenix:localhost:2181:/ams-hbase-unsecure"))
       .andReturn(connection).anyTimes();
     expect(connection.createStatement()).andReturn(stmt).anyTimes();
-    expect(connection.prepareStatement(anyString())).andReturn(preparedStatement).anyTimes();
     suppress(method(Statement.class, "executeUpdate", String.class));
-    expect(preparedStatement.executeQuery()).andReturn(rs).anyTimes();
-    expect(rs.next()).andReturn(false).anyTimes();
-    preparedStatement.close();
-    expectLastCall().anyTimes();
     connection.close();
     expectLastCall();
 
-    org.apache.hadoop.hbase.client.Connection conn = createNiceMock(org.apache.hadoop.hbase.client.Connection.class);
-    mockStatic(ConnectionFactory.class);
-    expect(ConnectionFactory.createConnection((Configuration) anyObject())).andReturn(conn);
-    expect(conn.getAdmin()).andReturn(null);
-
-    EasyMock.replay(connection, stmt, preparedStatement, rs);
+    EasyMock.replay(connection, stmt);
     replayAll();
 
     historyServer = new ApplicationHistoryServer();

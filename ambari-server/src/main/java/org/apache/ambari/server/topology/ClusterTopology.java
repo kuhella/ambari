@@ -35,21 +35,21 @@ public interface ClusterTopology {
    *
    * @return cluster id
    */
-  Long getClusterId();
+  public Long getClusterId();
 
   /**
    * Set the id of the cluster.
    *
    * @param clusterId cluster id
    */
-  void setClusterId(Long clusterId);
+  public void setClusterId(Long clusterId);
 
   /**
    * Get the blueprint associated with the cluster.
    *
    * @return assocaited blueprint
    */
-  Blueprint getBlueprint();
+  public Blueprint getBlueprint();
 
   /**
    * Get the cluster scoped configuration for the cluster.
@@ -58,14 +58,14 @@ public interface ClusterTopology {
    *
    * @return cluster scoped configuration
    */
-  Configuration getConfiguration();
+  public Configuration getConfiguration();
 
   /**
    * Get host group information.
    *
    * @return map of host group name to host group information
    */
-  Map<String, HostGroupInfo> getHostGroupInfo();
+  public Map<String, HostGroupInfo> getHostGroupInfo();
 
   /**
    * Get the names of  all of host groups which contain the specified component.
@@ -74,7 +74,7 @@ public interface ClusterTopology {
    *
    * @return collection of host group names which contain the specified component
    */
-  Collection<String> getHostGroupsForComponent(String component);
+  public Collection<String> getHostGroupsForComponent(String component);
 
   /**
    * Get the name of the host group which is mapped to the specified host.
@@ -84,7 +84,7 @@ public interface ClusterTopology {
    * @return name of the host group which is mapped to the specified host or null if
    *         no group is mapped to the host
    */
-  String getHostGroupForHost(String hostname);
+  public String getHostGroupForHost(String hostname);
 
   /**
    * Get all hosts which are mapped to a host group which contains the specified component.
@@ -94,7 +94,7 @@ public interface ClusterTopology {
    *
    * @return collection of hosts for the specified component; will not return null
    */
-  Collection<String> getHostAssignmentsForComponent(String component);
+  public Collection<String> getHostAssignmentsForComponent(String component);
 
   /**
    * Update the existing topology based on the provided topology request.
@@ -104,7 +104,7 @@ public interface ClusterTopology {
    * @throws InvalidTopologyException if the request specified invalid topology information or if
    *                                  making the requested changes would result in an invalid topology
    */
-  void update(TopologyRequest topologyRequest) throws InvalidTopologyException;
+  public void update(TopologyRequest topologyRequest) throws InvalidTopologyException;
 
   /**
    * Add a new host to the topology.
@@ -115,28 +115,28 @@ public interface ClusterTopology {
    * @throws InvalidTopologyException if the host being added is already registered to a different host group
    * @throws NoSuchHostGroupException if the specified host group is invalid
    */
-  void addHostToTopology(String hostGroupName, String host) throws InvalidTopologyException, NoSuchHostGroupException;
+  public void addHostToTopology(String hostGroupName, String host) throws InvalidTopologyException, NoSuchHostGroupException;
 
   /**
    * Determine if NameNode HA is enabled.
    *
    * @return true if NameNode HA is enabled; false otherwise
    */
-  boolean isNameNodeHAEnabled();
+  public boolean isNameNodeHAEnabled();
 
   /**
    * Determine if Yarn ResourceManager HA is enabled.
    *
    * @return true if Yarn ResourceManager HA is enabled; false otherwise
    */
-  boolean isYarnResourceManagerHAEnabled();
+  public boolean isYarnResourceManagerHAEnabled();
 
   /**
    * Determine if the cluster is kerberos enabled.
    *
    * @return true if the cluster is kerberos enabled; false otherwise
    */
-  boolean isClusterKerberosEnabled();
+  public boolean isClusterKerberosEnabled();
 
   /**
    * Install the specified host.
@@ -144,7 +144,7 @@ public interface ClusterTopology {
    * @param hostName  host name
    * @return install response
    */
-  RequestStatusResponse installHost(String hostName);
+  public RequestStatusResponse installHost(String hostName);
 
   /**
    * Start the specified host.
@@ -152,29 +152,23 @@ public interface ClusterTopology {
    * @param hostName  host name
    * @return start response
    */
-  RequestStatusResponse startHost(String hostName);
+  public RequestStatusResponse startHost(String hostName);
 
-  void setConfigRecommendationStrategy(ConfigRecommendationStrategy strategy);
+  public void setConfigRecommendationStrategy(ConfigRecommendationStrategy strategy);
 
-  ConfigRecommendationStrategy getConfigRecommendationStrategy();
+  public ConfigRecommendationStrategy getConfigRecommendationStrategy();
 
   /**
    * Set request provision action : INSTALL vs INSTALL_AND_START
    * @param provisionAction @ProvisionAction
    */
-  void setProvisionAction(ProvisionAction provisionAction);
+  public void setProvisionAction(ProvisionAction provisionAction);
 
-  ProvisionAction getProvisionAction();
+  public ProvisionAction getProvisionAction();
 
-  Map<String, AdvisedConfiguration> getAdvisedConfigurations();
+  public Map<String, AdvisedConfiguration> getAdvisedConfigurations();
 
   //todo: don't expose ambari context from this class
-  AmbariContext getAmbariContext();
-
-  /**
-   * Removes host from stateful ClusterTopology
-   * @param hostname
-   */
-  void removeHost(String hostname);
+  public AmbariContext getAmbariContext();
 
 }

@@ -209,7 +209,7 @@ describe('App.WidgetMixin', function () {
 
   describe("#getMetricsSuccessCallback()", function () {
     var mixinObject = mixinClass.create();
-    it("should push metrics", function () {
+    it("", function () {
       var data = {
         metrics: {
           "hbase": {
@@ -228,48 +228,6 @@ describe('App.WidgetMixin', function () {
       ]);
       mixinObject.getMetricsSuccessCallback(data);
       expect(mixinObject.get('metrics').findProperty('metric_path', 'metrics/hbase/ipc/IPC/numOpenConnections').data).to.equal(11.5);
-    });
-  });
-
-  describe("#disableGraph", function () {
-    var mixinObject,
-      graph = Em.Object.create({
-        _showMessage: Em.K
-      });
-
-    beforeEach(function() {
-      mixinObject = mixinClass.create({
-        childViews: [
-          graph
-        ],
-        graphView: {},
-        metrics: [{name: 'm1'}, {name: 'm2'}],
-        content: {
-          metrics: [{name: 'm2'}]
-        }
-      });
-      sinon.stub(graph, '_showMessage');
-      mixinObject.disableGraph();
-    });
-
-    afterEach(function() {
-      graph._showMessage.restore();
-    });
-
-    it("hasData should be false", function() {
-      expect(graph.get('hasData')).to.be.false;
-    });
-
-    it("isExportButtonHidden should be true", function() {
-      expect(mixinObject.get('isExportButtonHidden')).to.be.true;
-    });
-
-    it("_showMessage should be called", function() {
-      expect(graph._showMessage.calledWith('info', mixinObject.t('graphs.noData.title'), mixinObject.t('graphs.noDataAtTime.message'))).to.be.true;
-    });
-
-    it("metrics should be filtered", function() {
-      expect(mixinObject.get('metrics').mapProperty('name')).to.be.eql(['m1']);
     });
   });
 
@@ -426,164 +384,6 @@ describe('App.WidgetMixin', function () {
       });
     });
   });
-
-  describe('#getMetricsErrorCallback()', function () {
-
-    var obj,
-      view = Em.Object.create({
-        _showMessage: Em.K
-      }),
-      metrics = [
-        {
-          name: 'n0'
-        },
-        {
-          name: 'n1'
-        }
-      ],
-      cases = [
-        {
-          graphView: null,
-          isForcedAbort: false,
-          metrics: metrics,
-          showMessageCallCount: 0,
-          isExportButtonHidden: false,
-          title: 'no graph view'
-        },
-        {
-          graphView: {},
-          isForcedAbort: false,
-          metrics: metrics,
-          showMessageCallCount: 0,
-          isExportButtonHidden: false,
-          title: 'no childViews property'
-        },
-        {
-          graphView: {},
-          childViews: [],
-          isForcedAbort: false,
-          metrics: metrics,
-          showMessageCallCount: 0,
-          isExportButtonHidden: false,
-          title: 'no child views'
-        },
-        {
-          graphView: {},
-          childViews: [Em.Object.create({})],
-          isForcedAbort: false,
-          metrics: metrics,
-          showMessageCallCount: 0,
-          isExportButtonHidden: false,
-          title: 'no view with _showMessage method'
-        },
-        {
-          graphView: {},
-          childViews: [Em.Object.create({}), view],
-          isForcedAbort: false,
-          metrics: [
-            {
-              name: 'n1'
-            }
-          ],
-          showMessageCallCount: 1,
-          isExportButtonHidden: true,
-          title: 'graph view is available'
-        },
-        {
-          graphView: {},
-          childViews: [Em.Object.create({}), view],
-          isForcedAbort: true,
-          metrics: metrics,
-          showMessageCallCount: 0,
-          isExportButtonHidden: false,
-          title: 'request is aborted'
-        }
-      ],
-      messageCases = [
-        {
-          readyState: 2,
-          status: 0,
-          textStatus: 'error',
-          title: 'incomplete request'
-        },
-        {
-          readyState: 4,
-          status: 0,
-          textStatus: 'error',
-          title: 'no status code'
-        },
-        {
-          readyState: 4,
-          status: 404,
-          textStatus: '404 error',
-          title: 'status code available'
-        }
-      ];
-
-    beforeEach(function () {
-      sinon.spy(view, '_showMessage');
-    });
-
-    afterEach(function () {
-      view._showMessage.restore();
-    });
-
-    cases.forEach(function (item) {
-
-      describe(item.title, function () {
-
-        beforeEach(function () {
-          obj = Em.Object.create(App.WidgetMixin, {
-            metrics: metrics,
-            content: {
-              metrics: [
-                {
-                  name: 'n0'
-                }
-              ]
-            },
-            isExportButtonHidden: false,
-            graphView: item.graphView,
-            childViews: item.childViews
-          });
-          obj.getMetricsErrorCallback({
-            isForcedAbort: item.isForcedAbort
-          });
-        });
-
-        it('metrics array', function () {
-          expect(obj.get('metrics')).to.eql(item.metrics);
-        });
-
-        it('error message', function () {
-          expect(view._showMessage.callCount).to.equal(item.showMessageCallCount);
-        });
-
-        it('export button display', function () {
-          expect(obj.get('isExportButtonHidden')).to.equal(item.isExportButtonHidden);
-        });
-
-      });
-
-    });
-
-    messageCases.forEach(function (item) {
-
-      it(item.title, function () {
-        obj = Em.Object.create(App.WidgetMixin, {
-          graphView: Em.Object.create({}),
-          childViews: [view]
-        });
-        obj.getMetricsErrorCallback({
-          readyState: item.readyState,
-          status: item.status
-        }, 'error', 'Not Found');
-        expect(view._showMessage.firstCall.args).to.eql(['warn', Em.I18n.t('graphs.error.title'), Em.I18n.t('graphs.error.message').format(item.textStatus, 'Not Found')]);
-      });
-
-    });
-
-  });
 });
 
 
@@ -684,8 +484,7 @@ describe('App.WidgetLoadAggregator', function () {
       f1: function () {
         return {
           done: Em.K,
-          fail: Em.K,
-          always: Em.K
+          complete: Em.K
         }
       }
     };

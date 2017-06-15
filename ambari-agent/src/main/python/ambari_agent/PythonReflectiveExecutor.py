@@ -19,7 +19,6 @@ limitations under the License.
 '''
 
 from PythonExecutor import PythonExecutor
-from resource_management.core.exceptions import ClientComponentHasNoStatus, ComponentIsNotRunning
 
 import imp
 import sys
@@ -58,10 +57,8 @@ class PythonReflectiveExecutor(PythonExecutor):
       returncode = e.code
       if returncode:
         logger.debug("Reflective command failed with return_code=" + str(e))
-    except (ClientComponentHasNoStatus, ComponentIsNotRunning):
+    except Exception: 
       logger.debug("Reflective command failed with exception:", exc_info=1)
-    except Exception:
-      logger.info("Reflective command failed with exception:", exc_info=1)
     else: 
       returncode = 0
       
@@ -83,7 +80,7 @@ class PythonContext:
     self.old_logging_disable = logging.root.manager.disable
     
     logging.disable(logging.ERROR)
-    sys.path.insert(0, self.script_dir)
+    sys.path.append(self.script_dir)
     sys.argv = self.pythonCommand[1:]
 
   def __exit__(self, exc_type, exc_val, exc_tb):

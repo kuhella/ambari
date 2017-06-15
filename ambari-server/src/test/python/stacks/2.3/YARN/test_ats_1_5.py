@@ -36,7 +36,6 @@ origin_exists = os.path.exists
 class TestAts(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "YARN/2.1.0.2.0/package"
   STACK_VERSION = "2.3"
-  DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/application_timeline_server.py",
@@ -152,7 +151,6 @@ class TestAts(RMFTestCase):
                               cd_access = 'a',
                               )
     self.assertResourceCalled('HdfsResource', '/ats',
-                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = False,
                               hadoop_bin_dir = '/usr/bin',
                               keytab = UnknownConfigurationMock(),
@@ -166,12 +164,10 @@ class TestAts(RMFTestCase):
                               group = 'hadoop',
                               hadoop_conf_dir = '/etc/hadoop/conf',
                               type = 'directory',
-                              action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+                              action = ['create_on_execute'],
                               mode = 0755,
-                              dfs_type = ''
                               )
     self.assertResourceCalled('HdfsResource', '/ats/done',
-                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = False,
                               hadoop_bin_dir = '/usr/bin',
                               keytab = UnknownConfigurationMock(),
@@ -184,12 +180,10 @@ class TestAts(RMFTestCase):
                               group = 'hadoop',
                               hadoop_conf_dir = '/etc/hadoop/conf',
                               type = 'directory',
-                              action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+                              action = ['create_on_execute'],
                               mode = 0700,
-                              dfs_type = ''
                               )
     self.assertResourceCalled('HdfsResource', '/ats',
-                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = False,
                               hadoop_bin_dir = '/usr/bin',
                               keytab = UnknownConfigurationMock(),
@@ -203,12 +197,10 @@ class TestAts(RMFTestCase):
                               group = 'hadoop',
                               hadoop_conf_dir = '/etc/hadoop/conf',
                               type = 'directory',
-                              action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+                              action = ['create_on_execute'],
                               mode = 0755,
-                              dfs_type = ''
                               )
     self.assertResourceCalled('HdfsResource', '/ats/active',
-                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = False,
                               hadoop_bin_dir = '/usr/bin',
                               keytab = UnknownConfigurationMock(),
@@ -221,12 +213,10 @@ class TestAts(RMFTestCase):
                               group = 'hadoop',
                               hadoop_conf_dir = '/etc/hadoop/conf',
                               type = 'directory',
-                              action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+                              action = ['create_on_execute'],
                               mode = 01777,
-                              dfs_type = ''
                               )
     self.assertResourceCalled('HdfsResource', None,
-                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = False,
                               hadoop_bin_dir = '/usr/bin',
                               keytab = UnknownConfigurationMock(),
@@ -235,9 +225,8 @@ class TestAts(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               principal_name = UnknownConfigurationMock(),
                               user = 'hdfs',
-                              action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+                              action = ['execute'],
                               hadoop_conf_dir = '/etc/hadoop/conf',
-                              dfs_type = ''
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
                               owner = 'yarn',

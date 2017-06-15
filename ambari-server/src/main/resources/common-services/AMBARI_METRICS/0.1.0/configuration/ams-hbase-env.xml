@@ -25,12 +25,6 @@
     <name>hbase_log_dir</name>
     <value>/var/log/ambari-metrics-collector</value>
     <description>Log Directories for HBase.</description>
-    <depends-on>
-      <property>
-        <type>ams-env</type>
-        <name>metrics_collector_log_dir</name>
-      </property>
-    </depends-on>
   </property>
   <property>
     <name>hbase_pid_dir</name>
@@ -47,7 +41,7 @@
   </property>
   <property>
     <name>hbase_regionserver_heapsize</name>
-    <value>768</value>
+    <value>512</value>
     <description>
         HBase RegionServer Heap Size. In embedded mode, total heap size is
         sum of master and regionserver heap sizes.
@@ -69,7 +63,7 @@
   </property>
   <property>
     <name>regionserver_xmn_size</name>
-    <value>128</value>
+    <value>256</value>
     <description>HBase RegionServer maximum value for young generation heap size.</description>
     <value-attributes>
       <type>int</type>
@@ -84,7 +78,7 @@
   </property>
   <property>
     <name>hbase_master_xmn_size</name>
-    <value>102</value>
+    <value>256</value>
     <description>
       HBase Master maximum value for young generation heap size.
     </description>

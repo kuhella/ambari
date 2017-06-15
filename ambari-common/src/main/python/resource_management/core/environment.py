@@ -27,7 +27,6 @@ import types
 import logging
 import shutil
 import time
-import threading
 from datetime import datetime
 
 from resource_management.core import shell
@@ -36,12 +35,10 @@ from resource_management.core.providers import find_provider
 from resource_management.core.utils import AttributeDictionary
 from resource_management.core.system import System
 from resource_management.core.logger import Logger
-from threading import Thread, local
 
-_local_data = local()
-_instance_name = 'instance'
 
 class Environment(object):
+  _instances = []
 
   def __init__(self, basedir=None, tmp_dir=None, test_mode=False, logger=None, logging_level=logging.INFO):
     """
@@ -137,6 +134,7 @@ class Environment(object):
     raise Exception("Unknown condition type %r" % cond) 
     
   def run(self):
+    with self:
       # Run resource actions
       while self.resource_list:
         resource = self.resource_list.pop(0)
@@ -172,10 +170,7 @@ class Environment(object):
 
   @classmethod
   def get_instance(cls):
-    instance = getattr(_local_data, _instance_name, None)
-    if instance is None:
-      raise Exception("No Environment present for retrieving for thread %s" % threading.current_thread())
-    return instance
+    return cls._instances[-1]
   
   @classmethod
   def get_instance_copy(cls):
@@ -189,17 +184,11 @@ class Environment(object):
     return new_instance
 
   def __enter__(self):
-    instance = getattr(_local_data, _instance_name, None)
-    if instance is not None:
-      raise Exception("Trying to enter to Environment from thread %s second time" % threading.current_thread())
-    setattr(_local_data, 'instance', self)
+    self.__class__._instances.append(self)
     return self
 
   def __exit__(self, exc_type, exc_val, exc_tb):
-    instance = getattr(_local_data, _instance_name, None)
-    if instance is None:
-      raise Exception("Trying to exit from Environment without enter before for thread %s" % threading.current_thread())
-    setattr(_local_data, 'instance', None)
+    self.__class__._instances.pop()
     return False
 
   def __getstate__(self):

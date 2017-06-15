@@ -329,19 +329,15 @@ App.HostComponentView = Em.View.extend({
         return;
       }
 
-      var commandMap = App.HostComponentActionMap.getMap(self)[command];
-      // push command if either there is no map or map is not instructing to hide command from this view
-      if (!commandMap || !commandMap.hideFromComponentView) {
-        customCommands.push({
-          label: self.getCustomCommandLabel(command),
-          service: component.get('serviceName'),
-          hosts: hostComponent.get('hostName'),
-          context: (!!commandMap && !!commandMap.context) ? commandMap.context : null,
-          component: component.get('componentName'),
-          command: command,
-          disabled: !!commandMap ? !!commandMap.disabled : false
-        });
-      }
+      var isContextPresent = command in App.HostComponentActionMap.getMap(self) && App.HostComponentActionMap.getMap(self)[command].context;
+      customCommands.push({
+        label: self.getCustomCommandLabel(command),
+        service: component.get('serviceName'),
+        hosts: hostComponent.get('hostName'),
+        context: isContextPresent ? App.HostComponentActionMap.getMap(self)[command].context : null,
+        component: component.get('componentName'),
+        command: command
+      });
     });
 
     return customCommands;

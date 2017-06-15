@@ -102,7 +102,6 @@
   <property>
     <name>atlas.server.bind.address</name>
     <value>localhost</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description></description>
   </property>
   <property>
@@ -127,7 +126,8 @@
   </property>
   <property>
     <name>atlas.http.authentication.kerberos.name.rules</name>
-    <value>DEFAULT</value>
+    <value>RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*//
+      DEFAULT</value>
     <description></description>
   </property>
   <property>

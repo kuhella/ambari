@@ -42,13 +42,12 @@ public interface JMXHostProvider {
    *
    * @param clusterName    the cluster name
    * @param componentName  the component name
-   * @param hostName       the component hostName
    *
    * @return the port for the specified cluster name and component
    *
    * @throws SystemException if unable to get the JMX port
    */
-  public String getPort(String clusterName, String componentName, String hostName)
+  public String getPort(String clusterName, String componentName)
       throws SystemException;
 
   /**
@@ -56,14 +55,13 @@ public interface JMXHostProvider {
    *
    * @param clusterName    the cluster name
    * @param componentName  the component name
-   * @param hostName       the component hostName
-   * @param httpsEnabled   https enabled
+   * @param componentName httpsEnabled https enabled
    *
    * @return the port for the specified cluster name and component
    *
    * @throws SystemException if unable to get the JMX port
    */
-  public String getPort(String clusterName, String componentName, String hostName,  boolean httpsEnabled)
+  public String getPort(String clusterName, String componentName, boolean httpsEnabled)
       throws SystemException;
   
   /**
@@ -77,16 +75,5 @@ public interface JMXHostProvider {
    */
   public String getJMXProtocol(String clusterName, String componentName) ;
   
-  /**
-   * Get the rpc tag for the specified cluster name, component and port number
-   *
-   * @param clusterName    the cluster name
-   * @param componentName  the componentName name
-   * @param port           the port
-   *
-   * @return the rpc tag for the specified cluster name, component and port number(client/healthcheck/etc.).
-   *
-   */
-  public String getJMXRpcMetricTag(String clusterName, String componentName, String port);
-
+  
 }

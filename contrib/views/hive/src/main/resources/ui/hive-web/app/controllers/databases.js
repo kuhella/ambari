@@ -26,7 +26,6 @@ export default Ember.Controller.extend({
 
   pageCount: 10,
 
-  previousSelectedDatabaseName : "" ,
   selectedDatabase: Ember.computed.alias('databaseService.selectedDatabase'),
   databases: Ember.computed.alias('databaseService.databases'),
 
@@ -100,12 +99,8 @@ export default Ember.Controller.extend({
 
     this.get('databaseService').getAllTables().then(function () {
       self.set('isLoading', false);
-      self.set('previousSelectedDatabaseName',self.get('selectedDatabase').get('name'));
-      self.get('notifyService').info("Selected database : "+self.get('selectedDatabase').get('name'));
-    }, function (error) {
-      self.get('notifyService').pushError("Error while selecting database : "+self.get('selectedDatabase').get('name'),error.responseJSON.message+"\n"+error.responseJSON.trace);
-      self.get('databaseService').setDatabaseByName(self.get('previousSelectedDatabaseName'));
-      self.set('isLoading', false);
+    }, function (err) {
+      self._handleError(err);
     });
   }.observes('selectedDatabase'),
 
@@ -155,7 +150,7 @@ export default Ember.Controller.extend({
 
   getDatabases: function () {
     var self = this;
-    var selectedDatabase = this.get('selectedDatabase.name') || 'default';
+    var selectedDatabase = this.get('selectedDatabase.name');
 
     this.set('isLoading', true);
 
@@ -230,6 +225,8 @@ export default Ember.Controller.extend({
       var self = this,
           defer = Ember.RSVP.defer();
 
+      self.getDatabases = this.getDatabases;
+
       this.send('openModal', 'modal-save', {
         heading: "modals.authenticationLDAP.heading",
         text:"",
@@ -248,6 +245,7 @@ export default Ember.Controller.extend({
 
         $.ajax({
           url: ldapAuthURL,
+          dataType: "json",
           type: 'post',
           headers: {'X-Requested-With': 'XMLHttpRequest', 'X-Requested-By': 'ambari'},
           contentType: 'application/json',
@@ -255,13 +253,13 @@ export default Ember.Controller.extend({
           success: function( data, textStatus, jQxhr ){
             console.log( "LDAP done: " + data );
             self.getDatabases();
-            self.syncDatabases();
           },
           error: function( jqXhr, textStatus, errorThrown ){
             console.log( "LDAP fail: " + errorThrown );
             self.get('notifyService').error( "Wrong Credentials." );
           }
         });
+
       });
     },
 

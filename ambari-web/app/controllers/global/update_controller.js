@@ -48,7 +48,7 @@ App.UpdateController = Em.Controller.extend({
     'host_components/metrics/jvm/memHeapCommittedM',
     'host_components/metrics/mapred/jobtracker/trackers_decommissioned',
     'host_components/metrics/cpu/cpu_wio',
-    'host_components/metrics/rpc/client/RpcQueueTime_avg_time',
+    'host_components/metrics/rpc/RpcQueueTime_avg_time',
     'host_components/metrics/dfs/FSNamesystem/*',
     'host_components/metrics/dfs/namenode/Version',
     'host_components/metrics/dfs/namenode/LiveNodes',
@@ -122,8 +122,6 @@ App.UpdateController = Em.Controller.extend({
     var params = '';
 
     queryParams.forEach(function (param) {
-      var customKey = param.key;
-
       switch (param.type) {
         case 'EQUAL':
           params += param.key + '=' + param.value;
@@ -144,10 +142,10 @@ App.UpdateController = Em.Controller.extend({
           params += 'sortBy=' + param.key + '.' + param.value;
           break;
         case 'CUSTOM':
-          param.value.forEach(function (item, index) {
-            customKey = customKey.replace('{' + index + '}', item);
+          param.value.forEach(function(item, index){
+            param.key = param.key.replace('{' + index + '}', item);
           }, this);
-          params += customKey;
+          params += param.key;
           break;
       }
       params += '&';
@@ -212,7 +210,7 @@ App.UpdateController = Em.Controller.extend({
         hostDetailsFilter = '',
         realUrl = '/hosts?fields=Hosts/rack_info,Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,' +
             'alerts_summary,Hosts/host_status,Hosts/last_heartbeat_time,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
-            'host_components/HostRoles/stale_configs,host_components/HostRoles/service_name,host_components/HostRoles/display_name,host_components/HostRoles/desired_admin_state,' +
+            'host_components/HostRoles/stale_configs,host_components/HostRoles/service_name,host_components/HostRoles/desired_admin_state,' +
             '<metrics>Hosts/total_mem<hostDetailsParams><stackVersions>&minimal_response=true',
         hostDetailsParams = ',Hosts/os_arch,Hosts/os_type,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free',
         stackVersionInfo = ',stack_versions/HostStackVersions,' +
@@ -445,7 +443,6 @@ App.UpdateController = Em.Controller.extend({
       realUrl = '/components/?' + flumeHandlerParam + atsHandlerParam + haComponents +
         'ServiceComponentInfo/category=MASTER&fields=' +
         'ServiceComponentInfo/service_name,' +
-        'host_components/HostRoles/display_name,' +
         'host_components/HostRoles/host_name,' +
         'host_components/HostRoles/state,' +
         'host_components/HostRoles/maintenance_state,' +
@@ -523,7 +520,7 @@ App.UpdateController = Em.Controller.extend({
   updateComponentsState: function (callback) {
     var testUrl = '/data/services/HDP2/components_state.json';
     var realUrl = '/components/?fields=ServiceComponentInfo/service_name,' +
-      'ServiceComponentInfo/category,ServiceComponentInfo/installed_count,ServiceComponentInfo/started_count,ServiceComponentInfo/total_count,ServiceComponentInfo/display_name,host_components/HostRoles/host_name&minimal_response=true';
+      'ServiceComponentInfo/category,ServiceComponentInfo/installed_count,ServiceComponentInfo/started_count,ServiceComponentInfo/total_count,host_components/HostRoles/host_name&minimal_response=true';
     var url = this.getUrl(testUrl, realUrl);
 
     App.HttpClient.get(url, App.componentsStateMapper, {

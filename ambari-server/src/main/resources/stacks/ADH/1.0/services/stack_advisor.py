@@ -25,7 +25,7 @@ from math import ceil, floor
 from stack_advisor import DefaultStackAdvisor
 
 
-class HDP206StackAdvisor(DefaultStackAdvisor):
+class ADH10StackAdvisor(DefaultStackAdvisor):
 
   def getComponentLayoutValidations(self, services, hosts):
     """Returns array of Validation objects about issues with hostnames components assigned to"""
@@ -173,14 +173,11 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       oozie_user = None
       if "oozie-env" in services["configurations"] and "oozie_user" in services["configurations"]["oozie-env"]["properties"]:
         oozie_user = services["configurations"]["oozie-env"]["properties"]["oozie_user"]
-        oozieServerrHosts = self.getHostsWithComponent("OOZIE", "OOZIE_SERVER", services, hosts)
-        if oozieServerrHosts is not None:
-          oozieServerHostsNameList = []
-          for oozieServerHost in oozieServerrHosts:
-            oozieServerHostsNameList.append(oozieServerHost["Hosts"]["public_host_name"])
-          oozieServerHostsNames = ",".join(oozieServerHostsNameList)
+        oozieServerrHost = self.getHostWithComponent("OOZIE", "OOZIE_SERVER", services, hosts)
+        if oozieServerrHost is not None:
+          oozieServerHostName = oozieServerrHost["Hosts"]["public_host_name"]
           if not oozie_user in users and oozie_user is not None:
-            users[oozie_user] = {"propertyHosts" : oozieServerHostsNames,"propertyGroups" : "*", "config" : "oozie-env", "propertyName" : "oozie_user"}
+            users[oozie_user] = {"propertyHosts" : oozieServerHostName,"propertyGroups" : "*", "config" : "oozie-env", "propertyName" : "oozie_user"}
 
     if "HIVE" in servicesList:
       hive_user = None
@@ -189,24 +186,13 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
               and "webhcat_user" in services["configurations"]["hive-env"]["properties"]:
         hive_user = services["configurations"]["hive-env"]["properties"]["hive_user"]
         webhcat_user = services["configurations"]["hive-env"]["properties"]["webhcat_user"]
-        hiveServerHosts = self.getHostsWithComponent("HIVE", "HIVE_SERVER", services, hosts)
-        webHcatServerHosts = self.getHostsWithComponent("HIVE", "WEBHCAT_SERVER", services, hosts)
-
-        if hiveServerHosts is not None:
-          hiveServerHostsNameList = []
-          for hiveServerHost in hiveServerHosts:
-            hiveServerHostsNameList.append(hiveServerHost["Hosts"]["public_host_name"])
-          hiveServerHostsNames = ",".join(hiveServerHostsNameList)
+        hiveServerrHost = self.getHostWithComponent("HIVE", "HIVE_SERVER", services, hosts)
+        if hiveServerrHost is not None:
+          hiveServerHostName = hiveServerrHost["Hosts"]["public_host_name"]
           if not hive_user in users and hive_user is not None:
-            users[hive_user] = {"propertyHosts" : hiveServerHostsNames,"propertyGroups" : "*", "config" : "hive-env", "propertyName" : "hive_user"}
-
-        if webHcatServerHosts is not None:
-          webHcatServerHostsNameList = []
-          for webHcatServerHost in webHcatServerHosts:
-            webHcatServerHostsNameList.append(webHcatServerHost["Hosts"]["public_host_name"])
-          webHcatServerHostsNames = ",".join(webHcatServerHostsNameList)
+            users[hive_user] = {"propertyHosts" : hiveServerHostName,"propertyGroups" : "*", "config" : "hive-env", "propertyName" : "hive_user"}
           if not webhcat_user in users and webhcat_user is not None:
-            users[webhcat_user] = {"propertyHosts" : webHcatServerHostsNames,"propertyGroups" : "*", "config" : "hive-env", "propertyName" : "webhcat_user"}
+            users[webhcat_user] = {"propertyHosts" : hiveServerHostName,"propertyGroups" : "*", "config" : "hive-env", "propertyName" : "webhcat_user"}
 
     if "FALCON" in servicesList:
       falconUser = None
@@ -258,25 +244,9 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
   def recommendHbaseConfigurations(self, configurations, clusterData, services, hosts):
     # recommendations for HBase env config
-
-    # If cluster size is < 100, hbase master heap = 2G
-    # else If cluster size is < 500, hbase master heap = 4G
-    # else hbase master heap = 8G
-    # for small test clusters use 1 gb
-    hostsCount = 0
-    if hosts and "items" in hosts:
-      hostsCount = len(hosts["items"])
-
-    hbaseMasterRam = {
-      hostsCount < 20: 1,
-      20 <= hostsCount < 100: 2,
-      100 <= hostsCount < 500: 4,
-      500 <= hostsCount: 8
-    }[True]
-
     putHbaseProperty = self.putProperty(configurations, "hbase-env", services)
     putHbaseProperty('hbase_regionserver_heapsize', int(clusterData['hbaseRam']) * 1024)
-    putHbaseProperty('hbase_master_heapsize', hbaseMasterRam * 1024)
+    putHbaseProperty('hbase_master_heapsize', int(clusterData['hbaseRam']) * 1024)
 
     # recommendations for HBase site config
     putHbaseSiteProperty = self.putProperty(configurations, "hbase-site", services)
@@ -308,7 +278,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     ranger_admin_host = 'localhost'
     port = '6080'
 
-    # Check if http is disabled. For HDP-2.3 this can be checked in ranger-admin-site/ranger.service.http.enabled
+    # Check if http is disabled. For ADH-1.3 this can be checked in ranger-admin-site/ranger.service.http.enabled
     # For Ranger-0.4.0 this can be checked in ranger-site/http.enabled
     if ('ranger-site' in services['configurations'] and 'http.enabled' in services['configurations']['ranger-site']['properties'] \
       and services['configurations']['ranger-site']['properties']['http.enabled'].lower() == 'false') or \
@@ -341,7 +311,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         and services['configurations'] \
         and 'admin-properties' in services['configurations'] and 'policymgr_external_url' in services['configurations']['admin-properties']['properties'] \
         and services['configurations']['admin-properties']['properties']['policymgr_external_url'] \
-        and services['configurations']['admin-properties']['properties']['policymgr_external_url'].strip():
+        and not services['configurations']['admin-properties']['properties']['policymgr_external_url'].strip().isempty():
 
         # in case of HA deployment keep the policymgr_external_url specified in the config
         policymgr_external_url = services['configurations']['admin-properties']['properties']['policymgr_external_url']
@@ -350,7 +320,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         ranger_admin_host = ranger_admin_hosts[0]
         policymgr_external_url = "%s://%s:%s" % (protocol, ranger_admin_host, port)
 
-      putRangerAdminProperty('policymgr_external_url', policymgr_external_url)
+    putRangerAdminProperty('policymgr_external_url', policymgr_external_url)
 
     rangerServiceVersion = [service['StackServices']['service_version'] for service in services["services"] if service['StackServices']['service_name'] == 'RANGER'][0]
     if rangerServiceVersion == '0.4.0':
@@ -484,63 +454,21 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
   def recommendAmsConfigurations(self, configurations, clusterData, services, hosts):
     putAmsEnvProperty = self.putProperty(configurations, "ams-env", services)
     putAmsHbaseSiteProperty = self.putProperty(configurations, "ams-hbase-site", services)
-    putAmsSiteProperty = self.putProperty(configurations, "ams-site", services)
+    putTimelineServiceProperty = self.putProperty(configurations, "ams-site", services)
     putHbaseEnvProperty = self.putProperty(configurations, "ams-hbase-env", services)
-    putGrafanaProperty = self.putProperty(configurations, "ams-grafana-env", services)
-    putGrafanaPropertyAttribute = self.putPropertyAttribute(configurations, "ams-grafana-env")
 
     amsCollectorHosts = self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")
 
-    if 'cluster-env' in services['configurations'] and \
-        'metrics_collector_vip_host' in services['configurations']['cluster-env']['properties']:
-      metric_collector_host = services['configurations']['cluster-env']['properties']['metrics_collector_vip_host']
-    else:
-      metric_collector_host = 'localhost' if len(amsCollectorHosts) == 0 else amsCollectorHosts[0]
-
-    putAmsSiteProperty("timeline.metrics.service.webapp.address", str(metric_collector_host) + ":6188")
-
-    log_dir = "/var/log/ambari-metrics-collector"
-    if "ams-env" in services["configurations"]:
-      if "metrics_collector_log_dir" in services["configurations"]["ams-env"]["properties"]:
-        log_dir = services["configurations"]["ams-env"]["properties"]["metrics_collector_log_dir"]
-      putHbaseEnvProperty("hbase_log_dir", log_dir)
-
-    defaultFs = 'file:///'
-    if "core-site" in services["configurations"] and \
-      "fs.defaultFS" in services["configurations"]["core-site"]["properties"]:
-      defaultFs = services["configurations"]["core-site"]["properties"]["fs.defaultFS"]
-
-    operatingMode = "embedded"
-    if "ams-site" in services["configurations"]:
-      if "timeline.metrics.service.operation.mode" in services["configurations"]["ams-site"]["properties"]:
-        operatingMode = services["configurations"]["ams-site"]["properties"]["timeline.metrics.service.operation.mode"]
-
-    if operatingMode == "distributed":
-      putAmsSiteProperty("timeline.metrics.service.watcher.disabled", 'true')
-      putAmsSiteProperty("timeline.metrics.host.aggregator.ttl", 259200)
-      putAmsHbaseSiteProperty("hbase.cluster.distributed", 'true')
-    else:
-      putAmsSiteProperty("timeline.metrics.service.watcher.disabled", 'false')
-      putAmsSiteProperty("timeline.metrics.host.aggregator.ttl", 86400)
-      putAmsHbaseSiteProperty("hbase.cluster.distributed", 'false')
-
     rootDir = "file:///var/lib/ambari-metrics-collector/hbase"
     tmpDir = "/var/lib/ambari-metrics-collector/hbase-tmp"
-    zk_port_default = []
+    hbaseClusterDistributed = False
     if "ams-hbase-site" in services["configurations"]:
       if "hbase.rootdir" in services["configurations"]["ams-hbase-site"]["properties"]:
         rootDir = services["configurations"]["ams-hbase-site"]["properties"]["hbase.rootdir"]
       if "hbase.tmp.dir" in services["configurations"]["ams-hbase-site"]["properties"]:
         tmpDir = services["configurations"]["ams-hbase-site"]["properties"]["hbase.tmp.dir"]
-      if "hbase.zookeeper.property.clientPort" in services["configurations"]["ams-hbase-site"]["properties"]:
-        zk_port_default = services["configurations"]["ams-hbase-site"]["properties"]["hbase.zookeeper.property.clientPort"]
-
-      # Skip recommendation item if default value is present
-    if operatingMode == "distributed" and not "{{zookeeper_clientPort}}" in zk_port_default:
-      zkPort = self.getZKPort(services)
-      putAmsHbaseSiteProperty("hbase.zookeeper.property.clientPort", zkPort)
-    elif operatingMode == "embedded" and not "{{zookeeper_clientPort}}" in zk_port_default:
-      putAmsHbaseSiteProperty("hbase.zookeeper.property.clientPort", "61181")
+      if "hbase.cluster.distributed" in services["configurations"]["ams-hbase-site"]["properties"]:
+        hbaseClusterDistributed = services["configurations"]["ams-hbase-site"]["properties"]["hbase.cluster.distributed"].lower() == 'true'
 
     mountpoints = ["/"]
     for collectorHostName in amsCollectorHosts:
@@ -548,25 +476,16 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         if host["Hosts"]["host_name"] == collectorHostName:
           mountpoints = self.getPreferredMountPoints(host["Hosts"])
           break
-    isLocalRootDir = rootDir.startswith("file://") or (defaultFs.startswith("file://") and rootDir.startswith("/"))
-    if isLocalRootDir:
+    if not rootDir.startswith("hdfs://"):
       rootDir = re.sub("^file:///|/", "", rootDir, count=1)
       rootDir = "file://" + os.path.join(mountpoints[0], rootDir)
     tmpDir = re.sub("^file:///|/", "", tmpDir, count=1)
-    if len(mountpoints) > 1 and isLocalRootDir:
+    if len(mountpoints) > 1 and not rootDir.startswith("hdfs://"):
       tmpDir = os.path.join(mountpoints[1], tmpDir)
     else:
       tmpDir = os.path.join(mountpoints[0], tmpDir)
+    putAmsHbaseSiteProperty("hbase.rootdir", rootDir)
     putAmsHbaseSiteProperty("hbase.tmp.dir", tmpDir)
-
-    if operatingMode == "distributed":
-      putAmsHbaseSiteProperty("hbase.rootdir", defaultFs + "/user/ams/hbase")
-
-    if operatingMode == "embedded":
-      if isLocalRootDir:
-        putAmsHbaseSiteProperty("hbase.rootdir", rootDir)
-      else:
-        putAmsHbaseSiteProperty("hbase.rootdir", "file:///var/lib/ambari-metrics-collector/hbase")
 
     collector_heapsize, hbase_heapsize, total_sinks_count = self.getAmsMemoryRecommendation(services, hosts)
 
@@ -577,6 +496,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putAmsHbaseSiteProperty("hbase.hregion.memstore.flush.size", 134217728)
     putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", 0.35)
     putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.lowerLimit", 0.3)
+    putTimelineServiceProperty("timeline.metrics.host.aggregator.ttl", 86400)
 
     if len(amsCollectorHosts) > 1:
       pass
@@ -590,54 +510,45 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", 0.3)
         putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.lowerLimit", 0.25)
         putAmsHbaseSiteProperty("phoenix.query.maxGlobalMemoryPercentage", 20)
+        putTimelineServiceProperty("phoenix.query.maxGlobalMemoryPercentage", 30)
         putAmsHbaseSiteProperty("phoenix.coprocessor.maxMetaDataCacheSize", 81920000)
-        putAmsSiteProperty("phoenix.query.maxGlobalMemoryPercentage", 30)
-        putAmsSiteProperty("timeline.metrics.service.resultset.fetchSize", 10000)
       elif total_sinks_count >= 500:
         putAmsHbaseSiteProperty("hbase.regionserver.handler.count", 60)
         putAmsHbaseSiteProperty("hbase.regionserver.hlog.blocksize", 134217728)
         putAmsHbaseSiteProperty("hbase.regionserver.maxlogs", 64)
         putAmsHbaseSiteProperty("hbase.hregion.memstore.flush.size", 268435456)
         putAmsHbaseSiteProperty("phoenix.coprocessor.maxMetaDataCacheSize", 40960000)
-        putAmsSiteProperty("timeline.metrics.service.resultset.fetchSize", 5000)
       else:
         putAmsHbaseSiteProperty("phoenix.coprocessor.maxMetaDataCacheSize", 20480000)
       pass
 
-    metrics_api_handlers = min(50, max(20, int(total_sinks_count / 100)))
-    putAmsSiteProperty("timeline.metrics.service.handler.thread.count", metrics_api_handlers)
-
     # Distributed mode heap size
-    if operatingMode == "distributed":
-      hbase_heapsize = max(hbase_heapsize, 768)
+    if hbaseClusterDistributed:
       putHbaseEnvProperty("hbase_master_heapsize", "512")
       putHbaseEnvProperty("hbase_master_xmn_size", "102") #20% of 512 heap size
       putHbaseEnvProperty("hbase_regionserver_heapsize", hbase_heapsize)
       putHbaseEnvProperty("regionserver_xmn_size", round_to_n(0.15*hbase_heapsize,64))
     else:
       # Embedded mode heap size : master + regionserver
-      hbase_rs_heapsize = 768
-      putHbaseEnvProperty("hbase_regionserver_heapsize", hbase_rs_heapsize)
+      hbase_rs_heapsize = 512
       putHbaseEnvProperty("hbase_master_heapsize", hbase_heapsize)
       putHbaseEnvProperty("hbase_master_xmn_size", round_to_n(0.15*(hbase_heapsize+hbase_rs_heapsize),64))
 
     # If no local DN in distributed mode
-    if operatingMode == "distributed":
+    if rootDir.startswith("hdfs://"):
       dn_hosts = self.getComponentHostNames(services, "HDFS", "DATANODE")
-      # call by Kerberos wizard sends only the service being affected
-      # so it is possible for dn_hosts to be None but not amsCollectorHosts
-      if dn_hosts and len(dn_hosts) > 0:
-        if set(amsCollectorHosts).intersection(dn_hosts):
-          collector_cohosted_with_dn = "true"
-        else:
-          collector_cohosted_with_dn = "false"
-        putAmsHbaseSiteProperty("dfs.client.read.shortcircuit", collector_cohosted_with_dn)
+      if set(amsCollectorHosts).intersection(dn_hosts):
+        collector_cohosted_with_dn = "true"
+      else:
+        collector_cohosted_with_dn = "false"
+      putAmsHbaseSiteProperty("dfs.client.read.shortcircuit", collector_cohosted_with_dn)
 
     #split points
     scriptDir = os.path.dirname(os.path.abspath(__file__))
     metricsDir = os.path.join(scriptDir, '../../../../common-services/AMBARI_METRICS/0.1.0/package')
     serviceMetricsDir = os.path.join(metricsDir, 'files', 'service-metrics')
     sys.path.append(os.path.join(metricsDir, 'scripts'))
+    mode = 'distributed' if hbaseClusterDistributed else 'embedded'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
     from split_points import FindSplitPointsForAMSRegions
@@ -658,7 +569,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       ams_hbase_env = configurations["ams-hbase-env"]["properties"]
 
     split_point_finder = FindSplitPointsForAMSRegions(
-      ams_hbase_site, ams_hbase_env, serviceMetricsDir, operatingMode, servicesList)
+      ams_hbase_site, ams_hbase_env, serviceMetricsDir, mode, servicesList)
 
     result = split_point_finder.get_split_points()
     precision_splits = ' '
@@ -667,23 +578,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       precision_splits = result.precision
     if result.aggregate:
       aggregate_splits = result.aggregate
-    putAmsSiteProperty("timeline.metrics.host.aggregate.splitpoints", ','.join(precision_splits))
-    putAmsSiteProperty("timeline.metrics.cluster.aggregate.splitpoints", ','.join(aggregate_splits))
-
-    component_grafana_exists = False
-    for service in services['services']:
-      if 'components' in service:
-        for component in service['components']:
-          if 'StackServiceComponents' in component:
-            # If Grafana is installed the hostnames would indicate its location
-            if 'METRICS_GRAFANA' in component['StackServiceComponents']['component_name'] and\
-              len(component['StackServiceComponents']['hostnames']) != 0:
-              component_grafana_exists = True
-              break
-    pass
-
-    if not component_grafana_exists:
-      putGrafanaPropertyAttribute("metrics_grafana_password", "visible", "false")
+    putTimelineServiceProperty("timeline.metrics.host.aggregate.splitpoints", ','.join(precision_splits))
+    putTimelineServiceProperty("timeline.metrics.cluster.aggregate.splitpoints", ','.join(aggregate_splits))
 
     pass
 
@@ -724,11 +620,10 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
                               and hostname in componentEntry["StackServiceComponents"]["hostnames"]])
     return components
 
-  def getZKHostPortString(self, services, include_port=True):
+  def getZKHostPortString(self, services):
     """
     Returns the comma delimited string of zookeeper server host with the configure port installed in a cluster
     Example: zk.host1.org:2181,zk.host2.org:2181,zk.host3.org:2181
-    include_port boolean param -> If port is also needed.
     """
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     include_zookeeper = "ZOOKEEPER" in servicesList
@@ -736,24 +631,15 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     if include_zookeeper:
       zookeeper_hosts = self.getHostNamesWithComponent("ZOOKEEPER", "ZOOKEEPER_SERVER", services)
+      zookeeper_port = '2181'     #default port
+      if 'zoo.cfg' in services['configurations'] and ('clientPort' in services['configurations']['zoo.cfg']['properties']):
+        zookeeper_port = services['configurations']['zoo.cfg']['properties']['clientPort']
+
       zookeeper_host_port_arr = []
-
-      if include_port:
-        zookeeper_port = self.getZKPort(services)
-        for i in range(len(zookeeper_hosts)):
-          zookeeper_host_port_arr.append(zookeeper_hosts[i] + ':' + zookeeper_port)
-      else:
-        for i in range(len(zookeeper_hosts)):
-          zookeeper_host_port_arr.append(zookeeper_hosts[i])
-
+      for i in range(len(zookeeper_hosts)):
+        zookeeper_host_port_arr.append(zookeeper_hosts[i] + ':' + zookeeper_port)
       zookeeper_host_port = ",".join(zookeeper_host_port_arr)
     return zookeeper_host_port
-
-  def getZKPort(self, services):
-    zookeeper_port = '2181'     #default port
-    if 'zoo.cfg' in services['configurations'] and ('clientPort' in services['configurations']['zoo.cfg']['properties']):
-      zookeeper_port = services['configurations']['zoo.cfg']['properties']['clientPort']
-    return zookeeper_port
 
   def getConfigurationClusterSummary(self, servicesList, hosts, components, services):
 
@@ -797,7 +683,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       {"os":12, "hbase":16},
       {"os":24, "hbase":24},
       {"os":32, "hbase":32},
-      {"os":64, "hbase":32}
+      {"os":64, "hbase":64}
     ]
     index = {
       cluster["ram"] <= 4: 0,
@@ -812,11 +698,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       128 < cluster["ram"] <= 256: 9,
       256 < cluster["ram"]: 10
     }[1]
-
-
     cluster["reservedRam"] = ramRecommendations[index]["os"]
     cluster["hbaseRam"] = ramRecommendations[index]["hbase"]
-
 
     cluster["minContainerSize"] = {
       cluster["ram"] <= 4: 256,
@@ -937,7 +820,6 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     amsCollectorHosts = self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")
     ams_site = getSiteProperties(configurations, "ams-site")
-    core_site = getSiteProperties(configurations, "core-site")
 
     collector_heapsize, hbase_heapsize, total_sinks_count = self.getAmsMemoryRecommendation(services, hosts)
     recommendedDiskSpace = 10485760
@@ -956,55 +838,29 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     rootdir_item = None
     op_mode = ams_site.get("timeline.metrics.service.operation.mode")
-    default_fs = core_site.get("fs.defaultFS") if core_site else "file:///"
     hbase_rootdir = properties.get("hbase.rootdir")
     hbase_tmpdir = properties.get("hbase.tmp.dir")
-    distributed = properties.get("hbase.cluster.distributed")
-    is_local_root_dir = hbase_rootdir.startswith("file://") or (default_fs.startswith("file://") and hbase_rootdir.startswith("/"))
-
-    if op_mode == "distributed" and is_local_root_dir:
+    if op_mode == "distributed" and not hbase_rootdir.startswith("hdfs://"):
       rootdir_item = self.getWarnItem("In distributed mode hbase.rootdir should point to HDFS.")
-    elif op_mode == "embedded":
-      if distributed.lower() == "false" and hbase_rootdir.startswith('/') or hbase_rootdir.startswith("hdfs://"):
-        rootdir_item = self.getWarnItem("In embedded mode hbase.rootdir cannot point to schemaless values or HDFS, "
-                                        "Example - file:// for localFS")
       pass
 
     distributed_item = None
-    if op_mode == "distributed" and not distributed.lower() == "true":
-      distributed_item = self.getErrorItem("hbase.cluster.distributed property should be set to true for "
-                                           "distributed mode")
-    if op_mode == "embedded" and distributed.lower() == "true":
-      distributed_item = self.getErrorItem("hbase.cluster.distributed property should be set to false for embedded mode")
-
-    hbase_zk_client_port = properties.get("hbase.zookeeper.property.clientPort")
-    zkPort = self.getZKPort(services)
-    hbase_zk_client_port_item = None
-    if distributed.lower() == "true" and op_mode == "distributed" and \
-        hbase_zk_client_port != zkPort and hbase_zk_client_port != "{{zookeeper_clientPort}}":
-      hbase_zk_client_port_item = self.getErrorItem("In AMS distributed mode, hbase.zookeeper.property.clientPort "
-                                                    "should be the cluster zookeeper server port : {0}".format(zkPort))
-
-    if distributed.lower() == "false" and op_mode == "embedded" and \
-        hbase_zk_client_port == zkPort and hbase_zk_client_port != "{{zookeeper_clientPort}}":
-      hbase_zk_client_port_item = self.getErrorItem("In AMS embedded mode, hbase.zookeeper.property.clientPort "
-                                                    "should be a different port than cluster zookeeper port."
-                                                    "(default:61181)")
+    distributed = properties.get("hbase.cluster.distributed")
+    if hbase_rootdir and hbase_rootdir.startswith("hdfs://") and not distributed.lower() == "true":
+      distributed_item = self.getErrorItem("Distributed property should be set to true if hbase.rootdir points to HDFS.")
 
     validationItems.extend([{"config-name":'hbase.rootdir', "item": rootdir_item },
-                            {"config-name":'hbase.cluster.distributed', "item": distributed_item },
-                            {"config-name":'hbase.zookeeper.property.clientPort', "item": hbase_zk_client_port_item }])
+                            {"config-name":'hbase.cluster.distributed', "item": distributed_item }])
 
     for collectorHostName in amsCollectorHosts:
       for host in hosts["items"]:
         if host["Hosts"]["host_name"] == collectorHostName:
-          if op_mode == 'embedded' or is_local_root_dir:
-            validationItems.extend([{"config-name": 'hbase.rootdir', "item": self.validatorEnoughDiskSpace(properties, 'hbase.rootdir', host["Hosts"], recommendedDiskSpace)}])
-            validationItems.extend([{"config-name": 'hbase.rootdir', "item": self.validatorNotRootFs(properties, recommendedDefaults, 'hbase.rootdir', host["Hosts"])}])
-            validationItems.extend([{"config-name": 'hbase.tmp.dir', "item": self.validatorNotRootFs(properties, recommendedDefaults, 'hbase.tmp.dir', host["Hosts"])}])
+          validationItems.extend([{"config-name": 'hbase.rootdir', "item": self.validatorEnoughDiskSpace(properties, 'hbase.rootdir', host["Hosts"], recommendedDiskSpace)}])
+          validationItems.extend([{"config-name": 'hbase.rootdir', "item": self.validatorNotRootFs(properties, recommendedDefaults, 'hbase.rootdir', host["Hosts"])}])
+          validationItems.extend([{"config-name": 'hbase.tmp.dir', "item": self.validatorNotRootFs(properties, recommendedDefaults, 'hbase.tmp.dir', host["Hosts"])}])
 
           dn_hosts = self.getComponentHostNames(services, "HDFS", "DATANODE")
-          if is_local_root_dir:
+          if not hbase_rootdir.startswith("hdfs"):
             mountPoints = []
             for mountPoint in host["Hosts"]["disk_info"]:
               mountPoints.append(mountPoint["mountpoint"])
@@ -1050,7 +906,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     validationItems = []
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     # Storm AMS integration
-    if 'AMBARI_METRICS' in servicesList and "metrics.reporter.register" in properties and \
+    if 'AMBARI_METRICS' in servicesList and \
       "org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter" not in properties.get("metrics.reporter.register"):
 
       validationItems.append({"config-name": 'metrics.reporter.register',
@@ -1095,35 +951,35 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       maxMasterXmn = 0.2 * hbase_master_heapsize
       if hbase_master_xmn_size < minMasterXmn:
         masterXmnItem = self.getWarnItem("Value is lesser than the recommended minimum Xmn size of {0} "
-                                         "(12% of hbase_master_heapsize)".format(int(ceil(minMasterXmn))))
+                                         "(12% of hbase_master_heapsize)".format(int(math.ceil(minMasterXmn))))
 
       if hbase_master_xmn_size > maxMasterXmn:
         masterXmnItem = self.getWarnItem("Value is greater than the recommended maximum Xmn size of {0} "
-                                         "(20% of hbase_master_heapsize)".format(int(floor(maxMasterXmn))))
+                                         "(20% of hbase_master_heapsize)".format(int(math.floor(maxMasterXmn))))
 
       minRegionServerXmn = 0.12 * hbase_regionserver_heapsize
       maxRegionServerXmn = 0.2 * hbase_regionserver_heapsize
       if hbase_regionserver_xmn_size < minRegionServerXmn:
         regionServerXmnItem = self.getWarnItem("Value is lesser than the recommended minimum Xmn size of {0} "
                                                "(12% of hbase_regionserver_heapsize)"
-                                               .format(int(ceil(minRegionServerXmn))))
+                                               .format(int(math.ceil(minRegionServerXmn))))
 
       if hbase_regionserver_xmn_size > maxRegionServerXmn:
         regionServerXmnItem = self.getWarnItem("Value is greater than the recommended maximum Xmn size of {0} "
                                                "(20% of hbase_regionserver_heapsize)"
-                                               .format(int(floor(maxRegionServerXmn))))
+                                               .format(int(math.floor(maxRegionServerXmn))))
     else:
       minMasterXmn = 0.12 * (hbase_master_heapsize + hbase_regionserver_heapsize)
       maxMasterXmn = 0.2 *  (hbase_master_heapsize + hbase_regionserver_heapsize)
       if hbase_master_xmn_size < minMasterXmn:
         masterXmnItem = self.getWarnItem("Value is lesser than the recommended minimum Xmn size of {0} "
                                          "(12% of hbase_master_heapsize + hbase_regionserver_heapsize)"
-                                         .format(int(ceil(minMasterXmn))))
+                                         .format(int(math.ceil(minMasterXmn))))
 
       if hbase_master_xmn_size > maxMasterXmn:
         masterXmnItem = self.getWarnItem("Value is greater than the recommended maximum Xmn size of {0} "
                                          "(20% of hbase_master_heapsize + hbase_regionserver_heapsize)"
-                                         .format(int(floor(maxMasterXmn))))
+                                         .format(int(math.floor(maxMasterXmn))))
     if masterXmnItem:
       validationItems.extend([{"config-name": "hbase_master_xmn_size", "item": masterXmnItem}])
 
@@ -1242,7 +1098,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     if not propertyName in properties:
       return self.getErrorItem("Value should be set")
     dir = properties[propertyName]
-    if not dir.startswith("file://") or dir == recommendedDefaults.get(propertyName):
+    if dir.startswith("hdfs://") or dir == recommendedDefaults.get(propertyName):
       return None
 
     dir = re.sub("^file://", "", dir, count=1)
@@ -1260,7 +1116,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     if not propertyName in properties:
       return self.getErrorItem("Value should be set")
     dir = properties[propertyName]
-    if not dir.startswith("file://"):
+    if dir.startswith("hdfs://"):
       return None
 
     dir = re.sub("^file://", "", dir, count=1)
@@ -1570,12 +1426,10 @@ def getMountPointForDir(dir, mountPoints):
     # "/", "/hadoop/hdfs", and "/hadoop/hdfs/data".
     # So take the one with the greatest number of segments.
     for mountPoint in mountPoints:
-      # Ensure that the mount path and the dir path ends with "/"
-      # The mount point "/hadoop" should not match with the path "/hadoop1"
-      if os.path.join(dir, "").startswith(os.path.join(mountPoint, "")):
+      if dir.startswith(mountPoint):
         if bestMountFound is None:
           bestMountFound = mountPoint
-        elif os.path.join(bestMountFound, "").count(os.path.sep) < os.path.join(mountPoint, "").count(os.path.sep):
+        elif bestMountFound.count(os.path.sep) < os.path.join(mountPoint, "").count(os.path.sep):
           bestMountFound = mountPoint
 
   return bestMountFound
@@ -1617,9 +1471,6 @@ def getHeapsizeProperties():
            "METRICS_COLLECTOR": [{"config-name": "ams-hbase-env",
                                    "property": "hbase_master_heapsize",
                                    "default": "1024"},
-                                 {"config-name": "ams-hbase-env",
-                                  "property": "hbase_regionserver_heapsize",
-                                  "default": "1024"},
                                  {"config-name": "ams-env",
                                    "property": "metrics_collector_heapsize",
                                    "default": "512"}],

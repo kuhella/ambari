@@ -21,32 +21,6 @@ App.deferReadiness();
 var PATH_PARAM_NAME = "viewPath";
 
 /**
- * Constructs URL for fetching Ambari view instance parameters.
- * @return {String}
- */
-function getStatusURL() {
-  var urlParts = location.pathname.split('/');
-
-  return "/api/v1/views/%@/versions/%@/instances/%@/resources/status".fmt(
-    urlParts[2],
-    urlParts[3],
-    urlParts[4]
-  );
-}
-
-function getStatus() {
-  var hashArray = location.pathname.split('/');
-
-  return $.ajax({
-    type: 'GET',
-    dataType: 'json',
-    async: true,
-    context: this,
-    url: getStatusURL(),
-  });
-}
-
-/**
  * Creates an object from query string
  * @param getQueryObject {String}
  * @return {Object}
@@ -168,11 +142,8 @@ function scheduleChangeHandler(arguments) {
   setTimeout(onPathChange, 100);
 }
 
-function setConfigs(parameters) {
-  var host = window.location.protocol +
-      "//" +
-      window.location.hostname +
-      (window.location.port ? ':' + window.location.port: ''),
+function setConfigs() {
+  var host = window.location.origin,
       urlParts = location.pathname.split('/'),
       resourcesPrefix = 'api/v1/views/%@/versions/%@/instances/%@/resources/'.fmt(
         urlParts[2],
@@ -180,14 +151,11 @@ function setConfigs(parameters) {
         urlParts[4]
       );
 
-  parameters = parameters || {};
-
   $.extend(true, App.Configs, {
     envDefaults: {
       isStandalone: false,
       timelineBaseUrl: host,
       RMWebUrl: host,
-      yarnProtocol: parameters["yarn.protocol"]
     },
     restNamespace: {
       timeline: '%@atsproxy/ws/v1/timeline'.fmt(resourcesPrefix),
@@ -209,13 +177,6 @@ function setConfigs(parameters) {
   App.advanceReadiness();
 }
 
-function loadParams() {
-  getStatus().always(function(status) {
-    status = status || {};
-    setConfigs(status.parameters);
-  });
-}
-
 if(!redirectionCheck()) {
   App.ApplicationRoute.reopen({
     actions: {
@@ -225,5 +186,5 @@ if(!redirectionCheck()) {
   });
 
   allowFullScreen();
-  loadParams();
+  setConfigs();
 }

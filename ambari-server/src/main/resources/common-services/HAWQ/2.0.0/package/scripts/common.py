@@ -20,8 +20,9 @@ import os
 import time
 import crypt
 import filecmp
+from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.core.resources.system import Execute, Directory, File
-from resource_management.libraries.functions.default import default
+from resource_management.libraries.script.config_dictionary import ConfigDictionary
 from resource_management.core.logger import Logger
 from resource_management.core.system import System
 from resource_management.core.exceptions import Fail
@@ -30,15 +31,24 @@ import xml.etree.ElementTree as ET
 
 import utils
 import hawq_constants
-import custom_params
-import hawqstatus
+
+
+def update_bashrc(source_file, target_file):
+  """
+  Updates the hawq_user's .bashrc file with HAWQ env variables like
+  MASTER_DATA_DIRECTORY, PGHOST, PGPORT and PGUSER. 
+  And sources the greenplum_path file.
+  """
+  append_src_cmd = "echo 'source {0}' >> {1}".format(source_file, target_file)
+  src_cmd_exists = "grep 'source {0}' {1}".format(source_file, target_file)
+  Execute(append_src_cmd, user=hawq_constants.hawq_user, timeout=hawq_constants.default_exec_timeout, not_if=src_cmd_exists)
+
 
 def setup_user():
   """
   Creates HAWQ user home directory and sets up the correct ownership.
   """
   __create_hawq_user()
-  __create_hawq_user_secured()
   __set_home_dir_ownership()
 
 
@@ -55,32 +65,6 @@ def __create_hawq_user():
        groups=[hawq_constants.hawq_group, params.user_group],
        ignore_failures=True)
 
-def __create_hawq_user_secured():
-  """
-  Creates HAWQ secured headless user belonging to hadoop group.
-  """
-  import params
-  Group(hawq_constants.hawq_group_secured, ignore_failures=True)
-
-  User(hawq_constants.hawq_user_secured,
-       gid=hawq_constants.hawq_group_secured,
-       groups=[hawq_constants.hawq_group_secured, params.user_group],
-       ignore_failures=True)
-
-def create_master_dir(dir_path):
-  """
-  Creates the master directory (hawq_master_dir or hawq_segment_dir) for HAWQ
-  """
-  utils.create_dir_as_hawq_user(dir_path)
-  Execute("chmod 700 {0}".format(dir_path), user=hawq_constants.root_user, timeout=hawq_constants.default_exec_timeout)
-
-def create_temp_dirs(dir_paths):
-  """
-  Creates the temp directories (hawq_master_temp_dir or hawq_segment_temp_dir) for HAWQ
-  """
-  for path in dir_paths.split(','):
-    if path != "":
-      utils.create_dir_as_hawq_user(path)
 
 def __set_home_dir_ownership():
   """
@@ -94,20 +78,58 @@ def setup_common_configurations():
   """
   Sets up the config files common to master, standby and segment nodes.
   """
+  __update_hdfs_client()
+  __update_yarn_client()
+  __update_hawq_site()
+  __set_osparams()
+
+def __update_hdfs_client():
+  """
+  Writes hdfs-client.xml on the local filesystem on hawq nodes.
+  If hdfs ha is enabled, appends related parameters to hdfs-client.xml
+  """
   import params
 
-  params.XmlConfig("hdfs-client.xml",
-                   configurations=params.hdfs_client,
-                   configuration_attributes=params.config_attrs['hdfs-client'])
+  hdfs_client_dict = params.hdfs_client.copy()
 
-  params.XmlConfig("yarn-client.xml",
-                   configurations=params.yarn_client,
-                   configuration_attributes=params.config_attrs['yarn-client'])
+  XmlConfig("hdfs-client.xml",
+            conf_dir=hawq_constants.hawq_config_dir,
+            configurations=ConfigDictionary(hdfs_client_dict),
+            configuration_attributes=params.config['configuration_attributes']['hdfs-client'],
+            owner=hawq_constants.hawq_user,
+            group=hawq_constants.hawq_group,
+            mode=0644)
 
-  params.XmlConfig("hawq-site.xml",
-                   configurations=params.hawq_site,
-                   configuration_attributes=params.config_attrs['hawq-site'])
-  __set_osparams()
+
+def __update_yarn_client():
+  """
+  Writes yarn-client.xml on the local filesystem on hawq nodes.
+  If yarn ha is enabled, appends related parameters to yarn-client.xml
+  """
+  import params
+
+  XmlConfig("yarn-client.xml",
+            conf_dir=hawq_constants.hawq_config_dir,
+            configurations=params.yarn_client,
+            configuration_attributes=params.config['configuration_attributes']['yarn-client'],
+            owner=hawq_constants.hawq_user,
+            group=hawq_constants.hawq_group,
+            mode=0644)
+
+
+def __update_hawq_site():
+  """
+  Sets up hawq-site.xml
+  """
+  import params
+  
+  XmlConfig("hawq-site.xml",
+            conf_dir=hawq_constants.hawq_config_dir,
+            configurations=ConfigDictionary(params.hawq_site),
+            configuration_attributes=params.config['configuration_attributes']['hawq-site'],
+            owner=hawq_constants.hawq_user,
+            group=hawq_constants.hawq_group,
+            mode=0644)
 
 
 def __set_osparams():
@@ -235,7 +257,7 @@ def __update_sysctl_file_suse():
     raise Fail("Failed to update sysctl.conf file ")
 
 
-def get_local_hawq_site_property_value(property_name):
+def get_local_hawq_site_property(property_name):
   """
   Fetches the value of the property specified, from the local hawq-site.xml.
   """
@@ -271,61 +293,3 @@ def validate_configuration():
     raise Fail("HAWQ is set to use YARN but YARN is not deployed. " + 
                "hawq_global_rm_type property in hawq-site is set to 'yarn' but YARN is not configured. " + 
                "Please deploy YARN before starting HAWQ or change the value of hawq_global_rm_type property to 'none'")
-
-def start_component(component_name, port, data_dir):
-  """
-  If data directory exists start the component, else initialize the component
-  """
-  import params
-
-  __check_dfs_truncate_enforced()
-
-  if component_name == hawq_constants.MASTER:
-    data_dir_owner = hawq_constants.hawq_user_secured if params.security_enabled else hawq_constants.hawq_user
-    params.HdfsResource(params.hawq_hdfs_data_dir,
-                        type="directory",
-                        action="create_on_execute",
-                        owner=data_dir_owner,
-                        group=hawq_constants.hawq_group,
-                        recursive_chown = True,
-                        mode=0755)
-    params.HdfsResource(None, action="execute")
-
-  if os.path.exists(os.path.join(data_dir, hawq_constants.postmaster_opts_filename)):
-    return utils.exec_hawq_operation(hawq_constants.START,
-                                     "{0} -a -v".format(component_name),
-                                     not_if=utils.generate_hawq_process_status_cmd(component_name, port))
-
-  options_str = "{0} -a -v".format(component_name)
-  if component_name == hawq_constants.MASTER:
-    options_str+=" --ignore-bad-hosts"
-  utils.exec_hawq_operation(hawq_constants.INIT, options_str)
-
-def stop_component(component_name, mode):
-  """
-  Stops the component
-  Unlike start_component, port is obtained from local hawq-site.xml as Ambari pontentially have a new value through UI.
-  """
-  port_property_name = hawq_constants.COMPONENT_ATTRIBUTES_MAP[component_name]['port_property']
-  port_number = get_local_hawq_site_property_value(port_property_name)
-  utils.exec_hawq_operation(hawq_constants.STOP,
-                            "{0} -M {1} -a -v".format(component_name, mode),
-                            only_if=utils.generate_hawq_process_status_cmd(component_name, port_number))
-
-def __check_dfs_truncate_enforced():
-  """
-  If enforce_hdfs_truncate is set to True:
-    throw an ERROR, HAWQ components start should fail
-  Else:
-    throw a WARNING,
-  """
-  import params
-
-  DFS_ALLOW_TRUNCATE_WARNING_MSG = "It is recommended to set dfs.allow.truncate as true in hdfs-site.xml configuration file, currently it is set to false. Please review HAWQ installation guide for more information."
-  # Check if dfs.allow.truncate exists in hdfs-site.xml and throw appropriate exception if not set to True
-  dfs_allow_truncate = default("/configurations/hdfs-site/dfs.allow.truncate", None)
-  if dfs_allow_truncate is None or str(dfs_allow_truncate).lower() != 'true':
-    if custom_params.enforce_hdfs_truncate:
-      raise Fail("**ERROR**: {0}".format(DFS_ALLOW_TRUNCATE_WARNING_MSG))
-    else:
-      Logger.error("**WARNING**: {0}".format(DFS_ALLOW_TRUNCATE_WARNING_MSG))

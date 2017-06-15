@@ -497,8 +497,10 @@ App.TableView = Em.View.extend(App.UserPref, {
    */
   clearFilters: function() {
     this.set('filterConditions', []);
-    this.get('childViews').forEach(function(childView) {
-      Em.tryInvoke(childView, 'clearFilter');
+    this.get('_childViews').forEach(function(childView) {
+      if (childView['clearFilter']) {
+        childView.clearFilter();
+      }
     });
   }
 

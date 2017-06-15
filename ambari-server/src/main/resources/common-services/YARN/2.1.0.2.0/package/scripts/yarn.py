@@ -20,6 +20,7 @@ Ambari Agent
 """
 
 from resource_management import *
+import sys
 import os
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
@@ -70,15 +71,7 @@ def yarn(name = None):
                            mode=0777,
                            recursive_chmod=True
       )
-
-    # create the /tmp folder with proper permissions if it doesn't exist yet
-    if params.entity_file_history_directory.startswith('/tmp'):
-        params.HdfsResource('/tmp',
-                            action="create_on_execute",
-                            type="directory",
-                            owner=params.hdfs_user,
-                            mode=0777,
-        )
+      
 
     params.HdfsResource(params.entity_file_history_directory,
                            action="create_on_execute",
@@ -194,15 +187,14 @@ def yarn(name = None):
   # During RU, Core Masters and Slaves need hdfs-site.xml
   # TODO, instead of specifying individual configs, which is susceptible to breaking when new configs are added,
   # RU should rely on all available in /usr/hdp/<version>/hadoop/conf
-  if 'hdfs-site' in params.config['configurations']:
-    XmlConfig("hdfs-site.xml",
-              conf_dir=params.hadoop_conf_dir,
-              configurations=params.config['configurations']['hdfs-site'],
-              configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
-              owner=params.hdfs_user,
-              group=params.user_group,
-              mode=0644
-    )
+  XmlConfig("hdfs-site.xml",
+            conf_dir=params.hadoop_conf_dir,
+            configurations=params.config['configurations']['hdfs-site'],
+            configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
+            owner=params.hdfs_user,
+            group=params.user_group,
+            mode=0644
+  )
 
   XmlConfig("mapred-site.xml",
             conf_dir=params.hadoop_conf_dir,

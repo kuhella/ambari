@@ -45,9 +45,6 @@ public class TestVersionUtils {
     Assert.assertEquals(-1, VersionUtils.compareVersions("2.2.0.0-200", "2.2.0.1-100"));
     Assert.assertEquals(-1, VersionUtils.compareVersions("2.2.0.0-101", "2.2.0.10-20"));
     Assert.assertEquals(-1, VersionUtils.compareVersions("2.2.2.0.20-996", "2.2.2.145-846"));
-    Assert.assertEquals(0, VersionUtils.compareVersions("2.2", "2.2.VER"));
-    Assert.assertEquals(0, VersionUtils.compareVersions("2.2.VAR", "2.2.VER"));
-    Assert.assertEquals(0, VersionUtils.compareVersions("2.2.3", "2.2.3.VER1.V"));
   }
 
   @Test
@@ -84,8 +81,6 @@ public class TestVersionUtils {
     Assert.assertEquals(0, VersionUtils.compareVersions("1.2.3", "1.2.3.4", 3));
     Assert.assertEquals(0, VersionUtils.compareVersions("1.2.3.6.7", "1.2.3.4", 3));
     Assert.assertEquals(1, VersionUtils.compareVersions("1.2.3.6.7", "1.2.3.4", 4));
-    Assert.assertEquals(0, VersionUtils.compareVersions("1.2.3", "1.2.3.0", 4));
-    Assert.assertEquals(-1, VersionUtils.compareVersions("1.2.3", "1.2.3.1", 4));
     Assert.assertEquals(1, VersionUtils.compareVersions("1.2.3.6.7\n", "1.2.3.4\n", 4)); //test version trimming
 
     Assert.assertEquals(1, VersionUtils.compareVersions("1.2.3.1", "1.2.3", true));

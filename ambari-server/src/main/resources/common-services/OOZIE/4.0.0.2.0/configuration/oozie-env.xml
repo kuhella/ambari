@@ -100,16 +100,6 @@
     <value>256</value>
     <description>Oozie permanent generation size.</description>
   </property>
-  <property>
-    <name>oozie_user_nofile_limit</name>
-    <value>32000</value>
-    <description>Max open files limit setting for OOZIE user.</description>
-  </property>
-  <property>
-    <name>oozie_user_nproc_limit</name>
-    <value>16000</value>
-    <description>Max number of processes limit setting for OOZIE user.</description>
-  </property>
 
   <!-- oozie-env.sh -->
   <property>
@@ -179,9 +169,6 @@ export OOZIE_ADMIN_PORT={{oozie_server_admin_port}}
 #
 # export OOZIE_BASE_URL="http://${OOZIE_HTTP_HOSTNAME}:${OOZIE_HTTP_PORT}/oozie"
 export JAVA_LIBRARY_PATH={{hadoop_lib_home}}/native/Linux-amd64-64
-
-# Set Hadoop-related properties
-export HADOOP_OPTS="-Dhdp.version=${HDP_VERSION} ${HADOOP_OPTS}"
 
    </value>
   </property>

@@ -22,7 +22,7 @@
     <service>
       <name>PXF</name>
       <displayName>PXF</displayName>
-      <comment>Apache HAWQ Extension Framework for querying external data in HDFS files, Hive tables, and HBase tables</comment>
+      <comment>HAWQ Extension Framework</comment>
       <version>3.0.0</version>
       <components>
 
@@ -65,12 +65,6 @@
           </packages>
         </osSpecific>
       </osSpecifics>
-
-      <commandScript>
-        <script>scripts/service_check.py</script>
-        <scriptType>PYTHON</scriptType>
-        <timeout>300</timeout>
-      </commandScript>
 
       <configuration-dependencies>
         <config-type>pxf-profiles</config-type>

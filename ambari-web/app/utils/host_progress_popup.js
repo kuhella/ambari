@@ -430,13 +430,11 @@ App.HostPopup = Em.Object.create({
    * @param currentServicesIds
    */
   removeOldServices: function (services, currentServicesIds) {
-    for (var i = 0, l = services.length; i < l; i++) {
-      if (!currentServicesIds.contains(services[i].id)) {
-        services.splice(i, 1);
-        i--;
-        l--;
+    services.forEach(function (service, index, services) {
+      if (!currentServicesIds.contains(service.id)) {
+        services.removeAt(index, 1);
       }
-    }
+    });
   },
 
   /**
@@ -451,7 +449,7 @@ App.HostPopup = Em.Object.create({
       command: ( _task.Tasks.command.toLowerCase() != 'service_check') ? _task.Tasks.command.toLowerCase() : '',
       commandDetail: App.format.commandDetail(_task.Tasks.command_detail, _task.Tasks.request_inputs),
       status: App.format.taskStatus(_task.Tasks.status),
-      role: App.format.role(_task.Tasks.role, false),
+      role: App.format.role(_task.Tasks.role),
       stderr: _task.Tasks.stderr,
       stdout: _task.Tasks.stdout,
       request_id: _task.Tasks.request_id,

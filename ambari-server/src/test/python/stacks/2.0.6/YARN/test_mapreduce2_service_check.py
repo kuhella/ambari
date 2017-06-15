@@ -29,7 +29,6 @@ origin_exists = os.path.exists
 class TestServiceCheck(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "YARN/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"
-  DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 
   def test_service_check_default(self):
 
@@ -41,39 +40,33 @@ class TestServiceCheck(RMFTestCase):
                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/mapredsmokeoutput',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
-        dfs_type = '',
-        action = ['delete_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['delete_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/mapredsmokeinput',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
         kinit_path_local = '/usr/bin/kinit',
         source = '/etc/passwd',
         user = 'hdfs',
-        dfs_type = '',
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'file',
     )
     self.assertResourceCalled('HdfsResource', None,
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
-        dfs_type = '',
-        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
     self.assertResourceCalled('ExecuteHadoop', 'jar /usr/lib/hadoop-mapreduce/hadoop-mapreduce-examples-2.*.jar wordcount /user/ambari-qa/mapredsmokeinput /user/ambari-qa/mapredsmokeoutput',
@@ -101,39 +94,33 @@ class TestServiceCheck(RMFTestCase):
                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/mapredsmokeoutput',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
-        dfs_type = '',
-        action = ['delete_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['delete_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/mapredsmokeinput',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
         kinit_path_local = '/usr/bin/kinit',
         source = '/etc/passwd',
         user = 'hdfs',
-        dfs_type = '',
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'file',
     )
     self.assertResourceCalled('HdfsResource', None,
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
-        dfs_type = '',
-        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM;',

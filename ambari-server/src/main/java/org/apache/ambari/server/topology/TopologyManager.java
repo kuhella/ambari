@@ -18,6 +18,42 @@
 
 package org.apache.ambari.server.topology;
 
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.Request;
+import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
+import org.apache.ambari.server.controller.ClusterRequest;
+import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
+import org.apache.ambari.server.controller.internal.CalculatedStatus;
+import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
+import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
+import org.apache.ambari.server.controller.internal.RequestImpl;
+import org.apache.ambari.server.controller.internal.RequestStageContainer;
+import org.apache.ambari.server.controller.internal.ScaleClusterRequest;
+import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
+import org.apache.ambari.server.orm.entities.StageEntity;
+import org.apache.ambari.server.security.encryption.CredentialStoreService;
+import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.state.host.HostImpl;
+import org.apache.ambari.server.utils.RetryHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -30,37 +66,6 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import javax.inject.Inject;
-
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.actionmanager.HostRoleCommand;
-import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
-import org.apache.ambari.server.controller.RequestStatusResponse;
-import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
-import org.apache.ambari.server.controller.internal.CalculatedStatus;
-import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
-import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
-import org.apache.ambari.server.controller.internal.RequestImpl;
-import org.apache.ambari.server.controller.internal.ScaleClusterRequest;
-import org.apache.ambari.server.controller.internal.Stack;
-import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
-import org.apache.ambari.server.controller.spi.RequestStatus;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
-import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.controller.spi.SystemException;
-import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
-import org.apache.ambari.server.orm.entities.StageEntity;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.SecurityType;
-import org.apache.ambari.server.state.host.HostImpl;
-import org.apache.ambari.server.utils.RetryHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.inject.Singleton;
 
 /**
  * Manages all cluster provisioning actions on the cluster topology.
@@ -376,19 +381,6 @@ public class TopologyManager {
     }
   }
 
-  /**
-   * Through this method {@see TopologyManager} gets notified when a connection to a host in the cluster is lost.
-   * The passed host will be excluded from scheduling any tasks onto it as it can't be reached.
-   * @param host
-   */
-  public void onHostHeartBeatLost(Host host) {
-    ensureInitialized();
-    synchronized (availableHosts) {
-      LOG.info("Hearbeat for host {} lost thus removing it from available hosts.", host.getHostName());
-      availableHosts.remove(host);
-    }
-  }
-
   public LogicalRequest getRequest(long requestId) {
     ensureInitialized();
     return allRequests.get(requestId);
@@ -589,7 +581,7 @@ public class TopologyManager {
     return logicalRequest;
   }
 
-  private void processAcceptedHostOffer(ClusterTopology topology, final HostOfferResponse response, final HostImpl host) {
+  private void processAcceptedHostOffer(ClusterTopology topology, final HostOfferResponse response, HostImpl host) {
     final String hostName = host.getHostName();
     try {
       topology.addHostToTopology(response.getHostGroupName(), hostName);
@@ -611,7 +603,6 @@ public class TopologyManager {
         @Override
         public Object call() throws Exception {
           persistedState.registerHostName(response.getHostRequestId(), hostName);
-          persistedState.registerInTopologyHostInfo(host);
           return null;
         }
       });
@@ -640,7 +631,7 @@ public class TopologyManager {
 
     if (null != rackInfoFromTemplate) {
       host.setRackInfo(rackInfoFromTemplate);
-      host.persist(); //todo this is required only if host is not persisted to database yet, is it really so?
+      host.persist();
       try {
         // todo: do we need this in case of blueprints?
         ambariContext.getController().registerRackChange(ambariContext.getClusterName(topology.getClusterId()));

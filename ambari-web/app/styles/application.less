@@ -2225,11 +2225,6 @@ a:focus {
       }
     }
   }
-  .screensaver {
-    width: 100%;
-    margin-left: 0;
-    margin-right: 0;
-  }
 }
 .chart-container {
   cursor: pointer;
@@ -2245,7 +2240,6 @@ a:focus {
       left: 60px;
       overflow: visible;
       position: relative;
-      text-align: center;
     }
     .chart-y-axis {
       position: absolute;
@@ -2260,10 +2254,6 @@ a:focus {
       .title {
         margin-top: 35px !important;
       }
-    }
-    .alert {
-      display: inline-block;
-      padding-right: 14px;
     }
   }
   position: relative;
@@ -2686,11 +2676,6 @@ table.graphs {
     .spinner {
       margin: 55px auto;
     }
-    .chart-container {
-      .spinner {
-        margin: 15px auto 35px;
-      }
-    }
     .row-fluid .span2p4 {
       width: 19.60%;
       *width: 19.60%;
@@ -2790,7 +2775,7 @@ table.graphs {
         border: 1px solid silver;
         color: #ffffff;
         i {
-          font-size: inherit;
+          font-size: 4em;
         }
       }
     }
@@ -4653,6 +4638,9 @@ ul.inline li {
   height: 157px;
   border: 1px solid silver;
   margin: 20px 15px 10px 15px;
+  i {
+    font-size: 4em;
+  }
 }
 
 /* TIME RANGE WIDGET END */
@@ -5824,25 +5812,19 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
   }
 }
 
-@warning-background: #fcf8e3;
-@error-background: #f2dede;
-
 .table td.no-borders { border-top: none; }
-.table td.error { background-color: @error-background; }
-.table td.warning { background-color: @warning-background; }
+.table td.error { background-color: #f2dede; }
+.table td.warning { background-color: #fcf8e3; }
 
 #config-validation-warnings {
   table {
     tbody{
       tr {
-        &.warning {
-          background: @warning-background;
-        }
-        &.error {
-          background: @error-background;
-        }
+        background:#fcf8e3;
         border:1px solid #c09853;
+        border-right:none;
         td {
+          min-width: 150px;
           .property-message {
             font-weight: bold;
           }

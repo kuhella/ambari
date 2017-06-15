@@ -68,7 +68,6 @@ import org.apache.ambari.server.controller.internal.StackDependencyResourceProvi
 import org.apache.ambari.server.controller.internal.UserPrivilegeResourceProvider;
 import org.apache.ambari.server.controller.internal.ViewPermissionResourceProvider;
 import org.apache.ambari.server.controller.utilities.DatabaseChecker;
-import org.apache.ambari.server.controller.utilities.KerberosChecker;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
@@ -106,7 +105,6 @@ import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.topology.TopologyRequestFactoryImpl;
 import org.apache.ambari.server.utils.RetryHelper;
 import org.apache.ambari.server.utils.StageUtils;
-import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.velocity.app.Velocity;
 import org.eclipse.jetty.server.Server;
@@ -249,14 +247,6 @@ public class AmbariServer {
 
   private static AmbariManagementController clusterController = null;
 
-  /**
-   * Alters system variables on base of Ambari configuration
-   */
-  static void setSystemProperties(Configuration configs) {
-    // modify location of temporary dir to avoid using default /tmp dir
-    System.setProperty("java.io.tmpdir", configs.getServerTempDir());
-  }
-
   public static AmbariManagementController getController() {
     return clusterController;
   }
@@ -268,8 +258,6 @@ public class AmbariServer {
     server = new Server();
     server.setSessionIdManager(sessionIdManager);
     Server serverForAgent = new Server();
-
-    setSystemProperties(configs);
 
     DatabaseChecker.checkDBVersion();
     DatabaseChecker.checkDBConsistency();
@@ -381,8 +369,6 @@ public class AmbariServer {
       sslConnectorTwoWay.setKeystoreType(configsMap.get(Configuration.KSTR_TYPE_KEY));
       sslConnectorTwoWay.setTruststoreType(configsMap.get(Configuration.TSTR_TYPE_KEY));
       sslConnectorTwoWay.setNeedClientAuth(configs.getTwoWaySsl());
-      sslConnectorTwoWay.setRequestHeaderSize(configs.getHttpRequestHeaderSize());
-      sslConnectorTwoWay.setResponseHeaderSize(configs.getHttpResponseHeaderSize());
 
       //SSL Context Factory
       SslContextFactory contextFactoryOneWay = new SslContextFactory(true);
@@ -399,8 +385,6 @@ public class AmbariServer {
       //Secured connector for 1-way auth
       SslSelectChannelConnector sslConnectorOneWay = new SslSelectChannelConnector(contextFactoryOneWay);
       sslConnectorOneWay.setPort(configs.getOneWayAuthPort());
-      sslConnectorOneWay.setRequestHeaderSize(configs.getHttpRequestHeaderSize());
-      sslConnectorOneWay.setResponseHeaderSize(configs.getHttpResponseHeaderSize());
 
       // because there are two connectors sharing the same pool, cut each's
       // acceptors in half
@@ -501,9 +485,6 @@ public class AmbariServer {
         apiConnector.setPort(configs.getClientApiPort());
         apiConnector.setMaxIdleTime(configs.getConnectionMaxIdleTime());
       }
-
-      apiConnector.setRequestHeaderSize(configs.getHttpRequestHeaderSize());
-      apiConnector.setResponseHeaderSize(configs.getHttpResponseHeaderSize());
 
       // Client Jetty thread pool
       configureJettyThreadPool(server, apiConnector.getAcceptors(), "qtp-ambari-client", configs.getClientThreadPoolSize());
@@ -726,21 +707,17 @@ public class AmbariServer {
 
       MetainfoEntity schemaVersion = new MetainfoEntity();
       schemaVersion.setMetainfoName(Configuration.SERVER_VERSION_KEY);
-      schemaVersion.setMetainfoValue(VersionUtils.getVersionSubstring(ambariMetaInfo.getServerVersion()));
+      schemaVersion.setMetainfoValue(ambariMetaInfo.getServerVersion());
 
       metainfoDAO.create(schemaVersion);
     }
   }
 
   public void stop() throws Exception {
-    if (server == null) {
-      throw new AmbariException("Error stopping the server");
-    } else {
-      try {
-        server.stop();
-      } catch (Exception e) {
-        LOG.error("Error stopping the server", e);
-      }
+    try {
+      server.stop();
+    } catch (Exception e) {
+      LOG.error("Error stopping the server", e);
     }
   }
 
@@ -836,7 +813,6 @@ public class AmbariServer {
       server = injector.getInstance(AmbariServer.class);
       CertificateManager certMan = injector.getInstance(CertificateManager.class);
       certMan.initRootCert();
-      KerberosChecker.checkJaasConfiguration();
       ViewRegistry.initInstance(server.viewRegistry);
       ComponentSSLConfiguration.instance().init(server.configs);
       server.run();

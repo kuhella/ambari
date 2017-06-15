@@ -441,34 +441,6 @@ public class CalculatedStatusTest {
     assertEquals(HostRoleStatus.HOLDING, status.getStatus());
     assertNull(status.getDisplayStatus());
     assertEquals(47.5, status.getPercent(), 0.1);
-
-    // aborted
-    stages = getStages(
-        getTaskEntities(HostRoleStatus.COMPLETED, HostRoleStatus.COMPLETED, HostRoleStatus.COMPLETED),
-        getTaskEntities(HostRoleStatus.COMPLETED, HostRoleStatus.COMPLETED, HostRoleStatus.ABORTED),
-        getTaskEntities(HostRoleStatus.ABORTED, HostRoleStatus.ABORTED, HostRoleStatus.ABORTED),
-        getTaskEntities(HostRoleStatus.ABORTED, HostRoleStatus.ABORTED, HostRoleStatus.ABORTED)
-    );
-
-    status = CalculatedStatus.statusFromStages(stages);
-
-    assertEquals(HostRoleStatus.ABORTED, status.getStatus());
-    assertNull(status.getDisplayStatus());
-    assertEquals(100.0, status.getPercent(), 0.1);
-
-    // in-progress even though there are aborted tasks in the middle
-    stages = getStages(
-        getTaskEntities(HostRoleStatus.COMPLETED, HostRoleStatus.COMPLETED, HostRoleStatus.COMPLETED),
-        getTaskEntities(HostRoleStatus.COMPLETED, HostRoleStatus.COMPLETED, HostRoleStatus.COMPLETED),
-        getTaskEntities(HostRoleStatus.ABORTED, HostRoleStatus.ABORTED, HostRoleStatus.PENDING),
-        getTaskEntities(HostRoleStatus.PENDING, HostRoleStatus.PENDING, HostRoleStatus.PENDING)
-    );
-
-    status = CalculatedStatus.statusFromStages(stages);
-
-    assertEquals(HostRoleStatus.IN_PROGRESS, status.getStatus());
-    assertNull(status.getDisplayStatus());
-    assertEquals(66.6, status.getPercent(), 0.1);
   }
 
   @Test
@@ -589,59 +561,6 @@ public class CalculatedStatusTest {
 
     assertEquals(HostRoleStatus.SKIPPED_FAILED, calc.getDisplayStatus());
     assertEquals(HostRoleStatus.COMPLETED, calc.getStatus());
-  }
-
-  /**
-   * Tests that upgrade group will correctly show status according to all stages.
-   *
-   * Example:
-   *
-   * If first stage have status COMPLETED and second IN_PROGRESS, overall group status should be IN_PROGRESS
-   *
-   * @throws Exception
-   */
-  @Test
-  public void testSummaryStatus_UpgradeGroup() throws Exception {
-
-    final HostRoleCommandStatusSummaryDTO summary1 = createNiceMock(HostRoleCommandStatusSummaryDTO.class);
-    ArrayList<HostRoleStatus> taskStatuses1 = new ArrayList<HostRoleStatus>() {{
-      add(HostRoleStatus.COMPLETED);
-      add(HostRoleStatus.COMPLETED);
-      add(HostRoleStatus.COMPLETED);
-    }};
-
-    final HostRoleCommandStatusSummaryDTO summary2 = createNiceMock(HostRoleCommandStatusSummaryDTO.class);
-    ArrayList<HostRoleStatus> taskStatuses2 = new ArrayList<HostRoleStatus>() {{
-      add(HostRoleStatus.IN_PROGRESS);
-      add(HostRoleStatus.COMPLETED);
-      add(HostRoleStatus.COMPLETED);
-    }};
-
-    Map<Long, HostRoleCommandStatusSummaryDTO> stageDto = new HashMap<Long, HostRoleCommandStatusSummaryDTO>(){{
-      put(1l, summary1);
-      put(2l, summary2);
-    }};
-
-    Set<Long> stageIds = new HashSet<Long>() {{
-      add(1l);
-      add(2l);
-    }};
-
-    expect(summary1.getTaskTotal()).andReturn(taskStatuses1.size()).anyTimes();
-    expect(summary2.getTaskTotal()).andReturn(taskStatuses2.size()).anyTimes();
-
-    expect(summary1.isStageSkippable()).andReturn(true).anyTimes();
-    expect(summary2.isStageSkippable()).andReturn(true).anyTimes();
-
-    expect(summary1.getTaskStatuses()).andReturn(taskStatuses1).anyTimes();
-    expect(summary2.getTaskStatuses()).andReturn(taskStatuses2).anyTimes();
-
-    replay(summary1, summary2);
-
-    CalculatedStatus calc = CalculatedStatus.statusFromStageSummary(stageDto, stageIds);
-
-    assertEquals(HostRoleStatus.IN_PROGRESS, calc.getDisplayStatus());
-    assertEquals(HostRoleStatus.IN_PROGRESS, calc.getStatus());
   }
 
   private Collection<HostRoleCommandEntity> getTaskEntities(HostRoleStatus... statuses) {

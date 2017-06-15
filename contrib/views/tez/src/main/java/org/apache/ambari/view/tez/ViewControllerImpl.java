@@ -61,7 +61,6 @@ public class ViewControllerImpl implements ViewController {
     Map<String, String> parameters = new HashMap<String, String>();
     parameters.put(ViewController.PARAM_YARN_ATS_URL, getActiveATSUrl());
     parameters.put(ViewController.PARAM_YARN_RESOURCEMANAGER_URL, getActiveRMUrl());
-    parameters.put(ViewController.PARAM_YARN_PROTOCOL, getYARNProtocol());
     status.setParameters(parameters);
     return status;
   }
@@ -82,11 +81,6 @@ public class ViewControllerImpl implements ViewController {
     } catch (AmbariApiException ex) {
       throw new ActiveRMFetchException(ex);
     }
-  }
-
-  @Override
-  public String getYARNProtocol() {
-    return ambariApi.getServices().getYARNProtocol();
   }
 }
 

@@ -21,9 +21,6 @@ Ambari Agent
 """
 
 PROVIDERS = dict(
-  amazon=dict(
-    Repository="resource_management.libraries.providers.repository.RhelSuseRepositoryProvider",
-  ),
   redhat=dict(
     Repository="resource_management.libraries.providers.repository.RhelSuseRepositoryProvider",
   ),

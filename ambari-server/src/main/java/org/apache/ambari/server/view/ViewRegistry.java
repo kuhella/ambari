@@ -1764,8 +1764,8 @@ public class ViewRegistry {
     ComponentSSLConfiguration sslConfiguration = ComponentSSLConfiguration.instance();
     org.apache.ambari.server.controller.internal.URLStreamProvider streamProvider =
         new org.apache.ambari.server.controller.internal.URLStreamProvider(
-            configuration.getViewAmbariRequestConnectTimeout(),
-            configuration.getViewAmbariRequestReadTimeout(),
+            DEFAULT_REQUEST_CONNECT_TIMEOUT,
+            DEFAULT_REQUEST_READ_TIMEOUT,
             sslConfiguration.getTruststorePath(),
             sslConfiguration.getTruststorePassword(),
             sslConfiguration.getTruststoreType());

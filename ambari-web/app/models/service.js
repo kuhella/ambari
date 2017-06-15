@@ -23,7 +23,7 @@ require('utils/config');
 App.Service = DS.Model.extend({
   serviceName: DS.attr('string'),
   displayName: function() {
-    return App.format.role(this.get('serviceName'), true);
+    return App.format.role(this.get('serviceName'));
   }.property('serviceName'),
   passiveState: DS.attr('string'),
   workStatus: DS.attr('string'),
@@ -93,8 +93,7 @@ App.Service = DS.Model.extend({
       GANGLIA: ['MONITORING'],
       HDFS: ['HA_MODE'],
       YARN: ['HA_MODE'],
-      RANGER: ['HA_MODE'],
-      HAWQ: ['HA_MODE']
+      RANGER: ['HA_MODE']
     };
     return typeServiceMap[this.get('serviceName')] || [];
   }.property('serviceName'),

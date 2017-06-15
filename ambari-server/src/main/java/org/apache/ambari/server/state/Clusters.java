@@ -18,11 +18,11 @@
 
 package org.apache.ambari.server.state;
 
+import org.apache.ambari.server.AmbariException;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.ambari.server.AmbariException;
 
 /**
  * Single entity that tracks all clusters and hosts that are managed
@@ -37,7 +37,7 @@ public interface Clusters {
    * @param stackId
    *          the stack for the cluster (not {@code null}).
    */
-  void addCluster(String clusterName, StackId stackId)
+  public void addCluster(String clusterName, StackId stackId)
       throws AmbariException;
 
   /**
@@ -50,7 +50,7 @@ public interface Clusters {
    *          the cluster will be created with this security type.
    * @throws AmbariException
    */
-  void addCluster(String clusterName, StackId stackId, SecurityType securityType)
+  public void addCluster(String clusterName, StackId stackId, SecurityType securityType)
     throws AmbariException;
 
   /**
@@ -58,20 +58,20 @@ public interface Clusters {
    * @param clusterName Name of the Cluster to retrieve
    * @return  <code>Cluster</code> identified by the given name
    */
-  Cluster getCluster(String clusterName)
+  public Cluster getCluster(String clusterName)
       throws AmbariException;
 
   /**
    * Get all clusters
    * @return <code>Map</code> of clusters with cluster name as key
    */
-  Map<String, Cluster> getClusters();
+  public Map<String, Cluster> getClusters();
 
   /**
    * Get all hosts being tracked by the Ambari server
    * @return <code>List</code> of <code>Host</code>
    */
-  List<Host> getHosts();
+  public List<Host> getHosts();
 
   /**
    * Returns all the cluster names for this hostname
@@ -79,7 +79,7 @@ public interface Clusters {
    * @return List of cluster names
    * @throws AmbariException
    */
-  Set<Cluster> getClustersForHost(String hostname)
+  public Set<Cluster> getClustersForHost(String hostname)
       throws AmbariException;
 
 
@@ -89,26 +89,14 @@ public interface Clusters {
    * @return Host object
    * @throws AmbariException
    */
-  Host getHost(String hostname) throws AmbariException;
+  public Host getHost(String hostname) throws AmbariException;
 
   /**
    * Check if host exists
    * @param hostname Name of the host requested
    * @return is host exists
    */
-  boolean hostExists(String hostname);
-
-  /**
-   * Gets whether the specified cluster has a mapping for the specified host.
-   *
-   * @param clusterName
-   *          the cluster (not {@code null}).
-   * @param hostName
-   *          the host (not {@code null}).
-   * @return {@code true} if the host belongs to the cluster, {@code false}
-   *         otherwise.
-   */
-  boolean isHostMappedToCluster(String clusterName, String hostName);
+  public boolean hostExists(String hostname);
 
   /**
    * Get a Host object managed by this server
@@ -116,22 +104,14 @@ public interface Clusters {
    * @return Host object
    * @throws AmbariException
    */
-  Host getHostById(Long hostId) throws AmbariException;
-
-  /**
-   * Updates the internal mappings of hosts using the specified host.
-   *
-   * @param host
-   *          the host to update the internal mappings for.
-   */
-  void updateHostMappings(Host host);
+  public Host getHostById(Long hostId) throws AmbariException;
 
   /**
    * Add a Host object to be managed by this server
    * @param hostname Host to be added
    * @throws AmbariException
    */
-  void addHost(String hostname) throws AmbariException;
+  public void addHost(String hostname) throws AmbariException;
 
   /**
    * Map host to the given cluster.
@@ -140,7 +120,7 @@ public interface Clusters {
    * @param clusterName
    * @throws AmbariException
    */
-  void mapHostToCluster(String hostname, String clusterName)
+  public void mapHostToCluster(String hostname, String clusterName)
       throws AmbariException;
 
   /**
@@ -149,7 +129,7 @@ public interface Clusters {
    * @param clusterName
    * @throws AmbariException
    */
-  void mapHostsToCluster(Set<String> hostnames, String clusterName)
+  public void mapHostsToCluster(Set<String> hostnames, String clusterName)
       throws AmbariException;
 
   /**
@@ -158,7 +138,7 @@ public interface Clusters {
    * @param newName
    * @throws AmbariException
    */
-  void updateClusterName(String oldName, String newName);
+  public void updateClusterName(String oldName, String newName);
 
   /**
    * Gets the cluster using the id.
@@ -166,13 +146,13 @@ public interface Clusters {
    * @return <code>Cluster</code> identified by the identifier
    * @throws AmbariException
    */
-  Cluster getClusterById(long id) throws AmbariException;
+  public Cluster getClusterById(long id) throws AmbariException;
 
   /**
    * Produces a debug dump into the supplied string buffer
    * @param sb The string buffer to add the debug dump to
    */
-  void debugDump(StringBuilder sb);
+  public void debugDump(StringBuilder sb);
 
   /**
    * Gets all the hosts associated with the cluster
@@ -180,7 +160,7 @@ public interface Clusters {
    * @return <code>Map</code> containing host name and <code>Host</code>
    * @throws AmbariException
    */
-  Map<String, Host> getHostsForCluster(String clusterName)
+  public Map<String, Host> getHostsForCluster(String clusterName)
       throws AmbariException;
 
   /**
@@ -189,7 +169,7 @@ public interface Clusters {
    * @return <code>Map</code> containing host id and <code>Host</code>
    * @throws AmbariException
    */
-  Map<Long, Host> getHostIdsForCluster(String clusterName)
+  public Map<Long, Host> getHostIdsForCluster(String clusterName)
       throws AmbariException;
 
   /**
@@ -197,7 +177,7 @@ public interface Clusters {
    * @param clusterName The name of the cluster
    * @throws AmbariException
    */
-  void deleteCluster(String clusterName)
+  public void deleteCluster(String clusterName)
       throws AmbariException;
 
   /**
@@ -206,7 +186,7 @@ public interface Clusters {
    * @param stackId The identifier for the stack
    * @throws AmbariException
    */
-  void setCurrentStackVersion(String clusterName, StackId stackId)
+  public void setCurrentStackVersion(String clusterName, StackId stackId)
       throws AmbariException;
 
   /**
@@ -215,7 +195,7 @@ public interface Clusters {
    * @param hostAttributes
    * @throws AmbariException
    */
-  void updateHostWithClusterAndAttributes(
+  public void updateHostWithClusterAndAttributes(
       Map<String, Set<String>> hostsClusters, Map<String, Map<String, String>> hostAttributes)
       throws AmbariException;
 
@@ -224,14 +204,14 @@ public interface Clusters {
    * @param hostname
    * @param clusterName
    */
-  void unmapHostFromCluster(String hostname, String clusterName)
+  public void unmapHostFromCluster(String hostname, String clusterName)
       throws AmbariException;
 
   /**
    * Removes a host.  Inverts {@link #addHost(String)}
    * @param hostname
    */
-  void deleteHost(String hostname)
+  public void deleteHost(String hostname)
       throws AmbariException;
 
   /**
@@ -244,7 +224,7 @@ public interface Clusters {
    *
    * @return true if access to the cluster is allowed
    */
-  boolean checkPermission(String clusterName, boolean readOnly);
+  public boolean checkPermission(String clusterName, boolean readOnly);
 
   /**
    * Add the given map of attributes to the session for the cluster identified by the given name.
@@ -252,7 +232,7 @@ public interface Clusters {
    * @param name        the cluster name
    * @param attributes  the session attributes
    */
-  void addSessionAttributes(String name, Map<String, Object> attributes);
+  public void addSessionAttributes(String name, Map<String, Object> attributes);
 
   /**
    * Get the map of session attributes for the cluster identified by the given name.
@@ -261,5 +241,5 @@ public interface Clusters {
    *
    * @return the map of session attributes for the cluster; never null
    */
-  Map<String, Object> getSessionAttributes(String name);
+  public Map<String, Object> getSessionAttributes(String name);
 }

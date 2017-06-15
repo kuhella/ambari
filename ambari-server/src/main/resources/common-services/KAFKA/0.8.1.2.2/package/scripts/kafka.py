@@ -74,10 +74,6 @@ def kafka(upgrade_type=None):
     if params.has_metric_collector:
       kafka_server_config['kafka.timeline.metrics.host'] = params.metric_collector_host
       kafka_server_config['kafka.timeline.metrics.port'] = params.metric_collector_port
-      kafka_server_config['kafka.timeline.metrics.protocol'] = params.metric_collector_protocol
-      kafka_server_config['kafka.timeline.metrics.truststore.path'] = params.metric_truststore_path
-      kafka_server_config['kafka.timeline.metrics.truststore.type'] = params.metric_truststore_type
-      kafka_server_config['kafka.timeline.metrics.truststore.password'] = params.metric_truststore_password
 
     kafka_data_dir = kafka_server_config['log.dirs']
     kafka_data_dirs = filter(None, kafka_data_dir.split(","))
@@ -129,13 +125,6 @@ def kafka(upgrade_type=None):
          mode=0644,
          content=Template("kafka.conf.j2")
     )
-
-    File(os.path.join(params.conf_dir, 'tools-log4j.properties'),
-         owner='root',
-         group='root',
-         mode=0644,
-         content=Template("tools-log4j.properties.j2")
-         )
 
     setup_symlink(params.kafka_managed_pid_dir, params.kafka_pid_dir)
     setup_symlink(params.kafka_managed_log_dir, params.kafka_log_dir)

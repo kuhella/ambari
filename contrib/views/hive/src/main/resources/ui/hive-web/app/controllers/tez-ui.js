@@ -64,7 +64,7 @@ export default Ember.Controller.extend({
 
   getTezViewInstance: function (data) {
     var self = this;
-    var url = this.get('tezApiURL') + '/versions/' + data.versions[0].ViewVersionInfo.version;
+    var url = data.versions[0].href;
 
     Ember.$.getJSON(url)
       .then(function (response) {

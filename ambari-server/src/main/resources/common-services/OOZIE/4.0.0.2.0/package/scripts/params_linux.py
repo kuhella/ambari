@@ -19,7 +19,6 @@ limitations under the License.
 """
 from resource_management import *
 from ambari_commons.constants import AMBARI_SUDO_BINARY
-from ambari_commons.str_utils import cbool, cint
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
@@ -27,7 +26,6 @@ from resource_management.libraries.functions.version import format_hdp_stack_ver
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import get_port_from_url
-from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.script.script import Script
 
 from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
@@ -48,8 +46,6 @@ hostname = config["hostname"]
 version = default("/commandParams/version", None)
 stack_name = default("/hostLevelParams/stack_name", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
-agent_stack_retry_on_unavailability = cbool(default("/hostLevelParams/agent_stack_retry_on_unavailability", None))
-agent_stack_retry_count = cint(default("/hostLevelParams/agent_stack_retry_count", None))
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
@@ -110,10 +106,7 @@ execute_path = oozie_bin_dir + os.pathsep + hadoop_bin_dir
 oozie_user = config['configurations']['oozie-env']['oozie_user']
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 smokeuser_principal = config['configurations']['cluster-env']['smokeuser_principal_name']
-
-# This config actually contains {oozie_user}
 oozie_admin_users = format(config['configurations']['oozie-env']['oozie_admin_users'])
-
 user_group = config['configurations']['cluster-env']['user_group']
 jdk_location = config['hostLevelParams']['jdk_location']
 check_db_connection_jar_name = "DBConnectionVerification.jar"
@@ -130,11 +123,6 @@ ext_js_path = format("/usr/share/HDP-oozie/{ext_js_file}")
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 oozie_heapsize = config['configurations']['oozie-env']['oozie_heapsize']
 oozie_permsize = config['configurations']['oozie-env']['oozie_permsize']
-
-limits_conf_dir = "/etc/security/limits.d"
-
-oozie_user_nofile_limit = config['configurations']['oozie-env']['oozie_user_nofile_limit']
-oozie_user_nproc_limit = config['configurations']['oozie-env']['oozie_user_nproc_limit']
 
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 oozie_service_keytab = config['configurations']['oozie-site']['oozie.service.HadoopAccessorService.keytab.file']
@@ -260,16 +248,12 @@ hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_nam
 
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
-
-dfs_type = default("/commandParams/dfs_type", "")
-
 import functools
 #create partial functions with common arguments for every HdfsResource call
 #to create/delete hdfs directory/file/copyfromlocal we need to call params.HdfsResource in code
 HdfsResource = functools.partial(
   HdfsResource,
   user=hdfs_user,
-  hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore",
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
@@ -277,9 +261,7 @@ HdfsResource = functools.partial(
   hadoop_conf_dir = hadoop_conf_dir,
   principal_name = hdfs_principal_name,
   hdfs_site = hdfs_site,
-  default_fs = default_fs,
-  immutable_paths = get_not_managed_resources(),
-  dfs_type = dfs_type
+  default_fs = default_fs
 )
 
 is_webhdfs_enabled = config['configurations']['hdfs-site']['dfs.webhdfs.enabled']

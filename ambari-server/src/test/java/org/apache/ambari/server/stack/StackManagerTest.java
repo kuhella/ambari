@@ -31,7 +31,6 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.FileReader;
 import java.lang.reflect.Type;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -41,7 +40,6 @@ import java.util.Map;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -61,9 +59,7 @@ import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
 import org.apache.commons.lang.StringUtils;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.springframework.util.Assert;
 
 /**
  * StackManager unit tests.
@@ -111,28 +107,17 @@ public class StackManagerTest {
   @Test
   public void testGetsStacks() throws Exception {
     Collection<StackInfo> stacks = stackManager.getStacks();
-    assertEquals(19, stacks.size());
+    assertEquals(18, stacks.size());
   }
 
   @Test
   public void testGetStacksByName() {
     Collection<StackInfo> stacks = stackManager.getStacks("HDP");
-    assertEquals(15, stacks.size());
+    assertEquals(14, stacks.size());
 
     stacks = stackManager.getStacks("OTHER");
     assertEquals(2, stacks.size());
   }
-
-  @Test
-  public void testHCFSServiceType() {
-    
-    StackInfo stack = stackManager.getStack("HDP", "2.2.0.ECS");
-    ServiceInfo service = stack.getService("ECS");
-    assertEquals(service.getServiceType(),"HCFS");
-    
-    service = stack.getService("HDFS");
-    assertNull(service);
-  }  
 
   @Test
   public void testGetStack() {
@@ -646,13 +631,8 @@ public class StackManagerTest {
   @Test
   public void testMetricsLoaded() throws Exception {
 
-    URL rootDirectoryURL = StackManagerTest.class.getResource("/");
-    Assert.notNull(rootDirectoryURL);
-
-    File resourcesDirectory = new File(new File(rootDirectoryURL.getFile()).getParentFile().getParentFile(), "src/main/resources");
-
-    File stackRoot = new File(resourcesDirectory, "stacks");
-    File commonServices = new File(resourcesDirectory, "common-services");
+    String stackRoot = ClassLoader.getSystemClassLoader().getResource("stacks").getPath().replace("test-classes","classes");
+    String commonServices = ClassLoader.getSystemClassLoader().getResource("common-services").getPath().replace("test-classes","classes");
 
     MetainfoDAO metaInfoDao = createNiceMock(MetainfoDAO.class);
     StackDAO stackDao = createNiceMock(StackDAO.class);
@@ -666,7 +646,7 @@ public class StackManagerTest {
 
     OsFamily osFamily = new OsFamily(config);
 
-    StackManager stackManager = new StackManager(stackRoot, commonServices,
+    StackManager stackManager = new StackManager(new File(stackRoot), new File(commonServices),
             osFamily, metaInfoDao, actionMetadata, stackDao);
 
     for (StackInfo stackInfo : stackManager.getStacks()) {
@@ -690,13 +670,9 @@ public class StackManagerTest {
 
   @Test
   public void testServicesWithRangerPluginRoleCommandOrder() throws AmbariException {
-    URL rootDirectoryURL = StackManagerTest.class.getResource("/");
-    Assert.notNull(rootDirectoryURL);
-
-    File resourcesDirectory = new File(new File(rootDirectoryURL.getFile()).getParentFile().getParentFile(), "src/main/resources");
-
-    File stackRoot = new File(resourcesDirectory, "stacks");
-    File commonServices = new File(resourcesDirectory, "common-services");
+    // Given
+    String stackRoot = ClassLoader.getSystemClassLoader().getResource("stacks").getPath().replace("test-classes","classes");
+    String commonServices = ClassLoader.getSystemClassLoader().getResource("common-services").getPath().replace("test-classes","classes");
 
     MetainfoDAO metaInfoDao = createNiceMock(MetainfoDAO.class);
     StackDAO stackDao = createNiceMock(StackDAO.class);
@@ -710,7 +686,7 @@ public class StackManagerTest {
 
     OsFamily osFamily = new OsFamily(config);
 
-    StackManager stackManager = new StackManager(stackRoot, commonServices, osFamily, metaInfoDao, actionMetadata, stackDao);
+    StackManager stackManager = new StackManager(new File(stackRoot), new File(commonServices), osFamily, metaInfoDao, actionMetadata, stackDao);
 
     String rangerUserSyncRoleCommand = Role.RANGER_USERSYNC + "-" + RoleCommand.START;
     String rangerAdminRoleCommand = Role.RANGER_ADMIN + "-" + RoleCommand.START;
@@ -792,6 +768,14 @@ public class StackManagerTest {
 
     assertTrue(rangerUserSyncRoleCommand + " should be dependent of " + rangerAdminRoleCommand, rangerUserSyncBlockers.contains(rangerAdminRoleCommand));
     assertTrue(rangerUserSyncRoleCommand + " should be dependent of " + kmsRoleCommand, rangerUserSyncBlockers.contains(kmsRoleCommand));
+
+    // Zookeeper Server
+    ArrayList<String> zookeeperBlockers = (ArrayList<String>)generalDeps.get(zookeeperServerRoleCommand);
+
+    assertTrue(zookeeperServerRoleCommand + " should be dependent of " + rangerUserSyncRoleCommand, zookeeperBlockers.contains(rangerUserSyncRoleCommand));
+
   }
+
+
   //todo: component override assertions
 }

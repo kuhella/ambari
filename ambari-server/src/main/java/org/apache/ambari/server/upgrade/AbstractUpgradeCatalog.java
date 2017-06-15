@@ -17,23 +17,11 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import java.io.StringReader;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import javax.persistence.EntityManager;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
+import com.google.common.collect.Maps;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Provider;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
@@ -60,11 +48,21 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
-import com.google.common.collect.Maps;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Provider;
-import com.google.inject.persist.Transactional;
+import javax.persistence.EntityManager;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.StringReader;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   @Inject
@@ -91,13 +89,11 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
   private static final String CONFIGURATION_TYPE_HIVE_SITE = "hive-site";
   private static final String CONFIGURATION_TYPE_HDFS_SITE = "hdfs-site";
-  public static final String CONFIGURATION_TYPE_RANGER_HBASE_PLUGIN_PROPERTIES = "ranger-hbase-plugin-properties";
-  public static final String CONFIGURATION_TYPE_RANGER_KNOX_PLUGIN_PROPERTIES = "ranger-knox-plugin-properties";
+  private static final String CONFIGURATION_TYPE_RANGER_KNOX_PLUGIN_PROPERTIES = "ranger-knox-plugin-properties";
 
   private static final String PROPERTY_DFS_NAMESERVICES = "dfs.nameservices";
   private static final String PROPERTY_HIVE_SERVER2_AUTHENTICATION = "hive.server2.authentication";
-  public static final String PROPERTY_RANGER_HBASE_PLUGIN_ENABLED = "ranger-hbase-plugin-enabled";
-  public static final String PROPERTY_RANGER_KNOX_PLUGIN_ENABLED = "ranger-knox-plugin-enabled";
+  private static final String PROPERTY_RANGER_KNOX_PLUGIN_ENABLED = "ranger-knox-plugin-enabled";
 
   private static final Logger LOG = LoggerFactory.getLogger
     (AbstractUpgradeCatalog.class);
@@ -194,14 +190,14 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     return doc;
   }
 
-  protected static boolean isConfigEnabled(Cluster cluster, String configType, String propertyName) {
+  protected static boolean isRangerPluginEnabled(Cluster cluster) {
     boolean isRangerPluginEnabled = false;
     if (cluster != null) {
-      Config rangerPluginProperties = cluster.getDesiredConfigByType(configType);
-      if (rangerPluginProperties != null) {
-        String rangerPluginEnabled = rangerPluginProperties.getProperties().get(propertyName);
-        if (StringUtils.isNotEmpty(rangerPluginEnabled)) {
-          isRangerPluginEnabled =  "yes".equalsIgnoreCase(rangerPluginEnabled);
+      Config rangerKnoxPluginProperties = cluster.getDesiredConfigByType(CONFIGURATION_TYPE_RANGER_KNOX_PLUGIN_PROPERTIES);
+      if (rangerKnoxPluginProperties != null) {
+        String rangerKnoxPluginEnabled = rangerKnoxPluginProperties.getProperties().get(PROPERTY_RANGER_KNOX_PLUGIN_ENABLED);
+        if (StringUtils.isNotEmpty(rangerKnoxPluginEnabled)) {
+          isRangerPluginEnabled = rangerKnoxPluginEnabled.toLowerCase().equals("yes");
         }
       }
     }

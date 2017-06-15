@@ -60,7 +60,6 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.LogicalRequest;
@@ -73,7 +72,6 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
-import com.google.inject.persist.Transactional;
 
 
 /**
@@ -143,11 +141,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       PropertyHelper.getPropertyId(null, "host_count");
   public static final String HOST_PREDICATE_PROPERTY_ID =
       PropertyHelper.getPropertyId(null, "host_predicate");
-
-  //todo use the same json structure for cluster host addition (cluster template and upscale)
-  public static final String HOST_RACK_INFO_NO_CATEGORY_PROPERTY_ID =
-      PropertyHelper.getPropertyId(null, "rack_info");
-
 
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
@@ -351,7 +344,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     //todo: constants
     baseUnsupported.remove(HOST_COUNT_PROPERTY_ID);
     baseUnsupported.remove(HOST_PREDICATE_PROPERTY_ID);
-    baseUnsupported.remove(HOST_RACK_INFO_NO_CATEGORY_PROPERTY_ID);
 
     return checkConfigPropertyIds(baseUnsupported, "Hosts");
   }
@@ -404,11 +396,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         (String) properties.get(HOST_CLUSTER_NAME_PROPERTY_ID),
         null);
     hostRequest.setPublicHostName((String) properties.get(HOST_PUBLIC_NAME_PROPERTY_ID));
-
-    String rackInfo = (String) ((null != properties.get(HOST_RACK_INFO_PROPERTY_ID))? properties.get(HOST_RACK_INFO_PROPERTY_ID):
-            properties.get(HOST_RACK_INFO_NO_CATEGORY_PROPERTY_ID));
-
-    hostRequest.setRackInfo(rackInfo);
+    hostRequest.setRackInfo((String) properties.get(HOST_RACK_INFO_PROPERTY_ID));
     hostRequest.setBlueprintName((String) properties.get(BLUEPRINT_PROPERTY_ID));
     hostRequest.setHostGroupName((String) properties.get(HOSTGROUP_PROPERTY_ID));
     
@@ -777,7 +765,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     }
   }
 
-  @Transactional
+
   protected void deleteHosts(Set<HostRequest> requests)
       throws AmbariException {
 
@@ -842,8 +830,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       // Assume the user also wants to delete it entirely, including all clusters.
       clusters.deleteHost(hostRequest.getHostname());
 
-      removeHostFromClusterTopology(clusters, hostRequest);
-
       for (LogicalRequest logicalRequest: topologyManager.getRequests(Collections.<Long>emptyList())) {
         logicalRequest.removeHostRequestByHostName(hostRequest.getHostname());
       }
@@ -851,30 +837,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       if (null != hostRequest.getClusterName()) {
         clusters.getCluster(hostRequest.getClusterName()).recalculateAllClusterVersionStates();
       }
-    }
-  }
-
-  /**
-   * Removes hostname from the stateful cluster topology
-   * @param clusters
-   * @param hostRequest
-   * @throws AmbariException
-   */
-  private void removeHostFromClusterTopology(Clusters clusters, HostRequest hostRequest) throws AmbariException{
-    if(hostRequest.getClusterName() == null) {
-      for( Cluster c : clusters.getClusters().values()) {
-        removeHostFromClusterTopology(c.getClusterId(), hostRequest.getHostname());
-      }
-    } else {
-      long clusterId = clusters.getCluster(hostRequest.getClusterName()).getClusterId();
-      removeHostFromClusterTopology(clusterId, hostRequest.getHostname());
-    }
-  }
-
-  private void removeHostFromClusterTopology(long clusterId, String hostname) {
-    ClusterTopology clusterTopology = topologyManager.getClusterTopology(clusterId);
-    if(clusterTopology != null) {
-      clusterTopology.removeHost(hostname);
     }
   }
 

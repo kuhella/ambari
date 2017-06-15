@@ -27,14 +27,12 @@ YARN = "yarn"
 CLUSTER = "cluster"
 IMMEDIATE = "immediate"
 FAST = "fast"
-ACTIVATE = "activate"
 
 # Users
 root_user = "root"
 hawq_user = "gpadmin"
 hawq_user_secured = "postgres"
 hawq_group = hawq_user
-hawq_group_secured = hawq_user_secured
 
 # Directories
 hawq_home_dir = "/usr/local/hawq/"
@@ -47,9 +45,10 @@ sysctl_conf_dir = "/etc/sysctl.d"
 
 # Files
 hawq_slaves_file = os.path.join(hawq_config_dir, "slaves")
+hawq_user_bashrc_file = os.path.join(hawq_user_home_dir, ".bashrc")
 hawq_greenplum_path_file = os.path.join(hawq_home_dir, "greenplum_path.sh")
-hawq_hosts_file = os.path.join(hawq_config_dir, "hawq_hosts")
-hawq_check_file = os.path.join(hawq_config_dir, "hawq_check.cnf")
+hawq_hosts_file = "/tmp/hawq_hosts"
+hawq_check_file = os.path.join(hawq_config_dir, "gpcheck.cnf")
 sysctl_suse_file = "/etc/sysctl.conf"
 sysctl_backup_file = "/etc/sysctl.conf.backup.{0}"
 hawq_sysctl_filename = "hawq_sysctl.conf"
@@ -59,29 +58,9 @@ postmaster_opts_filename = "postmaster.opts"
 postmaster_pid_filename = "postmaster.pid"
 hawq_keytab_file = "/etc/security/keytabs/hawq.service.keytab"
 
-# HAWQ-PXF check params
-PXF_PORT = "51200"
-pxf_hdfs_test_dir = "/user/{0}/hawq_pxf_hdfs_service_check".format(hawq_user)
+# Smoke check table
+smoke_check_table_name = "ambari_hawq_smoke_test"
 
 # Timeouts
 default_exec_timeout = 600
 hawq_operation_exec_timeout = 900
-
-COMPONENT_ATTRIBUTES_MAP = {
-  CLUSTER: {
-    'port_property': 'hawq_master_address_port',
-    'process_name': 'postgres'
-  },
-  MASTER: {
-    'port_property': 'hawq_master_address_port',
-    'process_name': 'postgres'
-  },
-  STANDBY: {
-    'port_property': 'hawq_master_address_port',
-    'process_name': 'gpsyncmaster'
-  },
-  SEGMENT: {
-    'port_property': 'hawq_segment_address_port',
-    'process_name': 'postgres'
-  }
-}

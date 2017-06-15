@@ -33,8 +33,7 @@
     "clusterName": "c1", 
     "hostname": "c6402.ambari.apache.org", 
     "hostLevelParams": {
-        "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
-        "stack_name": "HDP",
+        "stack_name": "HDP", 
         "group_list": "[\"hadoop\",\"users\",\"knox\"]", 
         "host_sys_prepped": "false", 
         "ambari_db_rca_username": "mapred", 
@@ -133,8 +132,7 @@
             "java.security.krb5.conf": "/etc/knox/conf/krb5.conf"
         }, 
         "cluster-env": {
-            "managed_hdfs_resource_property_names": "",
-            "security_enabled": "false",
+            "security_enabled": "false", 
             "ignore_groupsusers_create": "false", 
             "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab", 
             "kerberos_domain": "EXAMPLE.COM", 

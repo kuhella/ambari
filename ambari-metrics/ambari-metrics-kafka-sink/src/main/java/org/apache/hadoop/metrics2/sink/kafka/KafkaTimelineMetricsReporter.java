@@ -42,6 +42,7 @@ import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -50,7 +51,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import static org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata.MetricType;
+
 import static org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache.MAX_EVICTION_TIME_MILLIS;
 import static org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache.MAX_RECS_PER_NAME_DEFAULT;
 
@@ -63,13 +64,11 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
   private static final String TIMELINE_METRICS_MAX_ROW_CACHE_SIZE_PROPERTY = "kafka.timeline.metrics.maxRowCacheSize";
   private static final String TIMELINE_HOST_PROPERTY = "kafka.timeline.metrics.host";
   private static final String TIMELINE_PORT_PROPERTY = "kafka.timeline.metrics.port";
-  private static final String TIMELINE_PROTOCOL_PROPERTY = "kafka.timeline.metrics.protocol";
   private static final String TIMELINE_REPORTER_ENABLED_PROPERTY = "kafka.timeline.metrics.reporter.enabled";
   private static final String EXCLUDED_METRICS_PROPERTY = "external.kafka.metrics.exclude.prefix";
   private static final String INCLUDED_METRICS_PROPERTY = "external.kafka.metrics.include.prefix";
   private static final String TIMELINE_DEFAULT_HOST = "localhost";
-  private static final String TIMELINE_DEFAULT_PORT = "6188";
-  private static final String TIMELINE_DEFAULT_PROTOCOL = "http";
+  private static final String TIMELINE_DEFAULT_PORT = "8188";
 
   private boolean initialized = false;
   private boolean running = false;
@@ -119,19 +118,8 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
         int maxRowCacheSize = props.getInt(TIMELINE_METRICS_MAX_ROW_CACHE_SIZE_PROPERTY, MAX_RECS_PER_NAME_DEFAULT);
         String metricCollectorHost = props.getString(TIMELINE_HOST_PROPERTY, TIMELINE_DEFAULT_HOST);
         String metricCollectorPort = props.getString(TIMELINE_PORT_PROPERTY, TIMELINE_DEFAULT_PORT);
-        String metricCollectorProtocol = props.getString(TIMELINE_PROTOCOL_PROPERTY, TIMELINE_DEFAULT_PROTOCOL);
         setMetricsCache(new TimelineMetricsCache(maxRowCacheSize, metricsSendInterval));
-
-        collectorUri = metricCollectorProtocol + "://" + metricCollectorHost +
-                       ":" + metricCollectorPort + WS_V1_TIMELINE_METRICS;
-
-        if (collectorUri.toLowerCase().startsWith("https://")) {
-          String trustStorePath = props.getString(SSL_KEYSTORE_PATH_PROPERTY).trim();
-          String trustStoreType = props.getString(SSL_KEYSTORE_TYPE_PROPERTY).trim();
-          String trustStorePwd = props.getString(SSL_KEYSTORE_PASSWORD_PROPERTY).trim();
-          loadTruststore(trustStorePath, trustStoreType, trustStorePwd);
-        }
-
+        collectorUri = "http://" + metricCollectorHost + ":" + metricCollectorPort + "/ws/v1/timeline/metrics";
 
         // Exclusion policy
         String excludedMetricsStr = props.getString(EXCLUDED_METRICS_PROPERTY, "");
@@ -292,7 +280,7 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
 
       String[] metricNames = cacheKafkaMetered(currentTimeMillis, sanitizedName, meter);
 
-      populateMetricsList(context, MetricType.GAUGE, metricNames);
+      populateMetricsList(context, metricNames);
     }
 
     @Override
@@ -303,7 +291,7 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
       final String metricCountName = cacheSanitizedTimelineMetric(currentTimeMillis, sanitizedName,
           COUNT_SUFIX, counter.count());
 
-      populateMetricsList(context, MetricType.COUNTER, metricCountName);
+      populateMetricsList(context, metricCountName);
     }
 
     @Override
@@ -317,7 +305,7 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
 
       String[] metricNames = (String[]) ArrayUtils.addAll(metricHNames, metricSNames);
 
-      populateMetricsList(context, MetricType.GAUGE, metricNames);
+      populateMetricsList(context, metricNames);
     }
 
     @Override
@@ -333,7 +321,7 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
       String[] metricNames = (String[]) ArrayUtils.addAll(metricMNames, metricTNames);
       metricNames = (String[]) ArrayUtils.addAll(metricNames, metricSNames);
 
-      populateMetricsList(context, MetricType.GAUGE, metricNames);
+      populateMetricsList(context, metricNames);
     }
 
     @Override
@@ -343,7 +331,7 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
 
       cacheSanitizedTimelineMetric(currentTimeMillis, sanitizedName, "", Double.parseDouble(String.valueOf(gauge.value())));
 
-      populateMetricsList(context, MetricType.GAUGE, sanitizedName);
+      populateMetricsList(context, sanitizedName);
     }
 
     private String[] cacheKafkaMetered(long currentTimeMillis, String sanitizedName, Metered meter) {
@@ -405,11 +393,10 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
       return meterName;
     }
 
-    private void populateMetricsList(Context context, MetricType type, String... metricNames) {
+    private void populateMetricsList(Context context, String... metricNames) {
       for (String metricName : metricNames) {
         TimelineMetric cachedMetric = metricsCache.getTimelineMetric(metricName);
         if (cachedMetric != null) {
-          cachedMetric.setType(type.name());
           context.getTimelineMetricList().add(cachedMetric);
         }
       }

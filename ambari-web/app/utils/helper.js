@@ -415,16 +415,10 @@ App.format = {
   },
 
   /**
-   * cached map of service names
+   * cached map of service and component names
    * @type {object}
    */
-  stackServiceRolesMap: {},
-
-  /**
-   * cached map of component names
-   * @type {object}
-   */
-  stackComponentRolesMap: {},
+  stackRolesMap: {},
 
   /**
    * convert role to readable string
@@ -432,33 +426,23 @@ App.format = {
    * @memberof App.format
    * @method role
    * @param {string} role
-   * @param {boolean} isServiceRole
    * return {string}
    */
-  role: function (role, isServiceRole) {
+  role: function (role) {
+    var models = [App.StackService, App.StackServiceComponent];
 
-    if (isServiceRole) {
-      var model = App.StackService;
-      var map = this.stackServiceRolesMap;
-    } else {
-      var model = App.StackServiceComponent;
-      var map = this.stackComponentRolesMap;
+    if (App.isEmptyObject(this.stackRolesMap)) {
+      models.forEach(function (model) {
+        model.find().forEach(function (item) {
+          this.stackRolesMap[item.get('id')] = item.get('displayName');
+        }, this);
+      }, this);
     }
 
-    this.initializeStackRolesMap(map, model);
-
-    if (map[role]) {
-      return map[role];
+    if (this.stackRolesMap[role]) {
+      return this.stackRolesMap[role];
     }
     return this.normalizeName(role);
-  },
-
-  initializeStackRolesMap: function (map, model) {
-    if (App.isEmptyObject(map)) {
-      model.find().forEach(function (item) {
-        map[item.get('id')] = item.get('displayName');
-      });
-    }
   },
 
   /**
@@ -513,7 +497,7 @@ App.format = {
       } else if (self.command[item]) {
         result = result + ' ' + self.command[item];
       } else {
-        result = result + ' ' + self.role(item, false);
+        result = result + ' ' + self.role(item);
       }
     });
 
@@ -540,27 +524,6 @@ App.format = {
     if (result === ' Refreshqueues ResourceManager') {
       result = Em.I18n.t('services.service.actions.run.yarnRefreshQueues.title');
     }
-    // HAWQ custom commands on back Ops page.
-    if (result === ' Resync Hawq Standby HAWQ Standby Master') {
-      result = Em.I18n.t('services.service.actions.run.resyncHawqStandby.label');
-    }
-    if (result === ' Immediate Stop Hawq Service HAWQ Master') {
-      result = Em.I18n.t('services.service.actions.run.immediateStopHawqService.label');
-    }
-    if (result === ' Immediate Stop Hawq Segment HAWQ Segment') {
-      result = Em.I18n.t('services.service.actions.run.immediateStopHawqSegment.label');
-    }
-    if(result === ' Activate Hawq Standby HAWQ Standby Master') {
-      result = Em.I18n.t('admin.activateHawqStandby.button.enable');
-    }
-    if(result === ' Hawq Clear Cache HAWQ Master') {
-      result = Em.I18n.t('services.service.actions.run.clearHawqCache.label');
-    }
-    if(result === ' Run Hawq Check HAWQ Master') {
-      result = Em.I18n.t('services.service.actions.run.runHawqCheck.label');
-    }
-    //<---End HAWQ custom commands--->
-    
     return result;
   },
 

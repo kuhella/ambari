@@ -389,9 +389,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
       case 'mapred-queue-acls.xml':
         return false;
       case 'core-site.xml':
-        var serviceName = this.get('content.serviceName');
-        var serviceType = App.StackService.find().findProperty('serviceName',serviceName).get('serviceType');
-        return ['HDFS', 'GLUSTERFS', 'RANGER_KMS'].contains(this.get('content.serviceName')) || serviceType === 'HCFS';
+        return ['HDFS', 'GLUSTERFS', 'RANGER_KMS'].contains(this.get('content.serviceName'));
       default :
         return true;
     }
@@ -697,7 +695,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
                 if (!components[name]) {
                   components[name] = [];
                 }
-                components[name].push(App.format.role(item.ServiceComponentInfo.component_name, false));
+                components[name].push(App.format.role(item.ServiceComponentInfo.component_name));
               });
               return components;
             },

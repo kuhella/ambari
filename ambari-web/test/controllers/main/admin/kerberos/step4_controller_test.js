@@ -210,12 +210,20 @@ describe('App.KerberosWizardStep4Controller', function() {
         { name: 'spnego_keytab', e: false },
         { name: 'falcon_keytab', e: true },
         { name: 'hdfs_keytab', e: false },
-        { name: 'mapreduce_keytab', e: true }
+        { name: 'mapreduce_keytab', e: true },
+        { name: 'admin_principal', e: true },
+        { name: 'admin_password', e: true }
       ];
 
       propertiesEditableTests.forEach(function(test) {
         it('Add Service: property `{0}` should be {1} editable'.format(test.name, !!test.e ? '' : 'not '), function() {
           expect(res.findProperty('name', test.name).get('isEditable')).to.eql(test.e);
+        });
+      });
+
+      ['admin_principal', 'admin_password'].forEach(function(item) {
+        it('property `{0}` should have empty value'.format(item), function() {
+          expect(res.findProperty('name', item).get('value')).to.be.eql('');
         });
       });
 

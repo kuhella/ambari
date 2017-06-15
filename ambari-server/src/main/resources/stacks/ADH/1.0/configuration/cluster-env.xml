@@ -89,28 +89,5 @@ gpgcheck=0</value>
             <type>boolean</type>
         </value-attributes>
     </property>
-    
-    <property>
-        <name>fetch_nonlocal_groups</name>
-        <value>true</value>
-        <display-name>Ambari fetch nonlocal groups</display-name>
-        <description>Ambari requires fetching all the groups. This can be slow
-        on envs with enabled ldap. Setting this option to false will enable Ambari,
-        to skip user/group management connected with ldap groups.</description>
-        <value-attributes>
-            <overridable>false</overridable>
-            <type>boolean</type>
-        </value-attributes>
-    </property>
 
-    <property>
-        <name>managed_hdfs_resource_property_names</name>
-        <value></value>
-        <description>Comma separated list of property names with HDFS resource paths.
-        Resource from this list will be managed even if it is marked as not managed in the stack</description>
-        <value-attributes>
-            <overridable>false</overridable>
-            <empty-value-valid>true</empty-value-valid>
-        </value-attributes>
-    </property>
 </configuration>

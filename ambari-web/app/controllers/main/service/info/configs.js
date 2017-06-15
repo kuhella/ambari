@@ -392,7 +392,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
 
     //put properties from capacity-scheduler.xml into one config with textarea view
     if (this.get('content.serviceName') === 'YARN') {
-      configs = App.config.addYarnCapacityScheduler(configs);
+      var configsToSkip = this.get('settingsTabProperties').filterProperty('filename', 'capacity-scheduler.xml');
+      configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml', configsToSkip);
     }
 
     if (this.get('content.serviceName') === 'KERBEROS') {
@@ -484,7 +485,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
               }
             } else {
               var isEditable = self.get('canEdit') && configGroup.get('name') == self.get('selectedConfigGroup.name');
-              allConfigs.push(App.config.createCustomGroupConfig(prop, config.type, config.properties[prop], configGroup, isEditable));
+              allConfigs.push(App.config.createCustomGroupConfig(prop, config, configGroup, isEditable));
             }
           }
         });

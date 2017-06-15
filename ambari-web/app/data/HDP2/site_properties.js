@@ -1515,13 +1515,6 @@ var hdp2properties = [
     "index" : 13
   },
   {
-    "name": "manage_auth_to_local",
-    "serviceName": "KERBEROS",
-    "filename": "kerberos-env.xml",
-    "category": "Advanced kerberos-env",
-    "index" : 14
-  },
-  {
     "name": "admin_server_host",
     "serviceName": "KERBEROS",
     "filename": "kerberos-env.xml",
@@ -1694,20 +1687,6 @@ var hdp2properties = [
     "filename": "ams-env.xml",
     "category": "General",
     "index": 5
-  },
-  {
-    "name": "metrics_grafana_username",
-    "serviceName": "AMBARI_METRICS",
-    "filename": "ams-grafana-env.xml",
-    "category": "General",
-    "index": 6
-  },
-  {
-    "name": "metrics_grafana_password",
-    "serviceName": "AMBARI_METRICS",
-    "filename": "ams-grafana-env.xml",
-    "category": "General",
-    "index": 7
   },
   {
     "name": "timeline.metrics.aggregator.checkpoint.dir",

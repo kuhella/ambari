@@ -367,8 +367,6 @@ Em.I18n.translations = {
   'popup.clusterCheck.Upgrade.header': 'Upgrade to {0}',
   'popup.clusterCheck.Upgrade.fail.title': 'Requirements',
   'popup.clusterCheck.Upgrade.fail.alert': 'You <strong>must</strong> meet these requirements before you can proceed.',
-  'popup.clusterCheck.Upgrade.bypassed-failures.title': 'Errors that can be bypassed',
-  'popup.clusterCheck.Upgrade.bypassed-failures.alert': 'Errors are allowed to be bypassed since config stack.upgrade.bypass.prechecks is set to true. It is strongly encouraged to look into these failures.',
   'popup.clusterCheck.Upgrade.warning.title': 'Warnings',
   'popup.clusterCheck.Upgrade.warning.alert': 'Correcting the warnings is not required but is <strong>recommended</strong>.',
   'popup.clusterCheck.Upgrade.configsMerge.title': 'Configuration Changes',
@@ -454,6 +452,16 @@ Em.I18n.translations = {
   'services.tez.description':'Tez is the next generation Hadoop Query Processing framework written on top of YARN',
   'services.falcon.description': 'Falcon mirroring engine',
   'services.storm.description': 'Apache Hadoop Stream processing framework',
+  'services.storm.slots.metrics.title': 'Number of slots',
+  'services.storm.slots.metrics.free': 'Free slots',
+  'services.storm.slots.metrics.total': 'Total slots',
+  'services.storm.slots.metrics.used': 'Used slots',
+  'services.storm.executors.metrics.title': 'Number of executors',
+  'services.storm.executors.metrics.total': 'Total executors',
+  'services.storm.topology.metrics.title': 'Number of topologies',
+  'services.storm.topology.metrics.total': 'Total topologies',
+  'services.storm.tasks.metrics.title': 'Number of tasks',
+  'services.storm.tasks.metrics.total': 'Total tasks',
   'services.storm.configs.range-plugin-enable.dialog.title': 'Enable Ranger for STORM',
   'services.storm.configs.range-plugin-enable.dialog.message': 'Enabling Ranger plugin for STORM is effective only on a secured cluster.',
 
@@ -799,7 +807,6 @@ Em.I18n.translations = {
   'installer.step7.popup.validation.request.failed.body': 'The configuration changes could not be validated for consistency due to an unknown error.  Your changes have not been saved yet.  Would you like to proceed and save the changes?',
   'installer.step7.popup.validation.warning.header': 'Configurations',
   'installer.step7.popup.validation.warning.body': 'Some service configurations are not configured properly. We recommend you review and change the highlighted configuration values. Are you sure you want to proceed without correcting configurations?',
-  'installer.step7.popup.validation.error.body': 'Service configurations resulted in validation errors. Please address them before proceeding.',
   'installer.step7.popup.oozie.derby.warning': 'Derby is not recommended for production use. With Derby, Oozie Server HA and concurrent connection support will not be available.',
   'installer.step7.oozie.database.new': 'New Derby Database',
   'installer.step7.hive.database.new.mysql': 'New MySQL Database',
@@ -985,7 +992,7 @@ Em.I18n.translations = {
   'alerts.definition.details.serviceHost': 'Service / Host',
   'alerts.definition.details.24-hour': '24-Hour',
   'alerts.definition.details.notification': 'Notification',
-  'alerts.definition.details.noAlerts': 'No alert instances to display',
+  'alerts.definition.details.noAlerts': 'No alert instances to show',
   'alerts.definition.details.configs.thresholdsErrorMsg': 'Critical threshold should be larger than warning threshold',
 
   'alerts.notifications.error.email': 'Must be a valid email address',
@@ -1140,7 +1147,6 @@ Em.I18n.translations = {
   'admin.highAvailability.confirmManualRollbackBody':'You are in the process of enabling NameNode HA. If you exit now, you must follow manual instructions to revert back to the non-HA setup as documented in the Ambari User Guide\'s <i>Rolling Back NameNode HA</i> section.  Are you sure you want to exit the wizard?',
   'admin.highAvailability.error.hostsNum':'You must have at least 3 hosts in your cluster to enable NameNode HA.',
   'admin.highAvailability.error.namenodeStarted':'NameNode must be running before you enable NameNode HA.',
-  'admin.highAvailability.error.maintenanceMode':'In order to enable NameNode HA, all services, and hosts with master components need to be out of Maintenance Mode.',
   'admin.highAvailability.error.zooKeeperNum':'You must have at least 3 ZooKeeper Servers in your cluster to enable NameNode HA.',
   'admin.rm_highAvailability.error.hostsNum':'You must have at least 3 hosts in your cluster to enable ResourceManager HA.',
   'admin.rm_highAvailability.error.zooKeeperNum':'You must have at least 3 ZooKeeper Servers in your cluster to enable ResourceManager HA.',
@@ -1216,10 +1222,6 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step6.jnStopped':'All JournalNodes should be started before initializing',
   'admin.highAvailability.wizard.step8.metaNoInit':'Metadata not initialized yet',
   'admin.highAvailability.wizard.step8.confirmPopup.body':'Please confirm that you have run the manual steps before continuing.',
-  'admin.highAvailability.wizard.step9.hawq.confirmPopup.header':'Additional Steps Required for HAWQ',
-  'admin.highAvailability.wizard.step9.hawq.confirmPopup.body':'You must refer to the HAWQ documentation under section ' +
-     '"HAWQ Filespaces and High Availability Enabled HDFS" and perform the required manual steps to update the HAWQ filespace ' +
-     'location. HAWQ will not use HDFS nameservice unless the steps have been completed successfully.',
 
   'admin.highAvailability.rollback.header':'Disable NameNode HA Wizard',
   'admin.highAvailability.rollback.task0.title':'Stop All Services',
@@ -1296,9 +1298,6 @@ Em.I18n.translations = {
     '<b>manual steps</b> (that you must perform in sequence as instructed by the wizard).<br/><br/>' +
     '<b>You should plan a cluster maintenance window and prepare for cluster downtime when enabling NameNode HA.</b>',
   'admin.highAvailability.wizard.step1.alert':'If you have HBase running, please exit this wizard and stop HBase first.',
-  'admin.highAvailability.wizard.step1.hawq.alert':'<br/><br/>You will need to perform additional manual ' +
-    'steps to update the HAWQ filespace location, once this wizard completes. Refer to the HAWQ documentation under section ' +
-    '"HAWQ Filespaces and High Availability Enabled HDFS" for more information.',
 
   'admin.rm_highAvailability.wizard.header': 'Enable ResourceManager HA Wizard',
   'admin.rm_highAvailability.wizard.step1.header': 'Get Started',
@@ -1501,8 +1500,6 @@ Em.I18n.translations = {
   'admin.stackVersions.version.downgrade.suspended': "Downgrade: Paused",
   'admin.stackUpgrade.state.paused.fail.header': "Pause Upgrade failed",
   'admin.stackUpgrade.state.paused.fail.body': "Upgrade could not be paused. Try again later.",
-  'admin.stackDowngrade.state.paused.fail.header': "Pause Downgrade failed",
-  'admin.stackDowngrade.state.paused.fail.body': "Downgrade could not be paused. Try again later.",
 
   'admin.stackVersions.version.upgrade.upgradeOptions.header': "Upgrade Options",
   'admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.version': "You are about to perform an upgrade to <b>{0}</b>.",
@@ -1515,7 +1512,6 @@ Em.I18n.translations = {
   'admin.stackVersions.version.upgrade.upgradeOptions.RU.description': "Services remain running while the upgrade is performed. Minimized disruption but slower upgrade.",
   'admin.stackVersions.version.upgrade.upgradeOptions.EU.title': "Express Upgrade",
   'admin.stackVersions.version.upgrade.upgradeOptions.EU.description': "Services are stopped while the upgrade is performed. Incurs downtime, but faster upgrade.",
-  'admin.stackVersions.version.upgrade.upgradeOptions.errors_bypassed': "Bypassed errors,<br/>proceed at your own risk.",
   'admin.stackVersions.version.upgrade.upgradeOptions.preCheck.rerun':'Rerun Checks',
   'admin.stackVersions.version.upgrade.upgradeOptions.preCheck.msg.title':'Checks:',
   'admin.stackVersions.version.upgrade.upgradeOptions.preCheck.msg.checking': 'Checking...',
@@ -1559,14 +1555,7 @@ Em.I18n.translations = {
   'admin.stackUpgrade.failedHosts.details': "Open Details",
   'admin.stackUpgrade.doThisLater': "Do This Later",
   'admin.stackUpgrade.pauseUpgrade': "Pause Upgrade",
-  'admin.stackUpgrade.pauseDowngrade': "Pause Downgrade",
-  'admin.stackUpgrade.pauseUpgrade.warning': "You are about to Pause the {0}. You can return to continue the {0} and finalize at a later time but while the upgrade is paused, you <strong style='color:red;'>SHOULD NOT</strong> perform any cluster changes. For example:" +
-  "<ul><li>DO NOT add / remove hosts on the cluster</li>" +
-  "<li>DO NOT add / remove services on the cluster</li>" +
-  "<li>DO NOT enable / disable Kerberos</li>" +
-  "<li>DO NOT enable / disable HA</li>" +
-  "<li>DO NOT make any drastic changes to service configurations</li></ul>" +
-  "You <strong>MUST</strong> continue the {0} and finalize <strong>BEFORE</strong> performing <strong>ANY</strong> significant changes to the cluster.",
+  'admin.stackUpgrade.pauseDowngrade': "Pause Downgrade",  
   'admin.stackUpgrade.downgrade.proceed': "Proceed with Downgrade",
   'admin.stackUpgrade.downgrade.body': "Are you sure you wish to abort the upgrade process and downgrade to <b>{0}</b>?",
   'admin.stackUpgrade.downgrade.retry.body': "Are you sure you wish to retry downgrade to <b>{0}</b>?",
@@ -1694,14 +1683,10 @@ Em.I18n.translations = {
   'services.service.actions.run.stopLdapKnox.title':'Stop Demo LDAP Knox Gateway',
   'services.service.actions.run.stopLdapKnox.context':'Stop Demo LDAP',
   'services.service.actions.run.startStopLdapKnox.error': 'Error during remote command: ',
-  'services.service.actions.run.immediateStopHawqService.context':'Stop HAWQ Service (Immediate Mode)',
-  'services.service.actions.run.immediateStopHawqService.label':'Stop HAWQ Service (Immediate Mode)',
+  'services.service.actions.run.immediateStopHawqCluster.context':'Stop HAWQ Cluster (Immediate Mode)',
   'services.service.actions.run.immediateStopHawqSegment.label':'Stop (Immediate Mode)',
   'services.service.actions.run.immediateStopHawqSegment.context':'Stop HAWQ Segment (Immediate Mode)',
-  'services.service.actions.run.resyncHawqStandby.context':'Re-Sync HAWQ Standby Master',
-  'services.service.actions.run.resyncHawqStandby.label':'Re-Synchronize HAWQ Standby Master',
-  'services.service.actions.run.clearHawqCache.label':'Clear HAWQ\'s HDFS Metadata Cache',
-  'services.service.actions.run.runHawqCheck.label':'Run HAWQ Config Check',
+  'services.service.actions.run.immediateStopHawqCluster.error': 'Error during remote command: ',
   'services.service.actions.manage_configuration_groups.short':'Manage Config Groups',
   'services.service.actions.serviceActions':'Service Actions',
   'services.service.summary.unknown':'unknown',
@@ -1852,6 +1837,24 @@ Em.I18n.translations = {
   'services.service.info.metrics.yarn.apps.states.running': 'Running',
   'services.service.info.metrics.yarn.apps.states.submitted': 'Submitted',
 
+  'services.service.info.metrics.kafka.server.brokerTopic.title': 'Broker Topics',
+  'services.service.info.metrics.kafka.server.brokerTopic.displayNames.AllTopicsBytesOutPerSec': 'Bytes Out',
+  'services.service.info.metrics.kafka.server.brokerTopic.displayNames.AllTopicsBytesInPerSec': 'Bytes In',
+  'services.service.info.metrics.kafka.server.brokerTopic.displayNames.AllTopicsMessagesInPerSec': 'Messages In',
+  'services.service.info.metrics.kafka.server.ReplicaManager.title': 'Replica Manager',
+  'services.service.info.metrics.kafka.server.ReplicaManager.displayNames.PartitionCount': 'Partitions count',
+  'services.service.info.metrics.kafka.server.ReplicaManager.displayNames.UnderReplicatedPartitions': 'Under Replicated Partitions',
+  'services.service.info.metrics.kafka.server.ReplicaManager.displayNames.LeaderCount': 'Leader Count',
+  'services.service.info.metrics.kafka.controller.ControllerStats.title': 'Controller Status',
+  'services.service.info.metrics.kafka.controller.ControllerStats.displayNames.LeaderElectionRateAndTimeMs': 'Leader Election Rate And Time',
+  'services.service.info.metrics.kafka.controller.ControllerStats.displayNames.UncleanLeaderElectionsPerSec': 'Unclean Leader Election',
+  'services.service.info.metrics.kafka.controller.KafkaController.title': 'Active Controller Count',
+  'services.service.info.metrics.kafka.controller.KafkaController.displayNames.ActiveControllerCount': 'Active Controller Count',
+  'services.service.info.metrics.kafka.log.LogFlushStats.title': 'Log Flush Status',
+  'services.service.info.metrics.kafka.log.LogFlushStats.displayNames.LogFlushRateAndTimeMs': 'Log Flush Rate amd Time',
+  'services.service.info.metrics.kafka.server.ReplicaFetcherManager.title': 'Replica MaxLag',
+  'services.service.info.metrics.kafka.server.ReplicaFetcherManager.displayNames.Replica-MaxLag': 'Replica MaxLag',
+
   'services.service.info.menu.summary':'Summary',
   'services.service.info.menu.configs':'Configs',
   'services.service.info.menu.heatmaps':'Heatmaps',
@@ -1989,7 +1992,6 @@ Em.I18n.translations = {
   'services.reassign.step4.tasks.installHostComponents.title':'Install {0}',
   'services.reassign.step4.tasks.startZooKeeperServers.title':'Start ZooKeeper Servers',
   'services.reassign.step4.tasks.startNameNode.title':'Start NameNode',
-  'services.reassign.step4.tasks.stopHostComponentsInMaintenanceMode.title':'Stop {0}',
   'services.reassign.step4.tasks.deleteHostComponents.title':'Delete disabled {0}',
   'services.reassign.step4.tasks.startRequiredServices.title':'Start Required Services',
   'services.reassign.step4.tasks.cleanMySqlServer.title':'Clean MYSQL Server',
@@ -2105,7 +2107,6 @@ Em.I18n.translations = {
   'services.reassign.step6.tasks.deleteHostComponents.title': 'Delete disabled {0}',
   'services.reassign.step6.tasks.startAllServices.title': 'Start All Services',
   'services.reassign.step6.tasks.stopMysqlService.title': 'Stop Mysql Server',
-  'services.reassign.step6.tasks.stopHostComponentsInMaintenanceMode.title': 'Stop {0}',
   'services.reassign.step6.status.success': 'Successfully moved <b>{0}</b> from <b>{1}</b> host to <b>{2}</b> host.',
   'services.reassign.step6.status.failed': 'Failed to move <b>{0}</b> from <b>{1}</b> host to <b>{2}</b> host.',
   'services.reassign.step6.status.info': 'Reassigning {0}. \nPlease wait for all tasks to be completed.',
@@ -2238,7 +2239,6 @@ Em.I18n.translations = {
   'hosts.table.menu.l1.allHosts':'All Hosts',
   'hosts.table.menu.l2.allComponents':'All Components',
   'hosts.table.menu.l2.restartAllComponents':'Restart All Components',
-  'hosts.table.menu.l2.reinstallFailedComponents':'Reinstall Failed Components',
 
   'hosts.bulkOperation.confirmation.header':'Confirm Bulk Operation',
   'hosts.bulkOperation.confirmation.hosts':'Are you sure you want to <strong>{0}</strong> on the following {1} hosts?',
@@ -2386,7 +2386,6 @@ Em.I18n.translations = {
   'hosts.host.maintainance.allComponents.context': 'All Host Components',
   'hosts.host.maintainance.stopAllComponents.context': 'Stop All Host Components',
   'hosts.host.maintainance.startAllComponents.context': 'Start All Host Components',
-  'hosts.host.maintainance.reinstallFailedComponents.context': 'Reinstall Failed Components',
   'hosts.host.alerts.st':'&nbsp;!&nbsp;',
   'hosts.decommission.popup.body':'Are you sure?',
   'hosts.decommission.popup.header':'Confirmation',
@@ -2517,7 +2516,6 @@ Em.I18n.translations = {
   'dashboard.widgets.YARNLinks': 'YARN Links',
   'dashboard.widgets.error.invalid': 'Invalid! Enter a number between 0 - {0}',
   'dashboard.widgets.error.smaller': 'Threshold 1 should be smaller than threshold 2!',
-  'dashboard.widgets.HawqSegmentUp': 'HAWQ Segments Live',
 
   'dashboard': {
     'widgets': {
@@ -2557,7 +2555,7 @@ Em.I18n.translations = {
   'dashboard.services.hdfs.nodes.heap':'NameNode Heap',
   'dashboard.services.hdfs.nodes.heapUsed':'{0} / {1} ({2}% used)',
   'dashboard.services.hdfs.chart.label':'Capacity (Used/Total)',
-  'dashboard.services.hdfs.blockErrors':'{0} corrupt replica / {1} missing / {2} under replicated',
+  'dashboard.services.hdfs.blockErrors':'{0} corrupt / {1} missing / {2} under replicated',
   'dashboard.services.hdfs.datanode.status.tooltip.live': 'This is the number of DataNodes that are live as reported from ' +
     'the NameNode. Even if a DataNode process is up, NameNode might see the status as dead ' +
     'if the DataNode is not communicating with the NameNode as expected. This can be due situations ' +
@@ -2592,8 +2590,6 @@ Em.I18n.translations = {
   'dashboard.services.yarn.memory.msg': '{0} used / {1} reserved / {2} available',
   'dashboard.services.yarn.queues': 'Queues',
   'dashboard.services.yarn.queues.msg': '{0} Queues',
-  'dashboard.services.hawq.hawqSegments':'HAWQ Segments',
-  'dashboard.services.pxf.pxfHosts':'PXF Hosts',
 
   'dashboard.services.flume.summary.title':'Flume installed on {0} host{1} ({2} agent{3})',
   'dashboard.services.flume.summary.configure':'Configure Agents',
@@ -2623,10 +2619,6 @@ Em.I18n.translations = {
   'dashboard.services.hbase.regions.transition':'Regions In Transition',
   'dashboard.services.hbase.masterStarted':'Master Started',
   'dashboard.services.hbase.masterActivated':'Master Activated',
-
-  'dashboard.services.hawq.segments.started':'started',
-  'dashboard.services.hawq.segments.stopped':'stopped',
-  'dashboard.services.hawq.segments.total':'in total',
 
   'dashboard.services.hive.clients':'Hive Clients',
   'dashboard.services.hive.client':'Hive Client',
@@ -2687,7 +2679,6 @@ Em.I18n.translations = {
   'tableView.filters.clearAllFilters': 'clear filters',
   'tableView.filters.showAll': 'Show All',
   'tableView.filters.filteredConfigVersionInfo': '{0} of {1} versions showing',
-  'tableView.filters.filteredAlertInstancesInfo': '{0} of {1} instances showing',
 
   'rollingrestart.dialog.title': 'Restart {0}s',
   'rollingrestart.dialog.primary': 'Trigger Rolling Restart',
@@ -2861,110 +2852,5 @@ Em.I18n.translations = {
   'utils.ajax.defaultErrorPopupBody.message': 'received on {0} method for API: {1}',
   'utils.ajax.defaultErrorPopupBody.statusCode': '{0} status code',
 
-  'alerts.instance.fullLogPopup.header': 'Instance Response',
-  'admin.addHawqStandby.button.enable': 'Add HAWQ Standby Master',
-  'admin.addHawqStandby.closePopup':'Add HAWQ Standby Master Wizard is in progress. You must allow the wizard to' +
-      ' complete for Ambari to be in usable state. If you choose to quit, you must follow documented manual' +
-  ' instructions to complete or reverting adding HAWQ Standby Master. Are you sure you want to exit the wizard?',
-  'admin.addHawqStandby.wizard.header': 'Add HAWQ Standby Master Wizard',
-  'admin.addHawqStandby.wizard.step1.header': 'Get Started',
-  'admin.addHawqStandby.wizard.step1.body':'This wizard walks you through the process of adding the HAWQ Standby ' +
-      'Master as a backup of the current HAWQ Master host. After you add the HAWQ Standby Master, it serves as a <i>warm standby</i> ' +
-      'which may be activated in the event of the primary HAWQ Master host becoming non-operational.<br/><br/>' +
-      '<b>This procedure restarts the HAWQ service. Perform this procedure during a scheduled cluster maintenance window.</b>',
-  'admin.addHawqStandby.wizard.step2.header': 'Select Host',
-  'admin.addHawqStandby.wizard.step2.body': 'Select a host that will be running the HAWQ Standby Master',
-  'admin.addHawqStandby.wizard.step3.header': 'Review',
-  'admin.addHawqStandby.wizard.step3.configs_changes': 'Review Configuration Changes.',
-  'admin.addHawqStandby.wizard.step3.confirm.host.body':'<b>Confirm your host selections.</b>',
-  'admin.addHawqStandby.wizard.step3.confirm.config.body':'<div class="alert alert-info">' +
-      '<b>Review Configuration Changes.</b><br/><br/>' +
-      'The following lists the configuration changes that will be made by the Wizard to add HAWQ Standby Master. ' +
-      'This information is for <b> review only </b> and is not editable.</div>',
-  'admin.addHawqStandby.wizard.step3.hawqMaster': 'Current HAWQ Master',
-  'admin.addHawqStandby.wizard.step3.newHawqStandby': 'New HAWQ Standby Master',
-  'admin.addHawqStandby.wizard.step3.confirm.dataDir.title': 'HAWQ Standby Master Directory Confirmation',
-  'admin.addHawqStandby.wizard.step3.confirm.dataDir.body': 'Before you complete this procedure, ensure that you ' +
-      'rename the directory <b>{0}</b> on the HAWQ Standby Master host <b>{1}</b> if it exists (for example, ' +
-      'change it to {0}_old).<br/><br/><b>If {0} exists on the HAWQ Standby Master host, then the new HAWQ ' +
-      'Standby Master may be started with stale data, leaving the cluster in an inconsistent state.</b><br/><br/>' +
-      'Click Confirm to indicate that you have renamed any existing <b>{0}</b> directory on the HAWQ Standby Master host <b>{1}</b>.',
-  'admin.addHawqStandby.step4.save.configuration.note': 'This configuration is created by Add HAWQ Standby wizard',
-  'admin.addHawqStandby.wizard.step4.header': 'Configure Components',
-  'admin.addHawqStandby.wizard.step4.task0.title': 'Stop HAWQ Service',
-  'admin.addHawqStandby.wizard.step4.task1.title': 'Install HAWQ Standby Master',
-  'admin.addHawqStandby.wizard.step4.task2.title': 'Reconfigure HAWQ',
-  'admin.addHawqStandby.wizard.step4.task3.title': 'Start HAWQ Service',
-  'admin.addHawqStandby.wizard.step4.notice.inProgress':'Please wait while HAWQ Standby Master is being deployed.',
-  'admin.addHawqStandby.wizard.step4.notice.completed':'HAWQ Standby Master has been added successfully.',
-  'admin.removeHawqStandby.button.enable': 'Remove HAWQ Standby Master',
-  'admin.removeHawqStandby.wizard.header': 'Remove HAWQ Standby Wizard',
-  'admin.removeHawqStandby.wizard.step1.header': 'Get Started',
-  'admin.removeHawqStandby.wizard.step1.body':'This wizard walks you through the process of removing the HAWQ Standby Master ' +
-      'in the event of HAWQ Standby Master host failure or maintenance. After you remove the HAWQ Standby Master, the existing HAWQ Master will run in standalone mode without a backup.' +
-      '<br/><br/><b>This procedure stops and restarts the HAWQ service. Perform this procedure during a scheduled cluster ' +
-      'maintenance window, only when HAWQ Master is functioning properly.</b>' +
-      '<br/><br/>After you complete this wizard, the HAWQ cluster will no longer have a Standby Master. ' +
-      'As a best practice, use the “Add HAWQ Standby Master” service action to configure a new HAWQ Standby Master for the cluster.',
-  'admin.removeHawqStandby.wizard.step2.header': 'Review',
-  'admin.removeHawqStandby.wizard.step2.hawqStandby': '<b>Current HAWQ Standby:</b>',
-  'admin.removeHawqStandby.wizard.step2.confirm.config.body':'<div class="alert alert-info">' +
-      '<b>Review Configuration Changes.</b></br></br>After removing the HAWQ Standby Master, the Wizard removes the ' +
-      'hawq_standby_address_host property from hawq-site.xml. As a best practice, you should configure a new HAWQ Standby Master host after the Wizard completes.</div>',
-  'admin.removeHawqStandby.wizard.step2.confirm.host.body':'<b>Review HAWQ Standby Master role changes.</b>',
-  'admin.removeHawqStandby.wizard.step2.confirmPopup.body': 'Do you wish to continue with removing HAWQ Standby Master? Please confirm, before proceeding as you will not be able to rollback from Ambari.',
-  'admin.removeHawqStandby.wizard.step3.header': 'Finalize Setup',
-  'admin.removeHawqStandby.wizard.step3.task0.title': 'Remove HAWQ Standby Master',
-  'admin.removeHawqStandby.wizard.step3.task1.title': 'Stop HAWQ Service',
-  'admin.removeHawqStandby.wizard.step3.task2.title': 'Reconfigure HAWQ',
-  'admin.removeHawqStandby.wizard.step3.task3.title': 'Delete Role: HAWQ Standby',
-  'admin.removeHawqStandby.wizard.step3.task4.title': 'Start HAWQ Service',
-  'admin.removeHawqStandby.closePopup':'Remove HAWQ Standby Wizard is in progress. You must allow the wizard to' +
-      ' complete for Ambari to be in usable state. If you choose to quit, you must follow manual instructions to' +
-      ' get back to a stable state. Are you sure you want to exit the wizard?',
-  'admin.removeHawqStandby.wizard.step3.notice.inProgress':'Please wait while HAWQ Standby Master is being removed',
-  'admin.removeHawqStandby.wizard.step3.notice.completed':'HAWQ Standby has been removed successfully.',
-  'admin.removeHawqStandby.wizard.step3.removeHawqStandbyCommand.context': 'Execute HAWQ Standby remove command',
-  'admin.removeHawqStandby.wizard.step3.save.configuration.note': 'This configuration was created by Remove HAWQ Standby wizard',
-  'admin.activateHawqStandby.button.enable': 'Activate HAWQ Standby Master',
-  'admin.activateHawqStandby.wizard.header': 'Activate HAWQ Standby Master Wizard',
-  'admin.activateHawqStandby.wizard.step1.header': 'Get Started',
-  'admin.activateHawqStandby.wizard.step1.body': 'This wizard walks you through the process of activating the HAWQ Standby Master ' +
-      'in the event of HAWQ Master host failure. After you activate the HAWQ Standby Master, ' +
-      'it is promoted as the new HAWQ Master, and the previous HAWQ Master configuration ' +
-      'is removed from the cluster.<br/><br/><b>This procedure restarts the HAWQ service. ' +
-      'Perform this procedure during a scheduled cluster maintenance window, unless the current ' +
-      'HAWQ Master is not functioning.</b><br/><br/> After you complete this wizard, the HAWQ cluster ' +
-      'will no longer have a Standby Master. As a best practice, use the “Add HAWQ Standby Master” ' +
-      'service action to configure a new HAWQ Standby Master for the cluster.',
-  'admin.activateHawqStandby.wizard.step2.header': 'Review',
-  'admin.highAvailability.wizard.step2.toBeDeleted': 'TO BE DELETED',
-  'admin.activateHawqStandby.wizard.step2.hawqMaster': '<b>Current HAWQ Master:</b>',
-  'admin.activateHawqStandby.wizard.step2.hawqStandby': '<b>Current HAWQ Standby Master:</b>',
-  'admin.activateHawqStandby.wizard.step2.toBeActivated': 'TO BE ACTIVATED AS NEW HAWQ MASTER',
-  'admin.activateHawqStandby.wizard.step2.confirm.config.body': '<div class="alert alert-info">' +
-      '<b>Review Configuration Changes.</b><br/><br/>The Wizard will make the following configuration changes. '+
-      'This information is for review only, and cannot be edited.<br/><br/><b>After activating the HAWQ Standby ' +
-      'Master, the wizard removes the hawq_standby_address_host property from hawq-site.xml.</b> ' +
-      'As a best practice, you should configure a new HAWQ Standby Master host after the wizard completes.</div>',
-  'admin.activateHawqStandby.wizard.step2.confirm.host.body':'<b>Review HAWQ Master & Standby Master role changes.</b>',
-  'admin.activateHawqStandby.wizard.step2.confirmPopup.body': 'Do you wish to continue with activating HAWQ Standy Master? ' +
-      'Please confirm, before proceeding as you will not be able to rollback from Ambari.',
-  'admin.activateHawqStandby.wizard.step3.header': 'Finalize Setup',
-  'admin.activateHawqStandby.wizard.step3.task0.title': 'Activate HAWQ Standby Master',
-  'admin.activateHawqStandby.wizard.step3.task1.title': 'Stop HAWQ Service',
-  'admin.activateHawqStandby.wizard.step3.task2.title': 'Reconfigure HAWQ',
-  'admin.activateHawqStandby.wizard.step3.task3.title': 'Install Role: New HAWQ Master',
-  'admin.activateHawqStandby.wizard.step3.task4.title': 'Delete Role: Previous HAWQ Master',
-  'admin.activateHawqStandby.wizard.step3.task5.title': 'Delete Role: Previous HAWQ Standby',
-  'admin.activateHawqStandby.wizard.step3.task6.title': 'Start HAWQ Service',
-  'admin.activateHawqStandby.closePopup':'Activate HAWQ Standby Wizard is in progress. You must allow the wizard to' +
-      ' complete for Ambari to be in usable state. If you choose to quit, you must follow manual instructions to' +
-      ' get back to a stable state. Are you sure you want to exit the wizard?',
-  'admin.activateHawqStandby.wizard.step3.notice.inProgress':'Please wait while HAWQ Standby Master is being activated',
-  'admin.activateHawqStandby.wizard.step3.notice.completed':'HAWQ Standby Master has been activated successfully.',
-  'admin.activateHawqStandby.wizard.step3.activateHawqStandbyCommand.context': "Execute HAWQ Standby Master activate command",
-
-  'reset.ui.states': 'Reset UI State',
-  'reset.ui.states.body': 'You should proceed only if the UI is misbehaving (such as incorrect navigation upon login, UI is stuck and won&apos;t load, etc.).  Are you sure you want to reset the UI state?'
+  'alerts.instance.fullLogPopup.header': 'Instance Response'
 };

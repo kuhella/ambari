@@ -27,7 +27,6 @@ class TestHBaseMaster(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HBASE/0.96.0.2.0/package"
   STACK_VERSION = "2.0.6"
   TMP_PATH = "/hadoop"
-  DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 
   def test_install_hbase_master_default_no_phx(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_master.py",
@@ -38,9 +37,7 @@ class TestHBaseMaster(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        try_install=True
     )
-    self.assertResourceCalled('Package', 'hbase_2_3_*',
-                              retry_count=5,
-                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hbase_2_3_*',)
 
     self.assertNoMoreResources()
 
@@ -53,12 +50,8 @@ class TestHBaseMaster(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        try_install=True
     )
-    self.assertResourceCalled('Package', 'hbase_2_3_*',
-                              retry_count=5,
-                              retry_on_repo_unavailability=False)
-    self.assertResourceCalled('Package', 'phoenix_2_3_*',
-                              retry_count=5,
-                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hbase_2_3_*',)
+    self.assertResourceCalled('Package', 'phoenix_2_3_*',)
 
     self.assertNoMoreResources()
 
@@ -124,19 +117,19 @@ class TestHBaseMaster(RMFTestCase):
                               content = StaticFile('draining_servers.rb'),
                               mode = 0755,
                               )
-    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf  org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb add host1',
+    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb add host1',
                               logoutput = True,
                               user = 'hbase',
                               )
-    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf  org.jruby.Main /usr/lib/hbase/bin/region_mover.rb unload host1',
+    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/region_mover.rb unload host1',
                               logoutput = True,
                               user = 'hbase',
                               )
-    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf  org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb add host2',
+    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb add host2',
                               logoutput = True,
                               user = 'hbase',
                               )
-    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf  org.jruby.Main /usr/lib/hbase/bin/region_mover.rb unload host2',
+    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/region_mover.rb unload host2',
                               logoutput = True,
                               user = 'hbase',
                               )
@@ -155,7 +148,7 @@ class TestHBaseMaster(RMFTestCase):
                               content = StaticFile('draining_servers.rb'),
                               mode = 0755,
                               )
-    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf  org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb remove host1',
+    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb remove host1',
                               logoutput = True,
                               user = 'hbase',
                               )
@@ -223,11 +216,11 @@ class TestHBaseMaster(RMFTestCase):
                               content = StaticFile('draining_servers.rb'),
                               mode = 0755,
                               )
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hbase.service.keytab hbase/c6401.ambari.apache.org@EXAMPLE.COM; /usr/lib/hbase/bin/hbase --config /etc/hbase/conf -Djava.security.auth.login.config=/etc/hbase/conf/hbase_master_jaas.conf org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb add host1',
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hbase.service.keytab hbase/c6401.ambari.apache.org@EXAMPLE.COM; /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb add host1',
                               logoutput = True,
                               user = 'hbase',
                               )
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hbase.service.keytab hbase/c6401.ambari.apache.org@EXAMPLE.COM; /usr/lib/hbase/bin/hbase --config /etc/hbase/conf -Djava.security.auth.login.config=/etc/hbase/conf/hbase_master_jaas.conf org.jruby.Main /usr/lib/hbase/bin/region_mover.rb unload host1',
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hbase.service.keytab hbase/c6401.ambari.apache.org@EXAMPLE.COM; /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/region_mover.rb unload host1',
                               logoutput = True,
                               user = 'hbase',
                               )
@@ -330,44 +323,38 @@ class TestHBaseMaster(RMFTestCase):
     )
 
     self.assertResourceCalled('HdfsResource', 'hdfs://c6401.ambari.apache.org:8020/apps/hbase/data',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
         
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
-        dfs_type = '',
         owner = 'hbase',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
     )
     self.assertResourceCalled('HdfsResource', '/apps/hbase/staging',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_conf_dir = '/etc/hadoop/conf',
         keytab = UnknownConfigurationMock(),
         
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
-        dfs_type = '',
         owner = 'hbase',
         hadoop_bin_dir = '/usr/bin',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
         mode = 0711,
     )
     self.assertResourceCalled('HdfsResource', None,
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
         
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
-        dfs_type = '',
-        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
 
@@ -471,44 +458,38 @@ class TestHBaseMaster(RMFTestCase):
                               content='log4jproperties\nline2'
     )
     self.assertResourceCalled('HdfsResource', 'hdfs://c6401.ambari.apache.org:8020/apps/hbase/data',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
         
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
-        dfs_type = '',
         owner = 'hbase',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
     )
     self.assertResourceCalled('HdfsResource', '/apps/hbase/staging',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_conf_dir = '/etc/hadoop/conf',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
         
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
-        dfs_type = '',
         owner = 'hbase',
         hadoop_bin_dir = '/usr/bin',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
         mode = 0711,
     )
     self.assertResourceCalled('HdfsResource', None,
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
         
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
-        dfs_type = '',
-        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
 
@@ -621,7 +602,6 @@ class TestHBaseMaster(RMFTestCase):
                               content='log4jproperties\nline2')
 
     self.assertResourceCalled('HdfsResource', 'hdfs://nn1/apps/hbase/data',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = UnknownConfigurationMock(),
@@ -630,14 +610,12 @@ class TestHBaseMaster(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = UnknownConfigurationMock(),
         user = 'hdfs',
-        dfs_type = '',
         owner = 'hbase',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['create_on_execute'],
     )
     self.assertResourceCalled('HdfsResource', '/apps/hbase/staging',
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = UnknownConfigurationMock(),
@@ -646,15 +624,13 @@ class TestHBaseMaster(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = UnknownConfigurationMock(),
         user = 'hdfs',
-        dfs_type = '',
         owner = 'hbase',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['create_on_execute'],
         mode = 0711,
     )
     self.assertResourceCalled('HdfsResource', None,
-        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = UnknownConfigurationMock(),
@@ -663,9 +639,8 @@ class TestHBaseMaster(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = UnknownConfigurationMock(),
         user = 'hdfs',
-        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+        action = ['execute'],
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-        dfs_type = ''
     )
 
     self.assertResourceCalled('Execute', '/usr/hdp/current/hbase-master/bin/hbase-daemon.sh --config /usr/hdp/current/hbase-master/conf start master',

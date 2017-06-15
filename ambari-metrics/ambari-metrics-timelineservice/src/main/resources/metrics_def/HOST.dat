@@ -21,4 +21,3 @@ mem_shared
 pkts_in
 pkts_out
 swap_free
-swap_total

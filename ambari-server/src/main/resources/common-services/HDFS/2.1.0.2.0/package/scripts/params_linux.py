@@ -24,7 +24,6 @@ import os
 import re
 
 from ambari_commons.os_check import OSCheck
-from ambari_commons.str_utils import cbool, cint
 
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
@@ -33,7 +32,6 @@ from resource_management.libraries.functions.version import format_hdp_stack_ver
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_klist_path
 from resource_management.libraries.functions import get_kinit_path
-from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 
@@ -49,11 +47,6 @@ stack_name = default("/hostLevelParams/stack_name", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
-agent_stack_retry_on_unavailability = cbool(default("/hostLevelParams/agent_stack_retry_on_unavailability", None))
-agent_stack_retry_count = cint(default("/hostLevelParams/agent_stack_retry_count", None))
-
-# there is a stack upgrade which has not yet been finalized; it's currently suspended
-upgrade_suspended = default("roleParams/upgrade_suspended", False)
 
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade
 version = default("/commandParams/version", None)
@@ -78,8 +71,6 @@ dfs_dn_https_addr = default('/configurations/hdfs-site/dfs.datanode.https.addres
 dfs_http_policy = default('/configurations/hdfs-site/dfs.http.policy', None)
 dfs_dn_ipc_address = config['configurations']['hdfs-site']['dfs.datanode.ipc.address']
 secure_dn_ports_are_in_use = False
-
-hdfs_tmp_dir = config['configurations']['hadoop-env']['hdfs_tmp_dir']
 
 # hadoop default parameters
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
@@ -210,7 +201,6 @@ proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
 #hadoop params
 hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
 hadoop_root_logger = config['configurations']['hadoop-env']['hadoop_root_logger']
-nfs_file_dump_dir = config['configurations']['hdfs-site']['nfs.file.dump.dir']
 
 dfs_domain_socket_path = config['configurations']['hdfs-site']['dfs.domain.socket.path']
 dfs_domain_socket_dir = os.path.dirname(dfs_domain_socket_path)
@@ -316,16 +306,15 @@ if security_enabled:
   if jn_principal_name:
     jn_principal_name = jn_principal_name.replace('_HOST', hostname.lower())
   jn_keytab = default("/configurations/hdfs-site/dfs.journalnode.keytab.file", None)
-  hdfs_kinit_cmd = format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name};")
+  jn_kinit_cmd = format("{kinit_path_local} -kt {jn_keytab} {jn_principal_name};")
 else:
   dn_kinit_cmd = ""
   nn_kinit_cmd = ""
-  hdfs_kinit_cmd = ""
+  jn_kinit_cmd = ""
+  
 
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
-
-dfs_type = default("/commandParams/dfs_type", "")
 
 import functools
 #create partial functions with common arguments for every HdfsResource call
@@ -333,7 +322,6 @@ import functools
 HdfsResource = functools.partial(
   HdfsResource,
   user=hdfs_user,
-  hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore",
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
@@ -341,9 +329,7 @@ HdfsResource = functools.partial(
   hadoop_conf_dir = hadoop_conf_dir,
   principal_name = hdfs_principal_name,
   hdfs_site = hdfs_site,
-  default_fs = default_fs,
-  immutable_paths = get_not_managed_resources(),
-  dfs_type = dfs_type
+  default_fs = default_fs
 )
 
 

@@ -409,8 +409,7 @@ class DefaultStackAdvisor(StackAdvisor):
                 hostsMin = int(cardinality)
               if hostsMin > len(hostsForComponent):
                 hostsForComponent.extend(freeHosts[0:hostsMin-len(hostsForComponent)])
-            # Components which are already installed, keep the recommendation as the existing layout
-            elif not componentIsPopulated:
+            else:
               hostsForComponent.extend(freeHosts)
               if not hostsForComponent:  # hostsForComponent is empty
                 hostsForComponent = hostsList[-1:]

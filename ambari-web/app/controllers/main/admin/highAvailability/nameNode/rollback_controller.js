@@ -268,20 +268,17 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
     });
   },
   restoreHawqConfigs: function(){
-    var tags = ['hawqSiteTag', 'hdfsClientTag'];
-    tags.forEach(function (tagName) {
-      this.loadConfigTag(tagName);
-      var tag = this.get("content." + tagName);
-      App.ajax.send({
-        name: 'admin.high_availability.load_hawq_configs',
-        sender: this,
-        data: {
-          tagName: tag
-        },
-        success: 'onLoadHawqConfigs',
-        error: 'onTaskError'
-      });
-    }, this);
+    this.loadConfigTag("hawqSiteTag");
+    var hawqSiteTag = this.get("content.hawqSiteTag");
+    App.ajax.send({
+      name: 'admin.high_availability.load_hawq_configs',
+      sender: this,
+      data: {
+        hawqSiteTag: hawqSiteTag
+      },
+      success: 'onLoadHawqConfigs',
+      error: 'onTaskError'
+    });
   },
 
   deletePXF: function(){

@@ -48,7 +48,7 @@ class AccumuloServiceCheck(Script):
         cmd = format("{client_script} shell -u {smoke_test_user} "
                         "-p {smoke_test_password} -f {cmdfile}")
       Execute(cmd,
-              timeout=120,
+              timeout=30,
               user=params.smoke_test_user,
               logoutput=True)
     finally:

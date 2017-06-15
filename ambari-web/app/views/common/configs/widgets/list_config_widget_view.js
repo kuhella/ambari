@@ -111,31 +111,23 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
   willInsertElement: function () {
     this._super();
     this.parseCardinality();
-    this.onOptionsChangeBeforeRender();
+    this.calculateOptions();
+    this.calculateInitVal();
   },
 
   didInsertElement: function () {
     this.initPopover();
     this._super();
     this.toggleWidgetState();
-    this.onOptionsChangeAfterRender();
-    Em.run.next(function () {
-      App.tooltip(this.$('[rel="tooltip"]'));
-    });
-  },
-
-  onOptionsChangeBeforeRender: function () {
-    this.calculateOptions();
-    this.calculateInitVal();
-  },
-
-  onOptionsChangeAfterRender: function () {
     this.addObserver('options.@each.isSelected', this, this.calculateVal);
     this.addObserver('options.@each.isSelected', this, this.checkSelectedItemsCount);
     if (this.isValueCompatibleWithWidget()) {
       this.calculateVal();
     }
     this.checkSelectedItemsCount();
+    Em.run.next(function () {
+      App.tooltip(this.$('[rel="tooltip"]'));
+    });
   },
 
   /**
@@ -155,14 +147,6 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
     });
     this.set('options', options);
   },
-
-  entriesObserver: function () {
-    this.removeObserver('options.@each.isSelected', this, this.calculateVal);
-    this.removeObserver('options.@each.isSelected', this, this.checkSelectedItemsCount);
-    this.onOptionsChangeBeforeRender();
-    this.initIncompatibleWidgetAsTextBox();
-    this.onOptionsChangeAfterRender();
-  }.observes('config.stackConfigProperty.valueAttributes.entries.@each'),
 
   /**
    * Get initial value for <code>val</code> using calculated earlier <code>options</code>
@@ -304,15 +288,16 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
   },
 
   isOptionExist: function(value) {
-    var isExist = true;
-    if (Em.isNone(value)) {
-      return !isExist;
-    } else {
+    var isExist = false;
+    if (value !== null && value !== undefined) {
       value = Em.typeOf(value) == 'string' ? value.split(',') : value;
       value.forEach(function(item) {
-        isExist = isExist && this.get('options').mapProperty('value').contains(item);
+        isExist = this.get('options').mapProperty('value').contains(item);
       }, this);
       return isExist;
+    } else {
+      return false;
     }
   }
+
 });

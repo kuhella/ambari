@@ -29,12 +29,12 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
 
   installNameNode: function () {
     var hostName = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', false).hostName;
-    this.createInstallComponentTask('NAMENODE', hostName, "HDFS");
+    this.createComponent('NAMENODE', hostName, "HDFS");
   },
 
   installJournalNodes: function () {
     var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE').mapProperty('hostName');
-    this.createInstallComponentTask('JOURNALNODE', hostNames, "HDFS");
+    this.createComponent('JOURNALNODE', hostNames, "HDFS");
   },
 
   startJournalNodes: function () {
@@ -72,7 +72,7 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
    */
   updateConfigProperties: function(data) {
     var siteNames = ['hdfs-site','core-site'];
-    var configData = this.reconfigureSites(siteNames, data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE', false)));
+    var configData = this.reconfigureSites(siteNames, data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE')));
     App.ajax.send({
       name: 'common.service.configurations',
       sender: this,
@@ -88,7 +88,7 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
     var nnHostNames = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName');
     var jnHostNames = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE').mapProperty('hostName');
     var hostNames = nnHostNames.concat(jnHostNames).uniq();
-    this.createInstallComponentTask('HDFS_CLIENT', hostNames, 'HDFS');
+    this.createComponent('HDFS_CLIENT', hostNames);
     App.router.get(this.get('content.controllerName')).saveHdfsClientHosts(hostNames);
     App.clusterStatus.setClusterStatus({
       clusterName: this.get('content.cluster.name'),
@@ -127,3 +127,4 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
     this.updateConfigProperties(configItems);
   }
 });
+

@@ -20,7 +20,6 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 import org.apache.commons.io.FilenameUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_AGGREGATOR_DAILY_CHECKPOINT_CUTOFF_MULTIPLIER;
@@ -228,8 +227,7 @@ public class TimelineMetricAggregatorFactory {
    * Timeslice : 30 sec
    */
   public static TimelineMetricAggregator createTimelineClusterAggregatorSecond(
-    PhoenixHBaseAccessor hBaseAccessor, Configuration metricsConf,
-    TimelineMetricMetadataManager metadataManager) {
+    PhoenixHBaseAccessor hBaseAccessor, Configuration metricsConf) {
 
     String checkpointDir = metricsConf.get(
       TIMELINE_METRICS_AGGREGATOR_CHECKPOINT_DIR, DEFAULT_CHECKPOINT_LOCATION);
@@ -253,7 +251,6 @@ public class TimelineMetricAggregatorFactory {
     // Second based aggregation have added responsibility of time slicing
     return new TimelineMetricClusterAggregatorSecond(
       "TimelineClusterAggregatorSecond",
-      metadataManager,
       hBaseAccessor, metricsConf,
       checkpointLocation,
       sleepIntervalMillis,

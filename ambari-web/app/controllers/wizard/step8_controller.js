@@ -447,7 +447,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
           displayName = Em.I18n.t('common.clients')
         } else {
           // remove service name from component display name
-          displayName = App.format.role(component.get('componentName'), false).replace(new RegExp('^' + service.get('serviceName') + '\\s', 'i'), '');
+          displayName = App.format.role(component.get('componentName')).replace(new RegExp('^' + service.get('serviceName') + '\\s', 'i'), '');
         }
         serviceObj.get('service_components').pushObject(Em.Object.create({
           component_name: component.get('isClient') ? Em.I18n.t('common.client').toUpperCase() : component.get('componentName'),
@@ -1559,17 +1559,15 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       isGLUSTERFSSelected = installedAndSelectedServices.someProperty('serviceName', 'GLUSTERFS');
 
     coreSiteObj.forEach(function (_coreSiteObj) {
-      if (coreSiteObj.isRequiredByAgent !== false) {
-        if (isGLUSTERFSSelected && _coreSiteObj.name == "fs.default.name") {
-          coreSiteProperties[_coreSiteObj.name] =
-            this.get('configs').someProperty('name', 'fs_glusterfs_default_name') ?
-              this.get('configs').findProperty('name', 'fs_glusterfs_default_name').value : null;
-        }
-        if (isGLUSTERFSSelected && _coreSiteObj.name == "fs.defaultFS") {
-          coreSiteProperties[_coreSiteObj.name] =
-            this.get('configs').someProperty('name', 'glusterfs_defaultFS_name') ?
-              this.get('configs').findProperty('name', 'glusterfs_defaultFS_name').value : null;
-        }
+      if (isGLUSTERFSSelected && _coreSiteObj.name == "fs.default.name") {
+        coreSiteProperties[_coreSiteObj.name] =
+          this.get('configs').someProperty('name', 'fs_glusterfs_default_name') ?
+            this.get('configs').findProperty('name', 'fs_glusterfs_default_name').value : null;
+      }
+      if (isGLUSTERFSSelected && _coreSiteObj.name == "fs.defaultFS") {
+        coreSiteProperties[_coreSiteObj.name] =
+          this.get('configs').someProperty('name', 'glusterfs_defaultFS_name') ?
+            this.get('configs').findProperty('name', 'glusterfs_defaultFS_name').value : null;
       }
     }, this);
     var attributes = App.router.get('mainServiceInfoConfigsController').getConfigAttributes(coreSiteObj);
@@ -1623,12 +1621,10 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     var configs = this.get('configs').filterProperty('filename', 'storm-site.xml');
     var stormProperties = {};
     configs.forEach(function (_configProperty) {
-      if (_configProperty.isRequiredByAgent !== false) {
-        if (["nimbus.seeds", "storm.zookeeper.servers"].contains(_configProperty.name)) {
-          stormProperties[_configProperty.name] = JSON.stringify(_configProperty.value).replace(/"/g, "'");
-        } else {
-          stormProperties[_configProperty.name] = _configProperty.value;
-        }
+      if (["nimbus.seeds", "storm.zookeeper.servers"].contains(_configProperty.name)) {
+        stormProperties[_configProperty.name] = JSON.stringify(_configProperty.value).replace(/"/g, "'");
+      } else {
+        stormProperties[_configProperty.name] = _configProperty.value;
       }
     }, this);
     return {type: 'storm-site', tag: tag, properties: stormProperties};

@@ -77,36 +77,6 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
    */
   data: [],
 
-  /**
-   * time range index for graph
-   * @type {number}
-   */
-  timeIndex: 0,
-
-  /**
-   * custom start time for graph
-   * @type {number|null}
-   */
-  startTime: null,
-
-  /**
-   * custom end time for graph
-   * @type {number|null}
-   */
-  endTime: null,
-
-  /**
-   * graph time range duration in seconds
-   * @type {number|null}
-   */
-  graphSeconds: null,
-
-  /**
-   * time range duration as string
-   * @type {string|null}
-   */
-  durationFormatted: null,
-
   exportTargetView: function () {
     return this.get('childViews.lastObject');
   }.property(),
@@ -243,17 +213,13 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
       step = this.get('timeStep'),
       timeRange = this.get('timeRange'),
       result = [],
-      targetView = this.get('exportTargetView.isPopup') ? this.get('exportTargetView') : this.get('parentView');
-
-    //if view destroyed then no metrics should be asked
-    if (Em.isNone(targetView)) return result;
-
-    if (timeRange === 0 &&
-      !Em.isNone(targetView.get('customStartTime')) &&
-      !Em.isNone(targetView.get('customEndTime'))) {
-      // Custom start/end time is specified by user
-      toSeconds = targetView.get('customEndTime') / 1000;
-      fromSeconds = targetView.get('customStartTime') / 1000;
+      targetView = this.get('exportTargetView.isPopup') ? this.get('exportTargetView') : this.get('parentView'),
+      customStartTime = targetView.get('customStartTime'),
+      customEndTime = targetView.get('customEndTime');
+    if (timeRange === 0 && !Em.isNone(customStartTime) && !Em.isNone(customEndTime)) {
+      // Custom start and end time is specified by user
+      toSeconds = customEndTime / 1000;
+      fromSeconds = customStartTime / 1000;
     } else {
       // Preset time range is specified by user
       toSeconds = Math.round(App.dateTime() / 1000);
@@ -355,9 +321,7 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
         self.set('parentView.isExportMenuHidden', true);
       });
       this.setYAxisFormatter();
-      if (!arguments.length || this.get('parentView.data.length')) {
-        this.loadData();
-      }
+      this.loadData();
       var self = this;
       Em.run.next(function () {
         if (self.get('isPreview')) {

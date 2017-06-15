@@ -21,7 +21,7 @@
   <artifactId>ambari</artifactId>
   <packaging>pom</packaging>
   <name>Ambari Main</name>
-  <version>2.2.2.0.0</version>
+  <version>2.2.1.0.0</version>
   <description>Arenadata Ambari</description>
   <url>http://ambari.apache.org/</url>
   <scm>
@@ -62,6 +62,17 @@
     <distMgmtStagingUrl>https://repository.apache.org/service/local/staging/deploy/maven2</distMgmtStagingUrl>
   </properties>
   <pluginRepositories>
+    <pluginRepository>
+      <id>maven2-repository.dev.java.net</id>
+      <name>Java.net Repository for Maven</name>
+      <url>http://download.java.net/maven/2/</url>
+      <layout>default</layout>
+    </pluginRepository>
+    <pluginRepository>
+      <id>maven2-glassfish-repository.dev.java.net</id>
+      <name>Java.net Repository for Maven</name>
+      <url>http://download.java.net/maven/glassfish/</url>
+    </pluginRepository>
     <pluginRepository>
       <id>maven2-repository.atlassian</id>
       <name>Atlassian Maven Repository</name>
@@ -293,7 +304,6 @@
             <exclude>contrib/views/*/target/**</exclude>
             <exclude>contrib/views/hive/src/main/resources/ui/hive-web/vendor/codemirror/**</exclude>
             <exclude>contrib/views/hive/src/main/resources/ui/hive-web/.bowerrc</exclude>
-            <exclude>contrib/views/files/src/main/resources/ui/.bowerrc</exclude>
             <exclude>contrib/views/files/src/main/resources/ui/bower_components/**</exclude>
             <exclude>contrib/views/files/src/main/resources/ui/node/**</exclude>
             <exclude>contrib/views/files/src/main/resources/ui/node_modules/**</exclude>
@@ -323,7 +333,7 @@
             <exclude>contrib/views/slider/src/main/resources/ui/app/assets/javascripts/**</exclude>
             <exclude>contrib/views/slider/src/main/resources/ui/bower_components/**</exclude>
             <exclude>contrib/views/slider/src/main/resources/ui/runner.js</exclude>
-	          <exclude>contrib/views/storm/src/main/resources/libs/**</exclude>
+	    <exclude>contrib/views/storm/src/main/resources/libs/**</exclude>
             <exclude>contrib/views/storm/src/main/resources/styles/default.css</exclude>
             <exclude>contrib/views/storm/src/main/resources/templates/**</exclude>
             <exclude>contrib/addons/package/deb/nagios_addon_deb_control</exclude>
@@ -343,8 +353,6 @@
             <exclude>**/velocity.log*</exclude>
 
             <!-- Metrics module -->
-            <!-- grafana -->
-            <exclude>ambari-metrics/ambari-metrics-grafana/conf/unix/ams-grafana.ini</exclude>
             <!-- psutil : external lib, Apache 2.0 license included as a source file -->
             <exclude>ambari-metrics/target/**</exclude>
             <exclude>ambari-metrics/ambari-metrics-host-monitoring/src/main/python/psutil/**</exclude>

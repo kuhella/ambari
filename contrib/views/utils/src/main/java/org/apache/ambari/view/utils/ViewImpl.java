@@ -45,6 +45,6 @@ public class ViewImpl implements View {
   @Override
   public void onUpdate(ViewInstanceDefinition definition) {
     //refresh all cached connection
-    UserLocal.dropInstanceCache(definition.getInstanceName());
+    UserLocal.dropInstanceConnection(definition.getInstanceName());
   }
 }

@@ -58,8 +58,7 @@ class MetricsCollector():
 
     elif 'disk' in event.get_group_name():
       metrics = self.host_info.get_combined_disk_usage()
-      metrics.update(self.host_info.get_combined_disk_io_counters())
-      metrics.update(self.host_info.get_disk_io_counters_per_disk())
+      metrics.update(self.host_info.get_disk_io_counters())
 
     elif 'network' in event.get_group_name():
       metrics = self.host_info.get_network_info()
@@ -77,8 +76,7 @@ class MetricsCollector():
       metrics.update(self.host_info.get_network_info())
       metrics.update(self.host_info.get_mem_info())
       metrics.update(self.host_info.get_process_info())
-      metrics.update(self.host_info.get_combined_disk_io_counters())
-      metrics.update(self.host_info.get_disk_io_counters_per_disk())
+      metrics.update(self.host_info.get_disk_io_counters())
 
     else:
       logger.warn('Unknown metric group.')

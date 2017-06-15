@@ -34,6 +34,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.ambari.server.state.StackId;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
@@ -68,13 +69,6 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
   private static AtomicInteger printSkipPopulateMsgHostCounter = new AtomicInteger(0);
   private static AtomicInteger printSkipPopulateMsgHostCompCounter = new AtomicInteger(0);
   private static final Map<String, String> timelineAppIdCache = new ConcurrentHashMap<>(10);
-
-  private static final Map<String, String> JVM_PROCESS_NAMES = new HashMap<>(2);
-
-  static {
-    JVM_PROCESS_NAMES.put("HBASE_MASTER", "Master.");
-    JVM_PROCESS_NAMES.put("HBASE_REGIONSERVER", "RegionServer.");
-  }
 
   public AMSPropertyProvider(Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
                              URLStreamProvider streamProvider,
@@ -418,7 +412,6 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
         if (metricsMap != null) {
           for (String propertyId : propertyIdSet) {
             if (propertyId != null) {
-//              propertyId = postProcessPropertyId(propertyId, getComponentName(resource));
               if (metricsMap.containsKey(propertyId)){
                 if (containsArguments(propertyId)) {
                   int i = 1;
@@ -616,15 +609,12 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
             if (metricsRequest == null) {
               metricsRequest = new MetricsRequest(temporalInfo,
                 getAMSUriBuilder(collectorHostName,
-                  collectorPort != null ? Integer.parseInt(collectorPort) : COLLECTOR_DEFAULT_PORT,
-                  configuration.isHttpsEnabled()),
+                  collectorPort != null ? Integer.parseInt(collectorPort) : COLLECTOR_DEFAULT_PORT),
                   (String) resource.getPropertyValue(clusterNamePropertyId));
               requests.put(temporalInfo, metricsRequest);
             }
             metricsRequest.putResource(getComponentName(resource), resource);
-            metricsRequest.putPropertyId(
-              preprocessPropertyId(propertyInfo.getPropertyId(), getComponentName(resource)),
-              propertyId);
+            metricsRequest.putPropertyId(propertyInfo.getPropertyId(), propertyId);
             // If request is for a host metric we need to create multiple requests
             if (propertyInfo.isAmsHostMetric()) {
               metricsRequest.putHosComponentHostMetric(propertyInfo.getPropertyId());
@@ -637,24 +627,9 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
     return requestMap;
   }
 
-  /**
-   * Account for the processName added to the jvm metrics by the HadoopSink.
-   * E.g.: jvm.RegionServer.JvmMetrics.GcTimeMillis
-   *
-   */
-  private String preprocessPropertyId(String propertyId, String componentName) {
-    if (propertyId.startsWith("jvm") && JVM_PROCESS_NAMES.keySet().contains(componentName)) {
-      String newPropertyId = propertyId.replace("jvm.", "jvm." + JVM_PROCESS_NAMES.get(componentName));
-      LOG.debug("Pre-process: " + propertyId + ", to: " + newPropertyId);
-      return newPropertyId;
-    }
-
-    return propertyId;
-  }
-
-  static URIBuilder getAMSUriBuilder(String hostname, int port, boolean httpsEnabled) {
+  static URIBuilder getAMSUriBuilder(String hostname, int port) {
     URIBuilder uriBuilder = new URIBuilder();
-    uriBuilder.setScheme(httpsEnabled ? "https" : "http");
+    uriBuilder.setScheme("http");
     uriBuilder.setHost(hostname);
     uriBuilder.setPort(port);
     uriBuilder.setPath("/ws/v1/timeline/metrics");

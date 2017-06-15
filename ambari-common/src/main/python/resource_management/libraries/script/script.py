@@ -381,7 +381,6 @@ class Script(object):
     NOTE: regexes don't have Python syntax, but simple package regexes which support only * and .* and ?
     """
     config = self.get_config()
-
     if 'host_sys_prepped' in config['hostLevelParams']:
       # do not install anything on sys-prepped host
       if config['hostLevelParams']['host_sys_prepped'] == True:
@@ -390,9 +389,6 @@ class Script(object):
       pass
     try:
       package_list_str = config['hostLevelParams']['package_list']
-      agent_stack_retry_on_unavailability = bool(config['hostLevelParams']['agent_stack_retry_on_unavailability'])
-      agent_stack_retry_count = int(config['hostLevelParams']['agent_stack_retry_count'])
-
       if isinstance(package_list_str, basestring) and len(package_list_str) > 0:
         package_list = json.loads(package_list_str)
         for package in package_list:
@@ -405,9 +401,7 @@ class Script(object):
               if "ambari-metrics" in name:
                 Package(name)
             else:
-              Package(name,
-                      retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
-                      retry_count=agent_stack_retry_count)
+              Package(name)
     except KeyError:
       pass  # No reason to worry
 

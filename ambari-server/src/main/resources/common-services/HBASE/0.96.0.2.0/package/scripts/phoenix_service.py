@@ -18,8 +18,6 @@ limitations under the License.
 
 """
 
-import errno
-from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.core.resources.system import File
 from resource_management.libraries.functions import check_process_status, format
@@ -47,11 +45,6 @@ def phoenix_service(action = 'start'): # 'start', 'stop', 'status'
                 user=format("{hbase_user}"),
                 environment=env
         )
-        try:
-          File(pid_file, action = "delete")
-        except OSError as exc:
-          # OSError: [Errno 2] No such file or directory
-          if exc.errno == errno.ENOENT:
-            Logger.info("Did not remove '{0}' as it did not exist".format(pid_file))
-          else:
-            raise
+        File(pid_file,
+             action = "delete"
+        )

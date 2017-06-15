@@ -25,7 +25,6 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
   reportModel: App.AlertReportDefinition,
   metricsSourceModel: App.AlertMetricsSourceDefinition,
   metricsUriModel: App.AlertMetricsUriDefinition,
-  parameterModel: App.AlertDefinitionParameter,
 
   config: {
     id: 'AlertDefinition.id',
@@ -42,11 +41,6 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
     reporting_key: 'reporting',
     reporting_type: 'array',
     reporting: {
-      item: 'id'
-    },
-    parameters_key: 'reporting',
-    parameters_type: 'array',
-    parameters: {
       item: 'id'
     }
   },
@@ -72,19 +66,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
     http: 'AlertDefinition.source.uri.http',
     https: 'AlertDefinition.source.uri.https',
     https_property: 'AlertDefinition.source.uri.https_property',
-    https_property_value: 'AlertDefinition.source.uri.https_property_value',
-    connection_timeout: 'AlertDefinition.source.uri.connection_timeout'
-  },
-
-  parameterConfig: {
-    id: 'AlertDefinition.source.parameters.id',
-    name: 'AlertDefinition.source.parameters.name',
-    display_name: 'AlertDefinition.source.parameters.display_name',
-    units: 'AlertDefinition.source.parameters.units',
-    value: 'AlertDefinition.source.parameters.value',
-    description: 'AlertDefinition.source.parameters.description',
-    type: 'AlertDefinition.source.parameters.type',
-    threshold: 'AlertDefinition.source.parameters.threshold'
+    https_property_value: 'AlertDefinition.source.uri.https_property_value'
   },
 
   map: function (json) {
@@ -95,7 +77,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
           alertReportDefinitions = [],
           alertMetricsSourceDefinitions = [],
           alertMetricsUriDefinitions = [],
-          alertGroupsMap = App.cache.previousAlertGroupsMap,
+          alertGroupsMap = App.cache['previousAlertGroupsMap'],
           existingAlertDefinitions = App.AlertDefinition.find(),
           existingAlertDefinitionsMap = {},
           alertDefinitionsToDelete = existingAlertDefinitions.mapProperty('id'),
@@ -110,7 +92,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
         var reporting = item.AlertDefinition.source.reporting;
         for (var report in reporting) {
           if (reporting.hasOwnProperty(report)) {
-            if (report === "units") {
+            if (report == "units") {
               convertedReportDefinitions.push({
                 id: item.AlertDefinition.id + report,
                 type: report,

@@ -45,7 +45,6 @@
   <property>
     <name>zookeeper.connect</name>
     <value>localhost:2181</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>
       Zookeeper also allows you to add a "chroot" path which will make all kafka data for this cluster appear under a particular path.
       This is a way to setup multiple Kafka clusters or other applications on the same zookeeper cluster. To do this give a connection
@@ -296,7 +295,6 @@
   <property>
     <name>kafka.ganglia.metrics.host</name>
     <value>localhost</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description> Ganglia host </description>
   </property>
   <property>
@@ -323,26 +321,6 @@
     <name>kafka.timeline.metrics.port</name>
     <value>{{metric_collector_port}}</value>
     <description>Timeline port</description>
-  </property>
-  <property>
-    <name>kafka.timeline.metrics.protocol</name>
-    <value>{{metric_collector_protocol}}</value>
-    <description>Timeline protocol(http or https)</description>
-  </property>
-  <property>
-    <name>kafka.timeline.metrics.truststore.path</name>
-    <value>{{metric_truststore_path}}</value>
-    <description>Location of the trust store file.</description>
-  </property>
-  <property>
-    <name>kafka.timeline.metrics.truststore.type</name>
-    <value>{{metric_truststore_type}}</value>
-    <description>Optional. Default value is "jks".</description>
-  </property>
-  <property>
-    <name>kafka.timeline.metrics.truststore.password</name>
-    <value>{{metric_truststore_password}}</value>
-    <description>Password to open the trust store file.</description>
   </property>
   <property>
     <name>kafka.timeline.metrics.reporter.sendInterval</name>

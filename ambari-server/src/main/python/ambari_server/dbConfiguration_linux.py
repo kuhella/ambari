@@ -616,7 +616,7 @@ class PGConfig(LinuxDBMSConfig):
   def _setup_db(self):
     #password access to ambari-server and mapred
     dbname = self.database_name
-    scriptFile = self.init_script_file
+    scriptFile = PGConfig.POSTGRES_EMBEDDED_INIT_FILE
     username = self.database_username
     password = self.database_password
 

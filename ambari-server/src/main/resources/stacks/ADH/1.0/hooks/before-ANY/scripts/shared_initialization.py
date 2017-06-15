@@ -20,7 +20,6 @@ limitations under the License.
 import os
 import re
 import getpass
-import tempfile
 from copy import copy
 from resource_management.libraries.functions.version import compare_versions
 from resource_management import *
@@ -30,9 +29,8 @@ def setup_users():
   Creates users before cluster installation
   """
   import params
-  should_create_users_and_groups = not params.host_sys_prepped and not params.ignore_groupsusers_create
 
-  if should_create_users_and_groups:
+  if not params.host_sys_prepped and not params.ignore_groupsusers_create:
     for group in params.group_list:
       Group(group,
       )
@@ -41,7 +39,6 @@ def setup_users():
       User(user,
           gid = params.user_to_gid_dict[user],
           groups = params.user_to_groups_dict[user],
-          fetch_nonlocal_groups = params.fetch_nonlocal_groups
       )
 
     if params.override_uid == "true":
@@ -68,10 +65,8 @@ def setup_users():
 
   if not params.host_sys_prepped:
     if params.has_namenode:
-      if should_create_users_and_groups:
-        create_dfs_cluster_admins()
+      create_dfs_cluster_admins()
     if params.has_tez and params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.3') >= 0:
-      if should_create_users_and_groups:
         create_tez_am_view_acls()
   else:
     Logger.info('Skipping setting dfs cluster admin and tez view acls as host is sys prepped')
@@ -86,7 +81,7 @@ def create_dfs_cluster_admins():
 
   User(params.hdfs_user,
     groups = params.user_to_groups_dict[params.hdfs_user] + groups_list,
-          fetch_nonlocal_groups = params.fetch_nonlocal_groups
+    ignore_failures = params.ignore_groupsusers_create
   )
 
 def create_tez_am_view_acls():
@@ -112,11 +107,12 @@ def create_users_and_groups(user_and_groups):
 
   if users_list:
     User(users_list,
-          fetch_nonlocal_groups = params.fetch_nonlocal_groups
+         ignore_failures = params.ignore_groupsusers_create
     )
 
   if groups_list:
     Group(copy(groups_list),
+          ignore_failures = params.ignore_groupsusers_create
     )
   return groups_list
     
@@ -136,8 +132,7 @@ def set_uid(user, user_dirs):
 def setup_hadoop_env():
   import params
   stackversion = params.stack_version_unformatted
-  Logger.info("FS Type: {0}".format(params.dfs_type))
-  if params.has_namenode or stackversion.find('Gluster') >= 0 or params.dfs_type == 'HCFS':
+  if params.has_namenode or stackversion.find('Gluster') >= 0:
     if params.security_enabled:
       tc_owner = "root"
     else:
@@ -180,6 +175,7 @@ def setup_java():
 
     jdk_curl_target = format("{tmp_dir}/{jdk_name}")
     java_dir = os.path.dirname(params.java_home)
+    tmp_java_dir = format("{tmp_dir}/jdk")
 
     if not params.jdk_name:
       return
@@ -193,34 +189,31 @@ def setup_java():
          not_if = format("test -f {jdk_curl_target}")
     )
 
-    tmp_java_dir = tempfile.mkdtemp(prefix="jdk_tmp_", dir=params.tmp_dir)
+    if params.jdk_name.endswith(".bin"):
+      chmod_cmd = ("chmod", "+x", jdk_curl_target)
+      install_cmd = format("mkdir -p {tmp_java_dir} && cd {tmp_java_dir} && echo A | {jdk_curl_target} -noregister && {sudo} cp -rp {tmp_java_dir}/* {java_dir}")
+    elif params.jdk_name.endswith(".gz"):
+      chmod_cmd = ("chmod","a+x", java_dir)
+      install_cmd = format("mkdir -p {tmp_java_dir} && cd {tmp_java_dir} && tar -xf {jdk_curl_target} && {sudo} cp -rp {tmp_java_dir}/* {java_dir}")
 
-    try:
-      if params.jdk_name.endswith(".bin"):
-        chmod_cmd = ("chmod", "+x", jdk_curl_target)
-        install_cmd = format("cd {tmp_java_dir} && echo A | {jdk_curl_target} -noregister && {sudo} cp -rp {tmp_java_dir}/* {java_dir}")
-      elif params.jdk_name.endswith(".gz"):
-        chmod_cmd = ("chmod","a+x", java_dir)
-        install_cmd = format("cd {tmp_java_dir} && tar -xf {jdk_curl_target} && {sudo} cp -rp {tmp_java_dir}/* {java_dir}")
+    Directory(java_dir
+    )
 
-      Directory(java_dir
-      )
+    Execute(chmod_cmd,
+            sudo = True,
+            )
 
-      Execute(chmod_cmd,
-              sudo = True,
-              )
-
-      Execute(install_cmd,
-              )
-
-    finally:
-      Directory(tmp_java_dir, action="delete")
+    Execute(install_cmd,
+            )
 
     File(format("{java_home}/bin/java"),
          mode=0755,
          cd_access="a",
          )
 
-    Execute(('chmod', '-R', '755', params.java_home),
-      sudo = True,
-    )
+    Execute(("chgrp","-R", params.user_group, params.java_home),
+            sudo = True,
+            )
+    Execute(("chown","-R", getpass.getuser(), params.java_home),
+            sudo = True,
+            )

@@ -36,16 +36,11 @@ App.ConfirmDeleteComponent = Em.Component.extend(App.ClickElsewhereMixin,{
   tagName:'a',
   tooltip:function () {
     var element = this.$();
-    var tooltipMsg = 'Click again to confirm';
-
-    if (this.get('param.id') === 'root.default') {
-      tooltipMsg = "If default queue is removed, applications need to specify the queue name on submission. Click again to confirm.";
-    }
 
     if (this.get('confirm')) {
       element.tooltip({
         placement:'left',
-        title:tooltipMsg
+        title:'Click again to confirm'
       }).tooltip('show');
     } else {
       element.tooltip('destroy');

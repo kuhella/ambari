@@ -56,8 +56,8 @@ public class Row {
 
     Row row1 = (Row) o;
 
-    boolean retValue = Arrays.equals(row, row1.row);
-    return retValue;
+    // Probably incorrect - comparing Object[] arrays with Arrays.equals
+    return Arrays.equals(row, row1.row);
   }
 
   @Override

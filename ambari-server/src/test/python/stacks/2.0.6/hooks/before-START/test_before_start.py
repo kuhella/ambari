@@ -73,7 +73,6 @@ class TestHookBeforeStart(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-metrics2.properties',
                               content = Template('hadoop-metrics2.properties.j2'),
-                              group='hadoop',
                               owner = 'hdfs',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/task-log4j.properties',
@@ -89,16 +88,16 @@ class TestHookBeforeStart(RMFTestCase):
       group = 'hadoop',
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/topology_mappings.data',
-                              owner = 'hdfs',
-                              content = Template('topology_mappings.data.j2'),
-                              group = 'hadoop',
-                              only_if = 'test -d /etc/hadoop/conf',
-                              )
+      owner = 'hdfs',
+      content = Template('topology_mappings.data.j2'),
+      group = 'hadoop',
+      only_if = 'test -d /etc/hadoop/conf',
+    )
     self.assertResourceCalled('File', '/etc/hadoop/conf/topology_script.py',
-                              content = StaticFile('topology_script.py'),
-                              mode = 0755,
-                              only_if = 'test -d /etc/hadoop/conf',
-                              )
+      content = StaticFile('topology_script.py'),
+      mode = 0755,
+      only_if = 'test -d /etc/hadoop/conf',
+    )
     self.assertNoMoreResources()
 
   def test_hook_secured(self):
@@ -147,7 +146,6 @@ class TestHookBeforeStart(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-metrics2.properties',
                               content = Template('hadoop-metrics2.properties.j2'),
-                              group='hadoop',
                               owner = 'hdfs',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/task-log4j.properties',
@@ -226,7 +224,6 @@ class TestHookBeforeStart(RMFTestCase):
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-metrics2.properties',
                               content = Template('hadoop-metrics2.properties.j2'),
-                              group='hadoop',
                               owner = 'hdfs',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/task-log4j.properties',
@@ -307,7 +304,6 @@ class TestHookBeforeStart(RMFTestCase):
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-metrics2.properties',
                               content = Template('hadoop-metrics2.properties.j2'),
-                              group='hadoop',
                               owner = 'hdfs',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/task-log4j.properties',
@@ -326,12 +322,12 @@ class TestHookBeforeStart(RMFTestCase):
                               owner = 'hdfs',
                               content = Template('topology_mappings.data.j2'),
                               group = 'hadoop',
-                              only_if = 'test -d /etc/hadoop/conf',
+                              only_if = 'test -d /etc/hadoop/conf'
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/topology_script.py',
                               content = StaticFile('topology_script.py'),
                               mode = 0755,
-                              only_if = 'test -d /etc/hadoop/conf',
+                              only_if = 'test -d /etc/hadoop/conf'
                               )
     self.assertNoMoreResources()
 

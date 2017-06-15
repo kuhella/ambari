@@ -108,7 +108,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     },
     {
       name: 'criticalWarningAlertsCount',
-      key: '(alerts_summary/CRITICAL{0}|alerts_summary/WARNING{1})',
+      key: 'alerts_summary/CRITICAL{0}|alerts_summary/WARNING{1}',
       type: 'CUSTOM'
     },
     {
@@ -554,8 +554,6 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
         this.bulkOperationForHostsSetRackInfo(operationData, hosts);
       } else if (operationData.action === 'RESTART') {
         this.bulkOperationForHostsRestart(operationData, hosts);
-      } else if (operationData.action === 'REINSTALL') {
-        this.bulkOperationForHostsReinstall(operationData, hosts);
       }
       else {
         if (operationData.action === 'PASSIVE_STATE') {
@@ -726,30 +724,6 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
       } else {
         batchUtils.restartHostComponents(hostComponents, Em.I18n.t('rollingrestart.context.allOnSelectedHosts'), "HOST");
       }
-    });
-  },
-
-  /**
-   * Bulk reinstall failed components for selected hosts
-   * @param {Object} operationData - data about bulk operation (action, hostComponents etc)
-   * @param {Ember.Enumerable} hosts - list of affected hosts
-  */
-  bulkOperationForHostsReinstall: function (operationData, hosts) {
-    var self = this;
-    App.get('router.mainAdminKerberosController').getKDCSessionState(function () {
-      return App.ajax.send({
-        name: 'common.host_components.update',
-        sender: self,
-        data: {
-          HostRoles: {
-            state: 'INSTALLED'
-          },
-          query: 'HostRoles/host_name.in(' + hosts.mapProperty('hostName').join(',') + ')&HostRoles/state=INSTALL_FAILED',
-          context: operationData.message,
-          noOpsMessage: Em.I18n.t('hosts.host.maintainance.reinstallFailedComponents.context')
-        },
-        success: 'bulkOperationForHostComponentsSuccessCallback'
-      });
     });
   },
 

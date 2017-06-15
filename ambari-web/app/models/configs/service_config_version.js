@@ -24,7 +24,7 @@ var dateUtil = require('utils/date/date');
 App.ServiceConfigVersion = DS.Model.extend({
   serviceName: DS.attr('string'),
   displayName: function() {
-    return App.format.role(this.get('serviceName'), true);
+    return App.format.role(this.get('serviceName'));
   }.property('serviceName'),
   groupName: DS.attr('string'),
   groupId: DS.attr('number'),

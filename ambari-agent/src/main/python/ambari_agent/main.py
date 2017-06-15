@@ -59,9 +59,6 @@ IS_LINUX = platform.system() == "Linux"
 SYSLOG_FORMAT_STRING = ' ambari_agent - %(filename)s - [%(process)d] - %(name)s - %(levelname)s - %(message)s'
 SYSLOG_FORMATTER = logging.Formatter(SYSLOG_FORMAT_STRING)
 
-GRACEFUL_STOP_TRIES = 10
-GRACEFUL_STOP_TRIES_SLEEP = 3
-
 
 def setup_logging(logger, filename, logging_level):
   formatter = logging.Formatter(formatstr)
@@ -167,26 +164,22 @@ def daemonize():
   pid = str(os.getpid())
   file(ProcessHelper.pidfile, 'w').write(pid)
 
+
 def stop_agent():
 # stop existing Ambari agent
   pid = -1
   runner = shellRunner()
   try:
-    with open(ProcessHelper.pidfile, 'r') as f:
-      pid = f.read()
+    f = open(ProcessHelper.pidfile, 'r')
+    pid = f.read()
     pid = int(pid)
-    
+    f.close()
     runner.run([AMBARI_SUDO_BINARY, 'kill', '-15', str(pid)])
-    for i in range(GRACEFUL_STOP_TRIES):
-      result = runner.run([AMBARI_SUDO_BINARY, 'kill', '-0', str(pid)])
-      if result['exitCode'] != 0:
-        logger.info("Agent died gracefully, exiting.")
-        sys.exit(0)
-      time.sleep(GRACEFUL_STOP_TRIES_SLEEP)
-    logger.info("Agent not going to die gracefully, going to execute kill -9")
-    raise Exception("Agent is running")
+    time.sleep(5)
+    if os.path.exists(ProcessHelper.pidfile):
+      raise Exception("PID file still exists.")
+    sys.exit(0)
   except Exception, err:
-    #raise
     if pid == -1:
       print ("Agent process is not running")
     else:
@@ -243,6 +236,7 @@ def main(heartbeat_stop_callback=None):
 
   default_cfg = {'agent': {'prefix': '/home/ambari'}}
   config.load(default_cfg)
+  bind_signal_handlers(agentPid)
 
   if (len(sys.argv) > 1) and sys.argv[1] == 'stop':
     stop_agent()
@@ -298,12 +292,11 @@ def main(heartbeat_stop_callback=None):
     # Launch Controller communication
     controller = Controller(config, heartbeat_stop_callback)
     controller.start()
-    
-    # controller.join() is not appropriate here as it blocks the signal handlers for stop etc.
-    while controller.is_alive():
-      time.sleep(0.1)
-
-  ExitHelper().exit(0)
+    controller.join()
+  if not OSCheck.get_os_family() == OSConst.WINSRV_FAMILY:
+    ExitHelper.execute_cleanup()
+    stop_agent()
+  logger.info("finished")
 
 if __name__ == "__main__":
   is_logger_setup = False
@@ -311,9 +304,7 @@ if __name__ == "__main__":
     heartbeat_stop_callback = bind_signal_handlers(agentPid)
   
     main(heartbeat_stop_callback)
-  except SystemExit as e:
-    raise e
-  except BaseException as e:
+  except:
     if is_logger_setup:
-      logger.exception("Exiting with exception:" + e)
-  raise
+      logger.exception("Fatal exception occurred:")
+    raise

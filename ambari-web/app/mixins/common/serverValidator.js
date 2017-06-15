@@ -393,7 +393,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
         body: Em.I18n.t('installer.step7.popup.validation.request.failed.body')
       });
     } else if (this.get('configValidationWarning') || this.get('configValidationError')) {
-      // Motivation: for server-side validation warnings allow user to continue wizard
+      // Motivation: for server-side validation warnings and EVEN errors allow user to continue wizard
       var stepConfigs = self.get('name') === 'mainServiceInfoConfigsController'
         ? [self.get('selectedService')]
         : self.get('stepConfigs');
@@ -404,7 +404,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
       });
       if (configsWithErrors) {
         return App.ModalPopup.show({
-          header: Em.I18n.t('installer.step7.popup.validation.warning.header'),
+          header: Em. I18n.t('installer.step7.popup.validation.warning.header'),
           classNames: ['sixty-percent-width-modal','modal-full-width'],
           primary: Em.I18n.t('common.proceedAnyway'),
           primaryClass: 'btn-danger',
@@ -424,10 +424,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
           bodyClass: Em.View.extend({
             controller: self,
             templateName: require('templates/common/modal_popups/config_recommendation_popup'),
-            serviceConfigs: stepConfigs,
-            messageBody: Em.I18n.t(self.get('configValidationError')
-                                 ? 'installer.step7.popup.validation.error.body'
-                                 : 'installer.step7.popup.validation.warning.body')
+            serviceConfigs: stepConfigs
           })
         });
       } else {

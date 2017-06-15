@@ -56,8 +56,7 @@
     "clusterName": "c1", 
     "hostname": "c6408.ambari.apache.org", 
     "hostLevelParams": {
-        "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
-        "jdk_location": "http://c6407.ambari.apache.org:8080/resources/",
+        "jdk_location": "http://c6407.ambari.apache.org:8080/resources/", 
         "ambari_db_rca_password": "mapred", 
         "java_home": "/usr/jdk64/jdk1.7.0_67",
         "java_version": "8",
@@ -391,7 +390,7 @@
             "timeline.metrics.cluster.aggregator.hourly.interval": "3600", 
             "timeline.metrics.host.aggregator.ttl": "86400", 
             "timeline.metrics.cluster.aggregator.hourly.checkpointCutOffMultiplier": "2", 
-            "timeline.metrics.service.webapp.address": "localhost:6188",
+            "timeline.metrics.service.webapp.address": "0.0.0.0:6188", 
             "timeline.metrics.aggregator.checkpoint.dir": "/var/lib/ambari-metrics-collector/checkpoint", 
             "timeline.metrics.host.aggregator.minute.disabled": "false", 
             "timeline.metrics.cluster.aggregator.minute.ttl": "2592000", 
@@ -803,7 +802,6 @@
             "zookeeper_principal_name": "zookeeper/_HOST@EXAMPLE.COM"
         }, 
         "cluster-env": {
-            "managed_hdfs_resource_property_names": "",
             "security_enabled": "true",
             "ignore_groupsusers_create": "false",
             "kerberos_domain": "EXAMPLE.COM",

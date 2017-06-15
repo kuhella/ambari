@@ -416,21 +416,14 @@ App.WidgetWizardController = App.WizardController.extend({
     var service = App.Service.find(this.get('content.widgetService'));
 
     this.finish();
-    var self = this;
-    var successCallBack = function() {
-      self.get('popup').hide();
-      App.router.transitionTo('main.services.service.summary', service);
-      App.get('router.updateController').updateAll();
-    };
-
-    if (App.get('testMode')) {
-      successCallBack();
-    } else {
+    this.get('popup').hide();
+    App.router.transitionTo('main.services.service.summary', service);
+    if (!App.get('testMode')) {
       App.clusterStatus.setClusterStatus({
         clusterName: App.router.getClusterName(),
         clusterState: 'DEFAULT',
         localdb: App.db.data
-      }, {successCallback: successCallBack});
+      });
     }
   },
 
@@ -442,5 +435,6 @@ App.WidgetWizardController = App.WizardController.extend({
     this.setCurrentStep('1', false, true);
     this.save('widgetType', '');
     this.resetDbNamespace();
+    App.get('router.updateController').updateAll();
   }
 });

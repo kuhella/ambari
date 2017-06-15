@@ -749,12 +749,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
     enableRAHighAvailability: require('routes/ra_high_availability_routes'),
 
-    addHawqStandby: require('routes/add_hawq_standby_routes'),
-
-    removeHawqStandby: require('routes/remove_hawq_standby_routes'),
-
-    activateHawqStandby: require('routes/activate_hawq_standby_routes'),
-
     rollbackHighAvailability: require('routes/rollbackHA_routes')
   }),
 

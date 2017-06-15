@@ -42,7 +42,7 @@ App.RMHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
 
   installResourceManager: function () {
     var hostName = this.get('content.rmHosts.additionalRM');
-    this.createInstallComponentTask('RESOURCEMANAGER', hostName, "YARN");
+    this.createComponent('RESOURCEMANAGER', hostName, "YARN");
   },
 
   reconfigureYARN: function () {
@@ -52,7 +52,7 @@ App.RMHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
   reconfigureHAWQ: function () {
     this.loadConfigsTags("yarn-client");
   },
-
+  
   reconfigureHDFS: function () {
     this.loadConfigsTags('core-site');
   },
@@ -88,7 +88,7 @@ App.RMHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
       data.items[0].properties[property.name] = property.value;
     });
 
-    var configData = this.reconfigureSites([params.type], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('RESOURCEMANAGER', false)));
+    var configData = this.reconfigureSites([params.type], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('RESOURCEMANAGER')));
 
     App.ajax.send({
       name: 'common.service.configurations',
@@ -100,7 +100,7 @@ App.RMHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
       error: 'onTaskError'
     });
   },
-
+  
   onSaveConfigs: function () {
     this.onTaskCompleted();
   },
@@ -109,3 +109,4 @@ App.RMHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
     this.startServices(true);
   }
 });
+

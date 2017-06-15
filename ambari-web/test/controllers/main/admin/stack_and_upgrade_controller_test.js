@@ -613,7 +613,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
             UpgradeGroup: {
               group_id: 1,
               status: 'COMPLETED',
-              display_status: 'COMPLETED',
               progress_percent: 100,
               completed_task_count: 3
             },
@@ -622,7 +621,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
                 UpgradeItem: {
                   stage_id: 1,
                   status: 'COMPLETED',
-                  display_status: 'COMPLETED',
                   progress_percent: 100
                 }
               }
@@ -632,7 +630,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
             UpgradeGroup: {
               group_id: 2,
               status: 'ABORTED',
-              display_status: 'ABORTED',
               progress_percent: 50,
               completed_task_count: 1
             },
@@ -641,7 +638,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
                 UpgradeItem: {
                   stage_id: 2,
                   status: 'ABORTED',
-                  display_status: 'ABORTED',
                   progress_percent: 99
                 }
               },
@@ -649,7 +645,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
                 UpgradeItem: {
                   stage_id: 3,
                   status: 'PENDING',
-                  display_status: 'PENDING',
                   progress_percent: 0
                 }
               }
@@ -660,21 +655,16 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       controller.set('upgradeData', oldData);
       controller.updateUpgradeData(newData);
       expect(controller.get('upgradeData.upgradeGroups')[0].get('status')).to.equal('COMPLETED');
-      expect(controller.get('upgradeData.upgradeGroups')[0].get('display_status')).to.equal('COMPLETED');
       expect(controller.get('upgradeData.upgradeGroups')[0].get('progress_percent')).to.equal(100);
       expect(controller.get('upgradeData.upgradeGroups')[0].get('completed_task_count')).to.equal(3);
       expect(controller.get('upgradeData.upgradeGroups')[0].get('upgradeItems')[0].get('status')).to.equal('COMPLETED');
-      expect(controller.get('upgradeData.upgradeGroups')[0].get('upgradeItems')[0].get('display_status')).to.equal('COMPLETED');
       expect(controller.get('upgradeData.upgradeGroups')[0].get('upgradeItems')[0].get('progress_percent')).to.equal(100);
       expect(controller.get('upgradeData.upgradeGroups')[0].get('hasExpandableItems')).to.be.true;
       expect(controller.get('upgradeData.upgradeGroups')[1].get('status')).to.equal('ABORTED');
-      expect(controller.get('upgradeData.upgradeGroups')[1].get('display_status')).to.equal('ABORTED');
       expect(controller.get('upgradeData.upgradeGroups')[1].get('progress_percent')).to.equal(50);
       expect(controller.get('upgradeData.upgradeGroups')[1].get('completed_task_count')).to.equal(1);
       expect(controller.get('upgradeData.upgradeGroups')[1].get('upgradeItems')[0].get('status')).to.equal('ABORTED');
-      expect(controller.get('upgradeData.upgradeGroups')[1].get('upgradeItems')[0].get('display_status')).to.equal('ABORTED');
       expect(controller.get('upgradeData.upgradeGroups')[1].get('upgradeItems')[1].get('status')).to.equal('PENDING');
-      expect(controller.get('upgradeData.upgradeGroups')[1].get('upgradeItems')[1].get('display_status')).to.equal('PENDING');
       expect(controller.get('upgradeData.upgradeGroups')[1].get('upgradeItems')[0].get('progress_percent')).to.equal(99);
       expect(controller.get('upgradeData.upgradeGroups')[1].get('upgradeItems')[1].get('progress_percent')).to.equal(0);
       expect(controller.get('upgradeData.upgradeGroups')[1].get('hasExpandableItems')).to.be.false;
@@ -1343,7 +1333,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
 
   describe("#suspendUpgrade()", function() {
     beforeEach(function () {
-      sinon.stub(controller, 'abortUpgradeWithSuspend').returns({
+      sinon.stub(controller, 'abortUpgrade').returns({
         done: function (callback) {
           callback();
         }
@@ -1352,13 +1342,13 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       sinon.stub(App.clusterStatus, 'setClusterStatus', Em.K);
     });
     afterEach(function () {
-      controller.abortUpgradeWithSuspend.restore();
+      controller.abortUpgrade.restore();
       controller.setDBProperty.restore();
       App.clusterStatus.setClusterStatus.restore();
     });
     it("", function() {
       controller.suspendUpgrade();
-      expect(controller.abortUpgradeWithSuspend.calledOnce).to.be.true;
+      expect(controller.abortUpgrade.calledOnce).to.be.true;
       expect(App.get('upgradeState')).to.equal('ABORTED');
       expect(controller.setDBProperty.calledWith('upgradeState', 'ABORTED')).to.be.true;
       expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;

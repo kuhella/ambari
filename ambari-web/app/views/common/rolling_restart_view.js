@@ -161,7 +161,7 @@ App.RollingRestartView = Em.View.extend({
    * @type {String}
    */
   hostComponentDisplayName : function() {
-    return App.format.role(this.get('hostComponentName'), false);
+    return App.format.role(this.get('hostComponentName'));
   }.property('hostComponentName'),
 
   /**

@@ -21,13 +21,11 @@ limitations under the License.
 from functions import calc_xmn_from_xms
 from functions import check_append_heap_property
 from functions import trim_heap_property
-from resource_management.core.logger import Logger
+
 from resource_management import *
-from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 import status_params
 from ambari_commons import OSCheck
-import ConfigParser
-import os
+
 
 if OSCheck.is_windows_family():
   from params_windows import *
@@ -52,52 +50,6 @@ ams_pid_dir = status_params.ams_collector_pid_dir
 ams_collector_script = "/usr/sbin/ambari-metrics-collector"
 ams_collector_pid_dir = status_params.ams_collector_pid_dir
 ams_collector_hosts = default("/clusterHostInfo/metrics_collector_hosts", [])
-if default("/configurations/ams-site/timeline.metrics.service.http.policy", "HTTP_ONLY") == "HTTPS_ONLY":
-  metric_collector_https_enabled = True
-  metric_collector_protocol = 'https'
-else:
-  metric_collector_https_enabled = False
-  metric_collector_protocol = 'http'
-metric_truststore_path= default("/configurations/ams-ssl-client/ssl.client.truststore.location", "")
-metric_truststore_type= default("/configurations/ams-ssl-client/ssl.client.truststore.type", "")
-metric_truststore_password= default("/configurations/ams-ssl-client/ssl.client.truststore.password", "")
-metric_truststore_ca_certs='ca.pem'
-
-agent_cache_dir = config['hostLevelParams']['agentCacheDir']
-service_package_folder = config['commandParams']['service_package_folder']
-dashboards_dir = os.path.join(agent_cache_dir, service_package_folder, 'files', 'grafana-dashboards')
-
-def get_grafana_dashboard_defs():
-  dashboard_defs = []
-  if os.path.exists(dashboards_dir):
-    for root, dirs, files in os.walk(dashboards_dir):
-      for file in files:
-        if 'grafana' in file:
-          dashboard_defs.append(os.path.join(root, file))
-  return dashboard_defs
-
-# find ambari version for grafana dashboards
-def get_ambari_version():
-  ambari_version = None
-  AMBARI_AGENT_CONF = '/etc/ambari-agent/conf/ambari-agent.ini'
-  ambari_agent_config = ConfigParser.RawConfigParser()
-  if os.path.exists(AMBARI_AGENT_CONF):
-    try:
-      ambari_agent_config.read(AMBARI_AGENT_CONF)
-      data_dir = ambari_agent_config.get('agent', 'prefix')
-      ver_file = os.path.join(data_dir, 'version')
-      f = open(ver_file, "r")
-      ambari_version = f.read().strip()
-      f.close()
-    except Exception, e:
-      Logger.info('Unable to determine ambari version from version file.')
-      Logger.debug('Exception: %s' % str(e))
-      # No hostname script identified in the ambari agent conf
-      pass
-    pass
-  return ambari_version
-
-
 if 'cluster-env' in config['configurations'] and \
     'metrics_collector_vip_host' in config['configurations']['cluster-env']:
   metric_collector_host = config['configurations']['cluster-env']['metrics_collector_vip_host']
@@ -107,44 +59,23 @@ if 'cluster-env' in config['configurations'] and \
     'metrics_collector_vip_port' in config['configurations']['cluster-env']:
   metric_collector_port = config['configurations']['cluster-env']['metrics_collector_vip_port']
 else:
-  metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "localhost:6188")
+  metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188")
   if metric_collector_web_address.find(':') != -1:
     metric_collector_port = metric_collector_web_address.split(':')[1]
   else:
     metric_collector_port = '6188'
 
 ams_collector_log_dir = config['configurations']['ams-env']['metrics_collector_log_dir']
-ams_collector_conf_dir = "/etc/ambari-metrics-collector/conf"
 ams_monitor_log_dir = config['configurations']['ams-env']['metrics_monitor_log_dir']
 
 ams_monitor_dir = "/usr/lib/python2.6/site-packages/resource_monitoring"
-ams_monitor_conf_dir = "/etc/ambari-metrics-monitor/conf"
 ams_monitor_pid_dir = status_params.ams_monitor_pid_dir
 ams_monitor_script = "/usr/sbin/ambari-metrics-monitor"
-
-ams_grafana_script = "/usr/sbin/ambari-metrics-grafana"
-ams_grafana_home_dir = '/usr/lib/ambari-metrics-grafana'
-ams_grafana_log_dir = default("/configurations/ams-grafana-env/metrics_grafana_log_dir", '/var/log/ambari-metrics-grafana')
-ams_grafana_pid_dir = status_params.ams_grafana_pid_dir
-ams_grafana_conf_dir = '/etc/ambari-metrics-grafana/conf'
-ams_grafana_data_dir = default("/configurations/ams-grafana-env/metrics_grafana_data_dir", '/var/lib/ambari-metrics-grafana')
-ams_grafana_admin_user = config['configurations']['ams-grafana-env']['metrics_grafana_username']
-ams_grafana_admin_pwd = config['configurations']['ams-grafana-env']['metrics_grafana_password']
-
-metrics_grafana_hosts = default('/clusterHostInfo/metrics_grafana_hosts', None)
-ams_grafana_host = None
-if metrics_grafana_hosts:
-  ams_grafana_host = metrics_grafana_hosts[0]
-ams_grafana_port = default("/configurations/ams-grafana-ini/port", 3000)
-ams_grafana_protocol = default("/configurations/ams-grafana-ini/protocol", 'http')
-ams_grafana_cert_file = default("/configurations/ams-grafana-ini/cert_file", '/etc/ambari-metrics/conf/ams-grafana.crt')
-ams_grafana_cert_key = default("/configurations/ams-grafana-ini/cert_key", '/etc/ambari-metrics/conf/ams-grafana.key')
 
 ams_hbase_home_dir = "/usr/lib/ams-hbase/"
 
 ams_hbase_normalizer_enabled = default("/configurations/ams-hbase-site/hbase.normalizer.enabled", None)
 ams_hbase_fifo_compaction_enabled = default("/configurations/ams-site/timeline.metrics.hbase.fifo.compaction.enabled", None)
-ams_hbase_init_check_enabled = default("/configurations/ams-site/timeline.metrics.hbase.init.check.enabled", True)
 
 #hadoop params
 
@@ -174,7 +105,7 @@ java_version = int(config['hostLevelParams']['java_version'])
 metrics_collector_heapsize = default('/configurations/ams-env/metrics_collector_heapsize', "512")
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
-metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 10)
+metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 60)
 
 hbase_log_dir = config['configurations']['ams-hbase-env']['hbase_log_dir']
 hbase_classpath_additional = default("/configurations/ams-hbase-env/hbase_classpath_additional", None)
@@ -224,6 +155,7 @@ else:
     zookeeper_clientPort = '2181'
 
 ams_checkpoint_dir = config['configurations']['ams-site']['timeline.metrics.aggregator.checkpoint.dir']
+hbase_pid_dir = status_params.hbase_pid_dir
 _hbase_tmp_dir = config['configurations']['ams-hbase-site']['hbase.tmp.dir']
 hbase_tmp_dir = substitute_vars(_hbase_tmp_dir, config['configurations']['ams-hbase-site'])
 _zookeeper_data_dir = config['configurations']['ams-hbase-site']['hbase.zookeeper.property.dataDir']
@@ -288,8 +220,6 @@ else:
 
 hbase_env_sh_template = config['configurations']['ams-hbase-env']['content']
 ams_env_sh_template = config['configurations']['ams-env']['content']
-ams_grafana_env_sh_template = config['configurations']['ams-grafana-env']['content']
-ams_grafana_ini_template = config['configurations']['ams-grafana-ini']['content']
 
 hbase_staging_dir = default("/configurations/ams-hbase-site/hbase.bulkload.staging.dir", "/amshbase/staging")
 
@@ -311,7 +241,6 @@ import functools
 HdfsResource = functools.partial(
   HdfsResource,
   user=hdfs_user,
-  hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore",
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
@@ -319,8 +248,7 @@ HdfsResource = functools.partial(
   hadoop_conf_dir = hadoop_conf_dir,
   principal_name = hdfs_principal_name,
   hdfs_site = hdfs_site,
-  default_fs = default_fs,
-  immutable_paths = get_not_managed_resources()
+  default_fs = default_fs
  )
 
 

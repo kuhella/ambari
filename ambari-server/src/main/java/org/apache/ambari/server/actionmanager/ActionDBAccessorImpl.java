@@ -29,9 +29,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
-import org.apache.ambari.annotations.TransactionalLock;
-import org.apache.ambari.annotations.TransactionalLock.LockArea;
-import org.apache.ambari.annotations.TransactionalLock.LockType;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
@@ -201,10 +198,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       }
     }
 
-    // no need to merge if there's nothing to merge
-    if (!commands.isEmpty()) {
-      hostRoleCommandDAO.mergeAll(commands);
-    }
+    hostRoleCommandDAO.mergeAll(commands);
   }
 
   /* (non-Javadoc)
@@ -220,12 +214,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       command.setStatus(command.isRetryAllowed() ? HostRoleStatus.HOLDING_TIMEDOUT : HostRoleStatus.TIMEDOUT);
       command.setEndTime(now);
     }
-
-    // no need to merge if there's nothing to merge
-    if (!commands.isEmpty()) {
-      hostRoleCommandDAO.mergeAll(commands);
-    }
-
+    hostRoleCommandDAO.mergeAll(commands);
     endRequestIfCompleted(requestId);
   }
 
@@ -285,7 +274,6 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
   @Override
   @Transactional
-  @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.WRITE)
   public void persistActions(Request request) throws AmbariException {
 
     RequestEntity requestEntity = request.constructNewPersistenceEntity();
@@ -379,7 +367,6 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   }
 
   @Override
-  @Transactional
   public void startRequest(long requestId) {
     RequestEntity requestEntity = getRequestEntity(requestId);
     if (requestEntity != null && requestEntity.getStartTime() == -1L) {
@@ -389,7 +376,6 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   }
 
   @Override
-  @Transactional
   public void endRequest(long requestId) {
     RequestEntity requestEntity = getRequestEntity(requestId);
     if (requestEntity != null && requestEntity.getEndTime() == -1L) {
@@ -488,11 +474,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       }
     }
 
-    // no need to merge if there's nothing to merge
-    if (!commandEntities.isEmpty()) {
-      hostRoleCommandDAO.mergeAll(commandEntities);
-    }
-
+    hostRoleCommandDAO.mergeAll(commandEntities);
     // Invalidate cache because of updates to ABORTED commands
     hostRoleCommandCache.invalidateAll(abortedCommandUpdates);
 
@@ -543,10 +525,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       command.setExitcode(report.getExitCode());
     }
 
-    // no need to merge if there's nothing to merge
-    if (!commands.isEmpty()) {
-      hostRoleCommandDAO.mergeAll(commands);
-    }
+    hostRoleCommandDAO.mergeAll(commands);
 
     if (checkRequest) {
       endRequestIfCompleted(requestId);
@@ -734,6 +713,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
   @Override
   public void resubmitTasks(List<Long> taskIds) {
+    hostRoleCommandCache.invalidateAll(taskIds);
+
     List<HostRoleCommandEntity> tasks = hostRoleCommandDAO.findByPKs(taskIds);
     for (HostRoleCommandEntity task : tasks) {
       task.setStatus(HostRoleStatus.PENDING);
@@ -741,12 +722,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       task.setEndTime(-1L);
     }
 
-    // no need to merge if there's nothing to merge
-    if (!tasks.isEmpty()) {
-      hostRoleCommandDAO.mergeAll(tasks);
-    }
-
-    hostRoleCommandCache.invalidateAll(taskIds);
+    hostRoleCommandDAO.mergeAll(tasks);
   }
 
   /**
@@ -755,7 +731,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    */
   @Subscribe
   public void invalidateCommandCacheOnHostRemove(HostRemovedEvent event) {
-    LOG.info("Invalidating HRC cache after receiveing {}", event);
+    LOG.info("Invalidating command cache on host delete event." );
+    LOG.debug("HostRemovedEvent => " + event);
     hostRoleCommandCache.invalidateAll();
   }
 }

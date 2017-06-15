@@ -216,21 +216,6 @@ public enum CheckDescription {
           "The following config types will have values overwritten: %s");
       }}),
 
-  HARDCODED_STACK_VERSION_PROPERTIES_CHECK(PrereqCheckType.CLUSTER,
-    "Found hardcoded hdp stack version in property value.",
-    new HashMap<String, String>() {{
-      put(AbstractCheckDescriptor.DEFAULT,
-        "Some properties seem to contain hardcoded hdp version string \"%s\"." +
-          " That is a potential problem when doing stack update.");
-      }}),
-
-  VERSION_MISMATCH(PrereqCheckType.HOST,
-      "All components must be reporting the expected version",
-      new HashMap<String, String>() {{
-        put(AbstractCheckDescriptor.DEFAULT,
-            "There are components which are not reporting the expected stack version: \n%s");
-      }}),
-
   SERVICES_RANGER_PASSWORD_VERIFY(PrereqCheckType.SERVICE,
       "Verify Ambari and Ranger Password Synchronization",
       new HashMap<String, String>() {{
@@ -248,15 +233,7 @@ public enum CheckDescription {
             "The response from Ranger was malformed. %s. Request: %s");
         put(RangerPasswordCheck.KEY_RANGER_CONFIG_MISSING,
             "Could not check credentials.  Missing property %s/%s");
-      }}),
-
-  KAFKA_KERBEROS_CHECK(PrereqCheckType.SERVICE,
-    "Kafka upgrade on Kerberized cluster",
-    new HashMap<String, String>() {{
-      put(AbstractCheckDescriptor.DEFAULT,
-        "Kafka is currently not Kerberized, but your cluster is. After upgrading, Kafka will automatically be Kerberized for you.");
-    }}
-  );
+      }});
 
 
   private PrereqCheckType m_type;

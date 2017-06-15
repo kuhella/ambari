@@ -40,14 +40,13 @@ export AMBARI_CONF_DIR=/etc/ambari-server/conf:$PATH
 export PYTHONPATH=/usr/lib/python2.6/site-packages:$PYTHONPATH
 
 AMBARI_AGENT=ambari-agent
-PYTHON_WRAP=/usr/bin/ambari-python-wrap
+PYTHON_WRAP=/var/lib/ambari-agent/ambari-python-wrap
 PIDDIR=/var/run/ambari-agent
 PIDFILE=$PIDDIR/$AMBARI_AGENT.pid
 OUTFILE=/var/log/ambari-agent/ambari-agent.out
 LOGFILE=/var/log/ambari-agent/ambari-agent.log
 AGENT_SCRIPT=/usr/lib/python2.6/site-packages/ambari_agent/main.py
 AGENT_TMP_DIR=/var/lib/ambari-agent/tmp
-AGENT_WORKING_DIR=/var/lib/ambari-agent
 AMBARI_AGENT_PY_SCRIPT=/usr/lib/python2.6/site-packages/ambari_agent/AmbariAgent.py
 OK=1
 NOTOK=0
@@ -63,7 +62,7 @@ if [ "$EUID" -ne 0 ] ; then
 fi
 
 # set reliable cwd for this and child processes.
-cd $AGENT_WORKING_DIR
+cd $AGENT_TMP_DIR
 
 keysdir=$(awk -F "=" '/keysdir/ {print $2}' /etc/ambari-agent/conf/ambari-agent.ini)
 # trim spaces
@@ -82,10 +81,10 @@ change_files_permissions() {
 	ambari-sudo.sh chown 	$current_user "/usr/lib/ambari-agent/"
 }
 
+# fills $PYTHON
+. $PYTHON_WRAP -V 2>/dev/null
 
-if [ -z "$PYTHON" ] ; then
-  export PYTHON=`readlink $PYTHON_WRAP`
-fi
+export PYTHON=$PYTHON
 
 # Trying to read the passphrase from an environment
 if [ ! -z $AMBARI_PASSPHRASE ]; then
@@ -154,14 +153,7 @@ case "$1" in
         change_files_permissions
         
         echo "Starting ambari-agent"
-        
-        if [ "$AMBARI_AGENT_RUN_IN_FOREGROUND" == true ] ; then
-          $PYTHON $AMBARI_AGENT_PY_SCRIPT "$@" > $OUTFILE 2>&1 
-          exit $?
-        fi
-        
         nohup $PYTHON $AMBARI_AGENT_PY_SCRIPT "$@" > $OUTFILE 2>&1 &
-        
         sleep 2
         PID=$!
         echo "Verifying $AMBARI_AGENT process status..."
@@ -223,12 +215,6 @@ case "$1" in
             echo "Stopping $AMBARI_AGENT"
             change_files_permissions
             $PYTHON $AGENT_SCRIPT stop
-            
-            status ambari-agent 2>/dev/null | grep start 1>/dev/null
-            if [ "$?" -eq 0 ] ; then
-              echo "Stopping $AMBARI_AGENT upstart job"
-              stop ambari-agent > /dev/null
-            fi
           fi
           echo "Removing PID file at $PIDFILE"
           ambari-sudo.sh rm -f $PIDFILE

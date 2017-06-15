@@ -126,7 +126,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
    */
   getThresholdsProperty: function (type, property) {
     var warning = this.get('content.reporting').findProperty('type', type);
-    return warning && !Ember.isEmpty(warning.get(property)) ? warning.get(property) : null;
+    return warning && warning.get(property) ? warning.get(property) : null;
   },
 
   /**
@@ -289,9 +289,6 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         showInputForValue: false,
         text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('critical', 'value')
-      }),
-      App.AlertConfigProperties.ConnectionTimeout.create({
-        value: alertDefinition.get('uri.connectionTimeout')
       })
     ]);
 
@@ -480,8 +477,12 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
     var propertiesToUpdate = {};
     var configs = onlyChanged ? this.get('configs').filterProperty('wasChanged') : this.get('configs');
     configs.forEach(function (property) {
-      var apiProperties = Em.makeArray(property.get('apiProperty'));
-      var apiFormattedValues = Em.makeArray(property.get('apiFormattedValue'));
+      var apiProperties = property.get('apiProperty');
+      var apiFormattedValues = property.get('apiFormattedValue');
+      if (!Em.isArray(property.get('apiProperty'))) {
+        apiProperties = [property.get('apiProperty')];
+        apiFormattedValues = [property.get('apiFormattedValue')];
+      }
       apiProperties.forEach(function (apiProperty, i) {
         if (apiProperty.contains('source.')) {
           if (!propertiesToUpdate['AlertDefinition/source']) {
@@ -508,6 +509,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
             }
             Ember.setFullPath(propertiesToUpdate['AlertDefinition/source'], apiProperty.replace('source.', ''), apiFormattedValues[i]);
           }
+
         }
         else {
           if (apiProperty) {
@@ -516,10 +518,6 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         }
       }, this);
     }, this);
-
-    if (Em.get(propertiesToUpdate, 'AlertDefinition/source.uri.id')) {
-      delete propertiesToUpdate['AlertDefinition/source'].uri.id;
-    }
 
     return propertiesToUpdate;
   },
@@ -544,14 +542,13 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
    * @type {Boolean}
    */
   hasThresholdsError: function () {
-    var smallValue, smallValid, largeValue, largeValid;
     if (this.get('configs').findProperty('name', 'warning_threshold')) {
-      smallValue = Em.get(this.get('configs').findProperty('name', 'warning_threshold'), 'value');
-      smallValid = Em.get(this.get('configs').findProperty('name', 'warning_threshold'), 'isValid');
+      var smallValue = Em.get(this.get('configs').findProperty('name', 'warning_threshold'), 'value');
+      var smallValid = Em.get(this.get('configs').findProperty('name', 'warning_threshold'), 'isValid');
     }
     if (this.get('configs').findProperty('name', 'critical_threshold')) {
-      largeValue = Em.get(this.get('configs').findProperty('name', 'critical_threshold'), 'value');
-      largeValid = Em.get(this.get('configs').findProperty('name', 'critical_threshold'), 'isValid');
+      var largeValue = Em.get(this.get('configs').findProperty('name', 'critical_threshold'), 'value');
+      var largeValid = Em.get(this.get('configs').findProperty('name', 'critical_threshold'), 'isValid');
     }
     return smallValid && largeValid ? Number(smallValue) > Number(largeValue) : false;
   }.property('configs.@each.value'),

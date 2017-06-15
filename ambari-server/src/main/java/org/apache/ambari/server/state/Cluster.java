@@ -125,16 +125,9 @@ public interface Cluster {
 
   /**
    * Get the ClusterVersionEntity object whose state is CURRENT.
-   * @return Cluster Version entity to whose state is CURRENT.
+   * @return
    */
   ClusterVersionEntity getCurrentClusterVersion();
-
-  /**
-   * If no RU/EU is in progress, get the ClusterVersionEntity object whose state is CURRENT.
-   * If RU/EU is in progress, based on the direction and desired stack, determine which version to use.
-   * @return Cluster Version entity to use.
-   */
-  ClusterVersionEntity getEffectiveClusterVersion() throws AmbariException;
 
   /**
    * Get all of the ClusterVersionEntity objects for the cluster.
@@ -416,13 +409,6 @@ public interface Cluster {
   Map<String, DesiredConfig> getDesiredConfigs();
 
   /**
-   * Gets the active desired configurations for the cluster.
-   * @param bypassCache don't use cached values
-   * @return a map of type-to-configuration information.
-   */
-  Map<String, DesiredConfig> getDesiredConfigs(boolean bypassCache);
-
-  /**
    * Gets all versions of the desired configurations for the cluster.
    * @return a map of type-to-configuration information.
    */
@@ -638,21 +624,4 @@ public interface Cluster {
    * @return true if the cluster was deployed with a Blueprint otherwise false.
    */
   boolean isBluePrintDeployed();
-
-  /**
-   * Gets whether there is an upgrade which has been suspended and not yet
-   * finalized.
-   *
-   * @return {@code true} if the last upgrade is in the
-   *         {@link UpgradeState#SUSPENDED}.
-   */
-  boolean isUpgradeSuspended();
-
-  /**
-   * Returns the name of the service that the passed config type belongs to.
-   * @param configType the config type to look up the service by
-   * @return returns the name of the service that the config type belongs to if there is any
-   *         otherwise returns null.
-   */
-  String getServiceByConfigType(String configType);
 }

@@ -24,7 +24,6 @@ import time
 import traceback
 import logging
 
-from resource_management.core import global_lock
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.core.resources import Execute
@@ -146,19 +145,13 @@ def execute(configurations={}, parameters={}, host_name=None):
         kerberos_executable_search_paths = configurations[KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY]
       else:
         kerberos_executable_search_paths = None
-
+             
       kinit_path_local = get_kinit_path(kerberos_executable_search_paths)
       kinitcmd=format("{kinit_path_local} -kt {smokeuser_keytab} {smokeuser_principal}; ")
 
-      # prevent concurrent kinit
-      kinit_lock = global_lock.get_lock(global_lock.LOCK_TYPE_KERBEROS)
-      kinit_lock.acquire()
-      try:
-        Execute(kinitcmd, user=smokeuser,
-          path=["/bin/", "/usr/bin/", "/usr/lib/hive/bin/", "/usr/sbin/"],
-          timeout=10)
-      finally:
-        kinit_lock.release()
+      Execute(kinitcmd, user=smokeuser,
+        path=["/bin/", "/usr/bin/", "/usr/lib/hive/bin/", "/usr/sbin/"],
+        timeout=10)
 
     if host_name is None:
       host_name = socket.getfqdn()

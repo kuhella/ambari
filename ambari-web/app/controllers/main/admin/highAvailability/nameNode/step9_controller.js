@@ -60,7 +60,7 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
 
   installZKFC: function () {
     var hostName = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName');
-    this.createInstallComponentTask('ZKFC', hostName, "HDFS");
+    this.createComponent('ZKFC', hostName, "HDFS");
   },
 
   startZKFC: function () {
@@ -85,12 +85,12 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
   },
 
   installPXF: function () {
-    this.createInstallComponentTask('PXF', this.get('secondNameNodeHost'), "PXF");
+    this.createComponent('PXF', this.get('secondNameNodeHost'), "PXF");
   },
 
   reconfigureHBase: function () {
     var data = this.get('content.serviceConfigProperties');
-    var configData = this.reconfigureSites(['hbase-site'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE', false)));
+    var configData = this.reconfigureSites(['hbase-site'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE')));
     App.ajax.send({
       name: 'common.service.configurations',
       sender: this,
@@ -104,7 +104,7 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
 
   reconfigureAccumulo: function () {
     var data = this.get('content.serviceConfigProperties');
-    var configData = this.reconfigureSites(['accumulo-site'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE', false)));
+    var configData = this.reconfigureSites(['accumulo-site'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE')));
     App.ajax.send({
       name: 'common.service.configurations',
       sender: this,
@@ -118,7 +118,7 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
 
   reconfigureHawq: function () {
     var data = this.get('content.serviceConfigProperties');
-    var configData = this.reconfigureSites(['hawq-site', 'hdfs-client'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE', false)));
+    var configData = this.reconfigureSites(['hawq-site'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE')));
     App.ajax.send({
       name: 'common.service.configurations',
       sender: this,
@@ -159,3 +159,4 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
   }
 
 });
+

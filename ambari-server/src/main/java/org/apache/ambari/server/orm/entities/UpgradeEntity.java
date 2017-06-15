@@ -52,10 +52,8 @@ import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
       query = "SELECT u FROM UpgradeEntity u WHERE u.clusterId = :clusterId"),
   @NamedQuery(name = "UpgradeEntity.findUpgrade",
       query = "SELECT u FROM UpgradeEntity u WHERE u.upgradeId = :upgradeId"),
-  @NamedQuery(name = "UpgradeEntity.findLatestForClusterInDirection",
-      query = "SELECT u FROM UpgradeEntity u JOIN RequestEntity r ON u.requestId = r.requestId WHERE u.clusterId = :clusterId AND u.direction = :direction ORDER BY r.startTime DESC"),
   @NamedQuery(name = "UpgradeEntity.findLatestForCluster",
-      query = "SELECT u FROM UpgradeEntity u JOIN RequestEntity r ON u.requestId = r.requestId WHERE u.clusterId = :clusterId ORDER BY r.startTime DESC"),
+      query = "SELECT u FROM UpgradeEntity u WHERE u.clusterId = :clusterId AND u.direction = :direction ORDER BY u.upgradeId DESC"),
 })
 public class UpgradeEntity {
 
@@ -96,14 +94,9 @@ public class UpgradeEntity {
   @Column(name="downgrade_allowed", nullable = false)
   private Short downgrade_allowed = 1;
 
-  /**
-   * {@code true} if the upgrade has been marked as suspended.
-   */
-  @Column(name = "suspended", nullable = false, length = 1)
-  private Short suspended = 0;
-
   @OneToMany(mappedBy = "upgradeEntity", cascade = { CascadeType.ALL })
   private List<UpgradeGroupEntity> upgradeGroupEntities;
+
 
   /**
    * @return the id
@@ -224,7 +217,7 @@ public class UpgradeEntity {
    * @param canDowngrade {@code true} to allow downgrade, {@code false} to disallow downgrade
    */
   public void setDowngradeAllowed(boolean canDowngrade) {
-    downgrade_allowed = (!canDowngrade ? (short)0 : (short)1);
+    this.downgrade_allowed = (!canDowngrade ? (short)0 : (short)1);
   }
 
   /**
@@ -294,26 +287,6 @@ public class UpgradeEntity {
     skipServiceCheckFailures = autoSkipServiceCheckFailures ? 1 : 0;
   }
 
-  /**
-   * Gets whether the upgrade is suspended. A suspended upgrade will appear to
-   * have its request aborted, but the intent is to resume it at a later point.
-   *
-   * @return {@code true} if the upgrade is suspended.
-   */
-  public boolean isSuspended() {
-    return suspended != 0;
-  }
-
-  /**
-   * Sets whether the upgrade is suspended.
-   *
-   * @param suspended
-   *          {@code true} to mark the upgrade as suspended.
-   */
-  public void setSuspended(boolean suspended) {
-    this.suspended = suspended ? (short) 1 : (short) 0;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -343,9 +316,6 @@ public class UpgradeEntity {
     if (direction != null ? !direction.equals(that.direction) : that.direction != null) {
       return false;
     }
-    if (suspended != null ? !suspended.equals(that.suspended) : that.suspended != null) {
-      return false;
-    }
     if (upgradeType != null ? !upgradeType.equals(that.upgradeType) : that.upgradeType != null) {
       return false;
     }
@@ -364,7 +334,6 @@ public class UpgradeEntity {
     result = 31 * result + (fromVersion != null ? fromVersion.hashCode() : 0);
     result = 31 * result + (toVersion != null ? toVersion.hashCode() : 0);
     result = 31 * result + (direction != null ? direction.hashCode() : 0);
-    result = 31 * result + (suspended != null ? suspended.hashCode() : 0);
     result = 31 * result + (upgradeType != null ? upgradeType.hashCode() : 0);
     result = 31 * result + (upgradePackage != null ? upgradePackage.hashCode() : 0);
     return result;

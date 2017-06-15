@@ -58,10 +58,6 @@ class Pxf(Script):
     self.__execute_service_command("stop")
 
 
-  def restart(self, env):
-    self.start(env)
-
-
   def status(self, env):
     try:
       self.__execute_service_command("status")
@@ -70,9 +66,9 @@ class Pxf(Script):
 
 
   def __execute_service_command(self, command):
-    import pxf_constants
-    Execute("service {0} {1}".format(pxf_constants.pxf_service_name, command),
-              timeout=pxf_constants.default_exec_timeout,
+    import params
+    Execute("service {0} {1}".format(params.pxf_service_name, command),
+              timeout=params.default_exec_timeout,
               logoutput=True)
 
 
@@ -110,10 +106,16 @@ class Pxf(Script):
     File('{0}/pxf-profiles.xml'.format(params.pxf_conf_dir),
          content = params.config['configurations']['pxf-profiles']['content'].lstrip())
 
-    # Default_value of principal => pxf/_HOST@{realm}
+    if params.security_enabled:
+      pxf_site_dict = dict(params.config['configurations']['pxf-site'])
+      pxf_site_dict['pxf.service.kerberos.principal'] = "{0}/_HOST@{1}".format(params.pxf_user, params.realm_name)
+      pxf_site = ConfigDictionary(pxf_site_dict)
+    else:
+      pxf_site = params.config['configurations']['pxf-site']
+
     XmlConfig("pxf-site.xml",
               conf_dir=params.pxf_conf_dir,
-              configurations=params.config['configurations']['pxf-site'],
+              configurations=pxf_site,
               configuration_attributes=params.config['configuration_attributes']['pxf-site'])
 
 

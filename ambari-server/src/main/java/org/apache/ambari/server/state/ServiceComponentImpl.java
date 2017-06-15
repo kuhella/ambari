@@ -60,7 +60,6 @@ public class ServiceComponentImpl implements ServiceComponent {
   private final ReadWriteLock clusterGlobalLock;
   private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
   private final String componentName;
-  private final String displayName;
   private final boolean isClientComponent;
   private final boolean isMasterComponent;
   private final boolean isVersionAdvertised;
@@ -108,7 +107,6 @@ public class ServiceComponentImpl implements ServiceComponent {
       isClientComponent = compInfo.isClient();
       isMasterComponent = compInfo.isMaster();
       isVersionAdvertised = compInfo.isVersionAdvertised();
-      displayName = compInfo.getDisplayName();
     } catch (ObjectNotFoundException e) {
       throw new RuntimeException("Trying to create a ServiceComponent"
           + " not recognized in stack info"
@@ -130,24 +128,6 @@ public class ServiceComponentImpl implements ServiceComponent {
     desiredStateEntity = serviceComponentDesiredStateEntity;
     this.componentName = serviceComponentDesiredStateEntity.getComponentName();
 
-    StackId stackId = service.getDesiredStackVersion();
-    try {
-      ComponentInfo compInfo = ambariMetaInfo.getComponent(
-        stackId.getStackName(), stackId.getStackVersion(), service.getName(),
-        componentName);
-      isClientComponent = compInfo.isClient();
-      isMasterComponent = compInfo.isMaster();
-      isVersionAdvertised = compInfo.isVersionAdvertised();
-      displayName = compInfo.getDisplayName();
-    } catch (ObjectNotFoundException e) {
-      throw new AmbariException("Trying to create a ServiceComponent"
-        + " not recognized in stack info"
-        + ", clusterName=" + service.getCluster().getClusterName()
-        + ", serviceName=" + service.getName()
-        + ", componentName=" + componentName
-        + ", stackInfo=" + stackId.getStackId());
-    }
-
     hostComponents = new HashMap<String, ServiceComponentHost>();
     for (HostComponentStateEntity hostComponentStateEntity : desiredStateEntity.getHostComponentStateEntities()) {
       HostComponentDesiredStateEntityPK pk = new HostComponentDesiredStateEntityPK();
@@ -162,12 +142,29 @@ public class ServiceComponentImpl implements ServiceComponent {
           serviceComponentHostFactory.createExisting(this,
             hostComponentStateEntity, hostComponentDesiredStateEntity));
       } catch(ProvisionException ex) {
-        StackId currentStackId = service.getCluster().getCurrentStackVersion();
+        StackId stackId = service.getCluster().getCurrentStackVersion();
         LOG.error(String.format("Can not get host component info: stackName=%s, stackVersion=%s, serviceName=%s, componentName=%s, hostname=%s",
-          currentStackId.getStackName(), currentStackId.getStackVersion(),
+          stackId.getStackName(), stackId.getStackVersion(),
           service.getName(),serviceComponentDesiredStateEntity.getComponentName(), hostComponentStateEntity.getHostName()));
         ex.printStackTrace();
       }
+    }
+
+    StackId stackId = service.getDesiredStackVersion();
+    try {
+      ComponentInfo compInfo = ambariMetaInfo.getComponent(
+          stackId.getStackName(), stackId.getStackVersion(), service.getName(),
+          componentName);
+      isClientComponent = compInfo.isClient();
+      isMasterComponent = compInfo.isMaster();
+      isVersionAdvertised = compInfo.isVersionAdvertised();
+    } catch (ObjectNotFoundException e) {
+      throw new AmbariException("Trying to create a ServiceComponent"
+          + " not recognized in stack info"
+          + ", clusterName=" + service.getCluster().getClusterName()
+          + ", serviceName=" + service.getName()
+          + ", componentName=" + componentName
+          + ", stackInfo=" + stackId.getStackId());
     }
 
     desiredStateEntityPK = getDesiredStateEntityPK(desiredStateEntity);
@@ -440,7 +437,7 @@ public class ServiceComponentImpl implements ServiceComponent {
       ServiceComponentResponse r = new ServiceComponentResponse(getClusterId(),
           cluster.getClusterName(), service.getName(), getName(),
           getDesiredStackVersion().getStackId(), getDesiredState().toString(),
-          getTotalCount(), getStartedCount(), getInstalledCount(), displayName);
+          getTotalCount(), getStartedCount(), getInstalledCount());
       return r;
     } finally {
       readWriteLock.readLock().unlock();

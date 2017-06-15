@@ -23,7 +23,6 @@ from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
-from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 
 # server configurations
 config = Script.get_config()
@@ -65,7 +64,6 @@ import functools
 HdfsResource = functools.partial(
   HdfsResource,
   user=hdfs_user,
-  hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore",
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
@@ -73,6 +71,5 @@ HdfsResource = functools.partial(
   hadoop_conf_dir = hadoop_conf_dir,
   principal_name = hdfs_principal_name,
   hdfs_site = hdfs_site,
-  default_fs = default_fs,
-  immutable_paths = get_not_managed_resources()
+  default_fs = default_fs
 )

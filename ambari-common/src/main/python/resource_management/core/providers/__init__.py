@@ -41,9 +41,6 @@ class Provider(object):
 
 
 PROVIDERS = dict(
-  amazon=dict(
-    Package="resource_management.core.providers.package.yumrpm.YumProvider",
-  ),
   redhat=dict(
     Package="resource_management.core.providers.package.yumrpm.YumProvider",
   ),

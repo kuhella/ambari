@@ -17,25 +17,6 @@
  */
 package com.google.inject.persist.jpa;
 
-import static com.google.inject.matcher.Matchers.annotatedWith;
-import static com.google.inject.matcher.Matchers.any;
-
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.util.List;
-import java.util.Properties;
-
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-
-import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
-import org.apache.ambari.server.orm.AmbariJpaLocalTxnInterceptor;
-import org.apache.ambari.server.orm.AmbariLocalSessionInterceptor;
-import org.apache.ambari.server.orm.RequiresSession;
-
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -45,6 +26,23 @@ import com.google.inject.persist.UnitOfWork;
 import com.google.inject.persist.finder.DynamicFinder;
 import com.google.inject.persist.finder.Finder;
 import com.google.inject.util.Providers;
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
+import org.apache.ambari.server.orm.AmbariJpaLocalTxnInterceptor;
+import org.apache.ambari.server.orm.AmbariLocalSessionInterceptor;
+import org.apache.ambari.server.orm.RequiresSession;
+
+import static com.google.inject.matcher.Matchers.annotatedWith;
+import static com.google.inject.matcher.Matchers.any;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import java.lang.reflect.AccessibleObject;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * Copy of guice persist module for local modifications
@@ -62,6 +60,7 @@ public class AmbariJpaPersistModule extends PersistModule {
 
   private Properties properties;
   private MethodInterceptor transactionInterceptor;
+  private MethodInterceptor sessionInterceptor;
 
   @Override protected void configurePersistence() {
     bindConstant().annotatedWith(Jpa.class).to(jpaUnit);
@@ -69,7 +68,8 @@ public class AmbariJpaPersistModule extends PersistModule {
     if (null != properties) {
       bind(Properties.class).annotatedWith(Jpa.class).toInstance(properties);
     } else {
-      bind(Properties.class).annotatedWith(Jpa.class).toProvider(Providers.<Properties> of(null));
+      bind(Properties.class).annotatedWith(Jpa.class)
+          .toProvider(Providers.<Properties>of(null));
     }
 
     bind(AmbariJpaPersistService.class).in(Singleton.class);
@@ -77,13 +77,16 @@ public class AmbariJpaPersistModule extends PersistModule {
     bind(PersistService.class).to(AmbariJpaPersistService.class);
     bind(UnitOfWork.class).to(AmbariJpaPersistService.class);
     bind(EntityManager.class).toProvider(AmbariJpaPersistService.class);
-    bind(EntityManagerFactory.class).toProvider(JpaPersistService.EntityManagerFactoryProvider.class);
+    bind(EntityManagerFactory.class)
+        .toProvider(JpaPersistService.EntityManagerFactoryProvider.class);
+
+
 
     transactionInterceptor = new AmbariJpaLocalTxnInterceptor();
     requestInjection(transactionInterceptor);
-
-    MethodInterceptor sessionInterceptor = new AmbariLocalSessionInterceptor();
+    sessionInterceptor = new AmbariLocalSessionInterceptor();
     requestInjection(sessionInterceptor);
+
 
     // Bind dynamic finders.
     for (Class<?> finder : dynamicFinders) {
@@ -132,7 +135,6 @@ public class AmbariJpaPersistModule extends PersistModule {
       @Inject
       JpaFinderProxy finderProxy;
 
-      @Override
       public Object invoke(final Object thisObject, final Method method, final Object[] args)
           throws Throwable {
 
@@ -144,27 +146,22 @@ public class AmbariJpaPersistModule extends PersistModule {
         }
 
         return finderProxy.invoke(new MethodInvocation() {
-          @Override
           public Method getMethod() {
             return method;
           }
 
-          @Override
           public Object[] getArguments() {
             return null == args ? new Object[0] : args;
           }
 
-          @Override
           public Object proceed() throws Throwable {
             return method.invoke(thisObject, args);
           }
 
-          @Override
           public Object getThis() {
             throw new UnsupportedOperationException("Bottomless proxies don't expose a this.");
           }
 
-          @Override
           public AccessibleObject getStaticPart() {
             throw new UnsupportedOperationException();
           }

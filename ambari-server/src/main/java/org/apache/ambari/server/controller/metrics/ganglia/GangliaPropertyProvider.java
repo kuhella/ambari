@@ -253,7 +253,7 @@ public abstract class GangliaPropertyProvider extends MetricsPropertyProvider {
     
     URIBuilder uriBuilder = new URIBuilder();
 
-    if (configuration.isHttpsEnabled()) {
+    if (configuration.isGangliaSSL()) {
       uriBuilder.setScheme("https");
     } else {
       uriBuilder.setScheme("http");

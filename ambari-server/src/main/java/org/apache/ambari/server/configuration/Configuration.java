@@ -151,10 +151,6 @@ public class Configuration {
   public static final String REQUEST_READ_TIMEOUT_DEFAULT= "10000";
   public static final String REQUEST_CONNECT_TIMEOUT = "views.request.connect.timeout.millis";
   public static final String REQUEST_CONNECT_TIMEOUT_DEFAULT = "5000";
-  public static final String AMBARI_REQUEST_READ_TIMEOUT = "views.ambari.request.read.timeout.millis";
-  public static final String AMBARI_REQUEST_READ_TIMEOUT_DEFAULT= "10000";
-  public static final String AMBARI_REQUEST_CONNECT_TIMEOUT = "views.ambari.request.connect.timeout.millis";
-  public static final String AMBARI_REQUEST_CONNECT_TIMEOUT_DEFAULT = "5000";
   public static final String SERVER_JDBC_POSTGRES_SCHEMA_NAME = "server.jdbc.postgres.schema";
   public static final String OJDBC_JAR_NAME_KEY = "db.oracle.jdbc.name";
   public static final String OJDBC_JAR_NAME_DEFAULT = "ojdbc6.jar";
@@ -181,32 +177,19 @@ public class Configuration {
   public static final String LDAP_REFERRAL_KEY = "authentication.ldap.referral";
   public static final String LDAP_PAGINATION_ENABLED_KEY = "authentication.ldap.pagination.enabled";
   public static final String SERVER_EC_CACHE_SIZE = "server.ecCacheSize";
-  public static final String SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED = "server.hrcStatusSummary.cache.enabled";
-  public static final String SERVER_HRC_STATUS_SUMMARY_CACHE_SIZE = "server.hrcStatusSummary.cache.size";
-  public static final String SERVER_HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION = "server.hrcStatusSummary.cache.expiryDuration";
   public static final String SERVER_STALE_CONFIG_CACHE_ENABLED_KEY = "server.cache.isStale.enabled";
-  public static final String SERVER_STALE_CONFIG_CACHE_EXPIRATION_KEY = "server.cache.isStale.expiration";
   public static final String SERVER_PERSISTENCE_TYPE_KEY = "server.persistence.type";
   public static final String SERVER_JDBC_USER_NAME_KEY = "server.jdbc.user.name";
   public static final String SERVER_JDBC_USER_PASSWD_KEY = "server.jdbc.user.passwd";
   public static final String SERVER_JDBC_DRIVER_KEY = "server.jdbc.driver";
   public static final String SERVER_JDBC_URL_KEY = "server.jdbc.url";
   public static final String SERVER_JDBC_PROPERTIES_PREFIX = "server.jdbc.properties.";
-
-  public static final String SERVER_HTTP_REQUEST_HEADER_SIZE = "server.http.request.header.size";
-  public static final String SERVER_HTTP_RESPONSE_HEADER_SIZE = "server.http.response.header.size";
-  public static final int SERVER_HTTP_REQUEST_HEADER_SIZE_DEFAULT = 64*1024;
-  public static final int SERVER_HTTP_RESPONSE_HEADER_SIZE_DEFAULT = 64*1024;
-
-  // Properties for stack upgrade (Rolling, Express)
   public static final String ROLLING_UPGRADE_MIN_STACK_KEY = "rolling.upgrade.min.stack";
   public static final String ROLLING_UPGRADE_MAX_STACK_KEY = "rolling.upgrade.max.stack";
   public static final String ROLLING_UPGRADE_SKIP_PACKAGES_PREFIXES_KEY = "rolling.upgrade.skip.packages.prefixes";
   public static final String ROLLING_UPGRADE_MIN_STACK_DEFAULT = "HDP-2.2";
   public static final String ROLLING_UPGRADE_MAX_STACK_DEFAULT = "";
   public static final String ROLLING_UPGRADE_SKIP_PACKAGES_PREFIXES_DEFAULT = "";
-  public static final String STACK_UPGRADE_BYPASS_PRECHECKS_KEY = "stack.upgrade.bypass.prechecks";
-  public static final String STACK_UPGRADE_BYPASS_PRECHECKS_DEFAULT = "false";
 
   public static final String SERVER_JDBC_CONNECTION_POOL = "server.jdbc.connection-pool";
   public static final String SERVER_JDBC_CONNECTION_POOL_MIN_SIZE = "server.jdbc.connection-pool.min-size";
@@ -231,8 +214,7 @@ public class Configuration {
   public static final String JDBC_UNIT_NAME = "ambari-server";
   public static final String JDBC_LOCAL_URL = "jdbc:postgresql://localhost/";
   public static final String JDBC_LOCAL_DRIVER = "org.postgresql.Driver";
-  public static final String DEFAULT_DERBY_SCHEMA = "ambari";
-  public static final String JDBC_IN_MEMORY_URL = String.format("jdbc:derby:memory:myDB/%s;create=true", DEFAULT_DERBY_SCHEMA);
+  public static final String JDBC_IN_MEMORY_URL = "jdbc:derby:memory:myDB/ambari;create=true";
   public static final String JDBC_IN_MEMROY_DRIVER = "org.apache.derby.jdbc.EmbeddedDriver";
   public static final String HOSTNAME_MACRO = "{hostname}";
   public static final String JDBC_RCA_LOCAL_URL = "jdbc:postgresql://" + HOSTNAME_MACRO + "/ambarirca";
@@ -249,6 +231,7 @@ public class Configuration {
   public static final String JAVAX_SSL_TRUSTSTORE = "javax.net.ssl.trustStore";
   public static final String JAVAX_SSL_TRUSTSTORE_PASSWORD = "javax.net.ssl.trustStorePassword";
   public static final String JAVAX_SSL_TRUSTSTORE_TYPE = "javax.net.ssl.trustStoreType";
+  public static final String GANGLIA_HTTPS_KEY = "ganglia.https";
   public static final String SRVR_TWO_WAY_SSL_PORT_DEFAULT = "8441";
   public static final String SRVR_ONE_WAY_SSL_PORT_DEFAULT = "8440";
   public static final String SRVR_CRT_NAME_DEFAULT = "ca.crt";
@@ -285,9 +268,6 @@ public class Configuration {
   public static final String TEMPORARY_KEYSTORE_ACTIVELY_PURGE = "security.temporary.keystore.actibely.purge";
   public static final boolean TEMPORARY_KEYSTORE_ACTIVELY_PURGE_DEFAULT = true;
 
-  // Alerts notifications properties
-  public static final String AMBARI_DISPLAY_URL = "ambari.display.url";
-
   /**
    * Key for repo validation suffixes.
    */
@@ -321,8 +301,6 @@ public class Configuration {
   public static final String KDC_CONNECTION_CHECK_TIMEOUT_DEFAULT = "10000";
   public static final String KERBEROS_KEYTAB_CACHE_DIR_KEY = "kerberos.keytab.cache.dir";
   public static final String KERBEROS_KEYTAB_CACHE_DIR_DEFAULT = "/var/lib/ambari-server/data/cache";
-  public static final String KERBEROS_CHECK_JAAS_CONFIGURATION_KEY = "kerberos.check.jaas.configuration";
-  public static final String KERBEROS_CHECK_JAAS_CONFIGURATION_DEFAULT = "false";
 
   /**
    * Recovery related configuration
@@ -366,24 +344,12 @@ public class Configuration {
   public static final String AGENT_TASK_TIMEOUT_DEFAULT = "900";
   public static final String AGENT_PACKAGE_INSTALL_TASK_TIMEOUT_DEFAULT = "1800";
 
-  /**
-   * Server side task (default) timeout value
-   */
-  public static final String SERVER_TASK_TIMEOUT_KEY = "server.task.timeout";
-  public static final String SERVER_TASK_TIMEOUT_DEFAULT = "1200";
-
   public static final String CUSTOM_ACTION_DEFINITION_KEY = "custom.action.definitions";
   public static final String SHARED_RESOURCES_DIR_KEY = "shared.resources.dir";
-
-  protected static final boolean SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED_DEFAULT = true;
-  protected static final long SERVER_HRC_STATUS_SUMMARY_CACHE_SIZE_DEFAULT = 10000L;
-  protected static final long SERVER_HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION_DEFAULT = 30; //minutes
-
   private static final String CUSTOM_ACTION_DEFINITION_DEF_VALUE = "/var/lib/ambari-server/resources/custom_action_definitions";
 
   private static final long SERVER_EC_CACHE_SIZE_DEFAULT = 10000L;
   private static final String SERVER_STALE_CONFIG_CACHE_ENABLED_DEFAULT = "true";
-  private static final String SERVER_STALE_CONFIG_CACHE_EXPIRATION_DEFAULT = "60";
   private static final String SERVER_JDBC_USER_NAME_DEFAULT = "ambari";
   private static final String SERVER_JDBC_USER_PASSWD_DEFAULT = "bigdata";
   private static final String SERVER_JDBC_RCA_USER_NAME_DEFAULT = "mapred";
@@ -492,9 +458,6 @@ public class Configuration {
   private static final String TIMELINE_METRICS_CACHE_HEAP_PERCENT = "server.timeline.metrics.cache.heap.percent";
   private static final String DEFAULT_TIMELINE_METRICS_CACHE_HEAP_PERCENT = "15%";
 
-  // Timeline Metrics SSL settings
-  public static final String AMRABI_METRICS_HTTPS_ENABLED_KEY = "server.timeline.metrics.https.enabled";
-
   /**
    * Governs the use of {@link Parallel} to process {@link StageEntity}
    * instances into {@link Stage}.
@@ -562,14 +525,6 @@ public class Configuration {
   public static final String VIEWS_HTTP_X_FRAME_OPTIONS_HEADER_VALUE_DEFAULT = "SAMEORIGIN";
   public static final String VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE_KEY = "views.http.x-xss-protection";
   public static final String VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE_DEFAULT = "1; mode=block";
-
-  /**
-   * For Agent Stack Install retry configuration
-   */
-  public static final String AGENT_STACK_RETRY_ON_REPO_UNAVAILABILITY_KEY = "agent.stack.retry.on_repo_unavailability";
-  public static final String AGENT_STACK_RETRY_ON_REPO_UNAVAILABILITY_DEFAULT = "false";
-  public static final String AGENT_STACK_RETRY_COUNT_KEY = "agent.stack.retry.tries";
-  public static final String AGENT_STACK_RETRY_COUNT_DEFAULT = "5";
 
   private static final Logger LOG = LoggerFactory.getLogger(
       Configuration.class);
@@ -941,6 +896,8 @@ public class Configuration {
       jsonObject = jsonElement.getAsJsonObject();
     } catch (FileNotFoundException e) {
       throw new IllegalArgumentException("No file " + file, e);
+    } catch (IOException ioe){
+      throw new IllegalArgumentException("Can't read file " + file, ioe);
     }
 
     return jsonObject;
@@ -1052,15 +1009,6 @@ public class Configuration {
       }
     }
     return res;
-  }
-
-  /**
-   * Determine whether or not a Rolling/Express upgrade can bypass the PreChecks. Default value should be false.
-   *
-   * @return true if RU/EU can bypass PreChecks, otherwise, false.
-   */
-  public boolean isUpgradePrecheckBypass() {
-    return Boolean.parseBoolean(properties.getProperty(STACK_UPGRADE_BYPASS_PRECHECKS_KEY, STACK_UPGRADE_BYPASS_PRECHECKS_DEFAULT));
   }
 
   /**
@@ -1371,17 +1319,12 @@ public class Configuration {
   public String getDatabasePassword() {
     String passwdProp = properties.getProperty(SERVER_JDBC_USER_PASSWD_KEY);
     String dbpasswd = null;
-    boolean isPasswordAlias = false;
     if (CredentialProvider.isAliasString(passwdProp)) {
       dbpasswd = readPasswordFromStore(passwdProp);
-      isPasswordAlias =true;
     }
 
     if (dbpasswd != null) {
       return dbpasswd;
-    } else if (dbpasswd == null && isPasswordAlias) {
-      LOG.error("Can't read db password from keystore. Please, check master key was set correctly.");
-      throw new RuntimeException("Can't read db password from keystore. Please, check master key was set correctly.");
     } else {
       return readPasswordFromFile(passwdProp, SERVER_JDBC_USER_PASSWD_DEFAULT);
     }
@@ -1756,22 +1699,6 @@ public class Configuration {
     return customDbProperties;
   }
 
-  /**
-   * @return Custom property for request header size
-   */
-  public int getHttpRequestHeaderSize() {
-    return Integer.parseInt(properties.getProperty(
-        SERVER_HTTP_REQUEST_HEADER_SIZE, String.valueOf(SERVER_HTTP_REQUEST_HEADER_SIZE_DEFAULT)));
-  }
-
-  /**
-   * @return Custom property for response header size
-   */
-  public int getHttpResponseHeaderSize() {
-    return Integer.parseInt(properties.getProperty(
-        SERVER_HTTP_RESPONSE_HEADER_SIZE, String.valueOf(SERVER_HTTP_RESPONSE_HEADER_SIZE_DEFAULT)));
-  }
-
   public Map<String, String> getAmbariProperties() {
 
     Properties properties = readConfigFile();
@@ -1798,75 +1725,6 @@ public class Configuration {
   }
 
   /**
-   * Caching of host role command status summary can be enabled/disabled
-   * through the {@link #SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED} config property.
-   * This method returns the value of {@link #SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED}
-   * config property. If this config property is not defined than returns the default defined by {@link #SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED_DEFAULT}.
-   * @return true if caching is to be enabled otherwise false.
-   */
-  public boolean getHostRoleCommandStatusSummaryCacheEnabled() {
-    String stringValue = properties.getProperty(SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED);
-    boolean value = SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED_DEFAULT;
-    if (stringValue != null) {
-      try {
-        value = Boolean.valueOf(stringValue);
-      }
-      catch (NumberFormatException ignored) {
-      }
-
-    }
-
-    return value;
-  }
-
-  /**
-   * In order to avoid the cache storing host role command status summary objects exhaust
-   * memory we set a max record number allowed for the cache. This limit can be configured
-   * through {@link #SERVER_HRC_STATUS_SUMMARY_CACHE_SIZE} config property. The method returns
-   * the value of this config property. If this config property is not defined than
-   * the default value specified by {@link #SERVER_HRC_STATUS_SUMMARY_CACHE_SIZE_DEFAULT} is returned.
-   * @return the upper limit for the number of cached host role command summaries.
-   */
-  public long getHostRoleCommandStatusSummaryCacheSize() {
-    String stringValue = properties.getProperty(SERVER_HRC_STATUS_SUMMARY_CACHE_SIZE);
-    long value = SERVER_HRC_STATUS_SUMMARY_CACHE_SIZE_DEFAULT;
-    if (stringValue != null) {
-      try {
-        value = Long.valueOf(stringValue);
-      }
-      catch (NumberFormatException ignored) {
-      }
-
-    }
-
-    return value;
-  }
-
-  /**
-   * As a safety measure the cache storing host role command status summaries should auto expire after a while.
-   * The expiry duration is specified through the {@link #SERVER_HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION} config property
-   * expressed in minutes. The method returns the value of this config property. If this config property is not defined than
-   * the default value specified by {@link #SERVER_HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION_DEFAULT}
-   * @return the cache expiry duration in minutes
-   */
-  public long getHostRoleCommandStatusSummaryCacheExpiryDuration() {
-    String stringValue = properties.getProperty(SERVER_HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION);
-    long value = SERVER_HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION_DEFAULT;
-    if (stringValue != null) {
-      try {
-        value = Long.valueOf(stringValue);
-      }
-      catch (NumberFormatException ignored) {
-      }
-
-    }
-
-    return value;
-  }
-
-
-
-  /**
    * @return whether staleConfig's flag is cached.
    */
   public boolean isStaleConfigCacheEnabled() {
@@ -1874,14 +1732,6 @@ public class Configuration {
       properties.getProperty(SERVER_STALE_CONFIG_CACHE_ENABLED_KEY,
         SERVER_STALE_CONFIG_CACHE_ENABLED_DEFAULT);
     return "true".equalsIgnoreCase(stringValue);
-  }
-
-  /**
-   * @return expiration time of stale config cache
-   */
-  public Integer staleConfigCacheExpiration() {
-    return Integer.parseInt(properties.getProperty(SERVER_STALE_CONFIG_CACHE_EXPIRATION_KEY,
-        SERVER_STALE_CONFIG_CACHE_EXPIRATION_DEFAULT));
   }
 
   /**
@@ -1919,22 +1769,6 @@ public class Configuration {
   public Integer getRequestConnectTimeout() {
     return Integer.parseInt(properties.getProperty(REQUEST_CONNECT_TIMEOUT,
                                                    REQUEST_CONNECT_TIMEOUT_DEFAULT));
-  }
-
-  /**
-   * @return The read timeout value for views when trying to access ambari apis
-   */
-  public Integer getViewAmbariRequestReadTimeout() {
-    return Integer.parseInt(properties.getProperty(AMBARI_REQUEST_READ_TIMEOUT,
-      AMBARI_REQUEST_READ_TIMEOUT_DEFAULT));
-  }
-
-  /**
-   * @return The connection timeout value for views when trying to connect to ambari apis
-   */
-  public Integer getViewAmbariRequestConnectTimeout() {
-    return Integer.parseInt(properties.getProperty(AMBARI_REQUEST_CONNECT_TIMEOUT,
-      AMBARI_REQUEST_CONNECT_TIMEOUT_DEFAULT));
   }
 
   public String getExecutionSchedulerConnections() {
@@ -2019,20 +1853,6 @@ public class Configuration {
           "falling back to default value (%s)",
           key, value, defaultValue));
       return defaultValue;
-    }
-  }
-
-  /**
-   * @return default server-side task timeout in seconds.
-   */
-  public Integer getDefaultServerTaskTimeout() {
-    String value = properties.getProperty(SERVER_TASK_TIMEOUT_KEY, SERVER_TASK_TIMEOUT_DEFAULT);
-    if (StringUtils.isNumeric(value)) {
-      return Integer.parseInt(value);
-    } else {
-      LOG.warn("Value of {} ({}) should be a number, falling back to default value ({})",
-          SERVER_TASK_TIMEOUT_KEY, value, SERVER_TASK_TIMEOUT_DEFAULT);
-      return Integer.parseInt(SERVER_TASK_TIMEOUT_DEFAULT);
     }
   }
 
@@ -2216,17 +2036,6 @@ public class Configuration {
   }
 
   /**
-   * Determine whether or not ambari server credentials validation is enabled.
-   *
-   * @return true if ambari server credentials check is enabled
-   */
-  public boolean isKerberosJaasConfigurationCheckEnabled() {
-    return Boolean.parseBoolean(properties.getProperty(
-      KERBEROS_CHECK_JAAS_CONFIGURATION_KEY,
-      KERBEROS_CHECK_JAAS_CONFIGURATION_DEFAULT));
-  }
-
-  /**
    * Gets the type of database by examining the {@link #getDatabaseUrl()} JDBC
    * URL.
    *
@@ -2257,30 +2066,6 @@ public class Configuration {
     }
 
     return databaseType;
-  }
-
-  /**
-   * Gets the schema name of database
-   *
-   * @return the database schema name (can return {@code null} for any DB besides Postgres, MySQL, Oracle).
-   */
-  public String getDatabaseSchema() {
-    DatabaseType databaseType = getDatabaseType();
-    String databaseSchema;
-
-    if (databaseType.equals(DatabaseType.POSTGRES)) {
-      databaseSchema = getServerJDBCPostgresSchemaName();
-    } else if (databaseType.equals(DatabaseType.MYSQL)) {
-      databaseSchema = getServerDBName();
-    } else if (databaseType.equals(DatabaseType.ORACLE)) {
-      databaseSchema = getDatabaseUser();
-    } else if (databaseType.equals(DatabaseType.DERBY)) {
-      databaseSchema = DEFAULT_DERBY_SCHEMA;
-    } else {
-      databaseSchema = null;
-    }
-
-    return databaseSchema;
   }
 
   /**
@@ -2509,14 +2294,6 @@ public class Configuration {
   }
 
   /**
-   * Ambari server temp dir
-   * @return server temp dir
-   */
-  public String getServerTempDir() {
-    return properties.getProperty(SERVER_TMP_DIR_KEY, SERVER_TMP_DIR_DEFAULT);
-  }
-
-  /**
    * Gets whether to use experiemental concurrent processing to convert
    * {@link StageEntity} instances into {@link Stage} instances. The default is
    * {@code false}.
@@ -2571,15 +2348,6 @@ public class Configuration {
   }
 
   /**
-   * Get the ambari display URL
-   * @return
-   */
-  public String getAmbariDisplayUrl() {
-    return properties.getProperty(AMBARI_DISPLAY_URL, null);
-  }
-
-
-  /**
    * @return number of retry attempts for api and blueprint operations
    */
   public int getOperationsRetryAttempts() {
@@ -2598,13 +2366,5 @@ public class Configuration {
       LOG.info("Operations retry enabled. Number of retry attempts: {}", attempts);
     }
     return attempts;
-  }
-
-  public String getAgentStackRetryOnInstallCount(){
-    return properties.getProperty(AGENT_STACK_RETRY_COUNT_KEY, AGENT_STACK_RETRY_COUNT_DEFAULT);
-  }
-
-  public String isAgentStackRetryOnInstallEnabled(){
-    return properties.getProperty(AGENT_STACK_RETRY_ON_REPO_UNAVAILABILITY_KEY, AGENT_STACK_RETRY_ON_REPO_UNAVAILABILITY_DEFAULT);
   }
 }

@@ -230,36 +230,18 @@
   </property>
   <property>
     <name>phoenix.query.timeoutMs</name>
-    <value>300000</value>
+    <value>1200000</value>
     <description>
       Number of milliseconds after which a query will timeout on the client.
-      Default is 5 min.
-    </description>
-  </property>
-  <property>
-    <name>phoenix.query.keepAliveMs</name>
-    <value>300000</value>
-    <description>
-      Number of milliseconds after which a query will keep the connection to HBase alive.
-      Default is 5 min.
+      Default is 10 min.
     </description>
   </property>
   <property>
     <name>hbase.client.scanner.timeout.period</name>
-    <value>300000</value>
+    <value>900000</value>
     <description>
       Client scanner lease period in milliseconds.
     </description>
-  </property>
-  <property>
-    <name>hbase.rpc.timeout</name>
-    <value>30000</value>
-    <description>
-      This is for the RPC layer to define how long HBase client applications
-      take for a remote call to time out. It uses pings to check connections
-      but will eventually throw a TimeoutException.
-    </description>
-    <display-name>HBase RPC Timeout</display-name>
   </property>
   <property>
     <name>hbase.regionserver.thread.compaction.large</name>
@@ -315,6 +297,10 @@
       number of bytes. Value is checked by a thread that runs every
       hbase.server.thread.wakefrequency.
     </description>
+  </property>
+  <property>
+    <name>phoenix.query.spoolThresholdBytes</name>
+    <value>12582912</value>
   </property>
   <property>
     <name>hbase.snapshot.enabled</name>

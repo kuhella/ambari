@@ -24,6 +24,7 @@ import backtype.storm.generated.TopologySummary;
 import backtype.storm.metric.IClusterReporter;
 import backtype.storm.utils.NimbusClient;
 import backtype.storm.utils.Utils;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
@@ -39,7 +40,9 @@ import java.util.Map;
 public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
   implements IClusterReporter {
 
-  public static final String METRICS_COLLECTOR_CATEGORY = "metrics_collector";
+  public static final String COLLECTOR_HOST = "host";
+  public static final String COLLECTOR_PORT = "port";
+  public static final String METRICS_COLLECTOR = "metrics_collector";
   public static final String APP_ID = "appId";
 
   private String hostname;
@@ -76,25 +79,20 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
         LOG.error("Could not identify hostname.");
         throw new RuntimeException("Could not identify hostname.", e);
       }
-      Validate.notNull(conf.get(METRICS_COLLECTOR_CATEGORY), METRICS_COLLECTOR_CATEGORY + " can not be null");
-      Map cf = (Map) conf.get(METRICS_COLLECTOR_CATEGORY);
+      Validate.notNull(conf.get(METRICS_COLLECTOR), METRICS_COLLECTOR + " can not be null");
+      Map cf = (Map) conf.get(METRICS_COLLECTOR);
       Map stormConf = Utils.readStormConfig();
       this.nimbusClient = NimbusClient.getConfiguredClient(stormConf);
-      String collector = cf.get(COLLECTOR_PROPERTY).toString();
+      String collectorHostname = cf.get(COLLECTOR_HOST).toString();
+      String port = cf.get(COLLECTOR_PORT).toString();
       timeoutSeconds = cf.get(METRICS_POST_TIMEOUT_SECONDS) != null ?
         Integer.parseInt(cf.get(METRICS_POST_TIMEOUT_SECONDS).toString()) :
         DEFAULT_POST_TIMEOUT_SECONDS;
       applicationId = cf.get(APP_ID).toString();
-      collectorUri = collector + WS_V1_TIMELINE_METRICS;
-      if (collectorUri.toLowerCase().startsWith("https://")) {
-        String trustStorePath = cf.get(SSL_KEYSTORE_PATH_PROPERTY).toString().trim();
-        String trustStoreType = cf.get(SSL_KEYSTORE_TYPE_PROPERTY).toString().trim();
-        String trustStorePwd = cf.get(SSL_KEYSTORE_PASSWORD_PROPERTY).toString().trim();
-        loadTruststore(trustStorePath, trustStoreType, trustStorePwd);
-      }
+      collectorUri = "http://" + collectorHostname + ":" + port + "/ws/v1/timeline/metrics";
     } catch (Exception e) {
-      LOG.warn("Could not initialize metrics collector, please specify " +
-        "protocol, host, port under $STORM_HOME/conf/config.yaml ", e);
+      LOG.warn("Could not initialize metrics collector, please specify host, " +
+        "port under $STORM_HOME/conf/config.yaml ", e);
     }
 
   }
@@ -155,6 +153,8 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
     timelineMetric.setHostName(hostname);
     timelineMetric.setAppId(component);
     timelineMetric.setStartTime(currentTimeMillis);
+    timelineMetric.setType(ClassUtils.getShortCanonicalName(
+      attributeValue, "Number"));
     timelineMetric.getMetricValues().put(currentTimeMillis, Double.parseDouble(attributeValue));
     return timelineMetric;
   }

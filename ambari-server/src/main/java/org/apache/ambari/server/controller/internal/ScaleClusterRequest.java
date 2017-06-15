@@ -19,11 +19,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.topology.Blueprint;
@@ -31,15 +26,16 @@ import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.TopologyValidator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A request for a scaling an existing cluster.
  */
 public class ScaleClusterRequest extends BaseClusterRequest {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(ScaleClusterRequest.class);
 
   /**
    * cluster name
@@ -179,22 +175,8 @@ public class ScaleClusterRequest extends BaseClusterRequest {
         throw new InvalidTopologyTemplateException("Invalid host group specified in request: " + hgName);
       }
       hostGroupInfo.addHost(hostName);
-      hostGroupInfo.addHostRackInfo(hostName, processRackInfo(properties));
     }
   }
-
-  private String processRackInfo(Map<String, Object> properties) {
-    String rackInfo = null;
-    if (properties.containsKey(HostResourceProvider.HOST_RACK_INFO_PROPERTY_ID)) {
-      rackInfo = (String) properties.get(HostResourceProvider.HOST_RACK_INFO_PROPERTY_ID);
-    } else if (properties.containsKey(HostResourceProvider.HOST_RACK_INFO_NO_CATEGORY_PROPERTY_ID)) {
-      rackInfo = (String) properties.get(HostResourceProvider.HOST_RACK_INFO_NO_CATEGORY_PROPERTY_ID);
-    } else {
-      LOGGER.debug("No rack info provided");
-    }
-    return rackInfo;
-  }
-
 
   /**
    * Parse blueprint.

@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -51,32 +50,20 @@ public abstract class HdfsService {
   }
 
   /**
-   * Wrapper for json mapping of result of Multi Remove Request
+   * Wrapper for json mapping of bool response
    */
   @XmlRootElement
-  public static class FileOperationResult {
+  public static class BoolResult{
     public boolean success;
     public String message;
-    public List<String> succeeded;
-    public List<String> failed;
-    public List<String> unprocessed;
-
-    public FileOperationResult(boolean success) {
+    public BoolResult(boolean success){
       this.success = success;
     }
 
-    public FileOperationResult(boolean success, String message) {
-      this(success);
+    public BoolResult(boolean success, String message){
+      this.success = success;
       this.message = message;
     }
-
-    public FileOperationResult(boolean success, String message, List<String> succeeded, List<String> failed, List<String> unprocessed) {
-      this(success, message);
-      this.succeeded = succeeded;
-      this.failed = failed;
-      this.unprocessed = unprocessed;
-    }
-
   }
 
   private HdfsApi _api = null;

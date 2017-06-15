@@ -94,8 +94,4 @@ public class TimelineClusterMetric {
       ", timestamp=" + timestamp +
       '}';
   }
-
-  public void setTimestamp(long timestamp) {
-    this.timestamp = timestamp;
-  }
 }

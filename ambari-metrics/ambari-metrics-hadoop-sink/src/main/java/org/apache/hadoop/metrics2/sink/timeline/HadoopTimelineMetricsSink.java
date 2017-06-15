@@ -17,20 +17,6 @@
  */
 package org.apache.hadoop.metrics2.sink.timeline;
 
-import org.apache.commons.configuration.SubsetConfiguration;
-import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.classification.InterfaceAudience;
-import org.apache.hadoop.classification.InterfaceStability;
-import org.apache.hadoop.metrics2.AbstractMetric;
-import org.apache.hadoop.metrics2.MetricType;
-import org.apache.hadoop.metrics2.MetricsRecord;
-import org.apache.hadoop.metrics2.MetricsSink;
-import org.apache.hadoop.metrics2.MetricsTag;
-import org.apache.hadoop.metrics2.impl.MsInfo;
-import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
-import org.apache.hadoop.metrics2.util.Servers;
-import org.apache.hadoop.net.DNS;
-
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -41,6 +27,21 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.commons.configuration.SubsetConfiguration;
+import org.apache.commons.lang.ClassUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.hadoop.classification.InterfaceAudience;
+import org.apache.hadoop.classification.InterfaceStability;
+import org.apache.hadoop.metrics2.AbstractMetric;
+import org.apache.hadoop.metrics2.MetricsRecord;
+import org.apache.hadoop.metrics2.MetricsSink;
+import org.apache.hadoop.metrics2.MetricsTag;
+import org.apache.hadoop.metrics2.MetricType;
+import org.apache.hadoop.metrics2.impl.MsInfo;
+import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
+import org.apache.hadoop.metrics2.util.Servers;
+import org.apache.hadoop.net.DNS;
 
 @InterfaceAudience.Public
 @InterfaceStability.Evolving
@@ -54,13 +55,9 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
   private static final String SERVICE_NAME_PREFIX = "serviceName-prefix";
   private static final String SERVICE_NAME = "serviceName";
   private int timeoutSeconds = 10;
-  private SubsetConfiguration conf;
-  // Cache the rpc port used and the suffix to use if the port tag is found
-  private Map<String, String> rpcPortSuffixes = new HashMap<>(10);
 
   @Override
   public void init(SubsetConfiguration conf) {
-    this.conf = conf;
     LOG.info("Initializing Timeline metrics sink.");
 
     // Take the hostname from the DNS class.
@@ -82,18 +79,13 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
     LOG.info("Identified hostname = " + hostName + ", serviceName = " + serviceName);
 
     // Load collector configs
-    metricsServers = Servers.parse(conf.getString(COLLECTOR_PROPERTY), 6188);
+    metricsServers = Servers.parse(conf.getString(COLLECTOR_HOST_PROPERTY), 6188);
 
     if (metricsServers == null || metricsServers.isEmpty()) {
       LOG.error("No Metric collector configured.");
     } else {
-      collectorUri = conf.getString(COLLECTOR_PROPERTY).trim() + WS_V1_TIMELINE_METRICS;
-      if (collectorUri.toLowerCase().startsWith("https://")) {
-        String trustStorePath = conf.getString(SSL_KEYSTORE_PATH_PROPERTY).trim();
-        String trustStoreType = conf.getString(SSL_KEYSTORE_TYPE_PROPERTY).trim();
-        String trustStorePwd = conf.getString(SSL_KEYSTORE_PASSWORD_PROPERTY).trim();
-        loadTruststore(trustStorePath, trustStoreType, trustStorePwd);
-      }
+      collectorUri = "http://" + conf.getString(COLLECTOR_HOST_PROPERTY).trim()
+          + "/ws/v1/timeline/metrics";
     }
 
     LOG.info("Collector Uri: " + collectorUri);
@@ -104,47 +96,32 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
       TimelineMetricsCache.MAX_RECS_PER_NAME_DEFAULT);
     int metricsSendInterval = conf.getInt(METRICS_SEND_INTERVAL,
       TimelineMetricsCache.MAX_EVICTION_TIME_MILLIS); // ~ 1 min
-    // Skip aggregation of counter values by calculating derivative
-    metricsCache = new TimelineMetricsCache(maxRowCacheSize,
-      metricsSendInterval, conf.getBoolean(SKIP_COUNTER_TRANSFROMATION, true));
+    metricsCache = new TimelineMetricsCache(maxRowCacheSize, metricsSendInterval);
 
     conf.setListDelimiter(',');
     Iterator<String> it = (Iterator<String>) conf.getKeys();
     while (it.hasNext()) {
       String propertyName = it.next();
-      if (propertyName != null) {
-        if (propertyName.startsWith(TAGS_FOR_PREFIX_PROPERTY_PREFIX)) {
-          String contextName = propertyName.substring(TAGS_FOR_PREFIX_PROPERTY_PREFIX.length());
-          String[] tags = conf.getStringArray(propertyName);
-          boolean useAllTags = false;
-          Set<String> set = null;
-          if (tags.length > 0) {
-            set = new HashSet<String>();
-            for (String tag : tags) {
-              tag = tag.trim();
-              useAllTags |= tag.equals("*");
-              if (tag.length() > 0) {
-                set.add(tag);
-              }
-            }
-            if (useAllTags) {
-              set = null;
+      if (propertyName != null && propertyName.startsWith(TAGS_FOR_PREFIX_PROPERTY_PREFIX)) {
+        String contextName = propertyName.substring(TAGS_FOR_PREFIX_PROPERTY_PREFIX.length());
+        String[] tags = conf.getStringArray(propertyName);
+        boolean useAllTags = false;
+        Set<String> set = null;
+        if (tags.length > 0) {
+          set = new HashSet<String>();
+          for (String tag : tags) {
+            tag = tag.trim();
+            useAllTags |= tag.equals("*");
+            if (tag.length() > 0) {
+              set.add(tag);
             }
           }
-          useTagsMap.put(contextName, set);
+          if (useAllTags) {
+            set = null;
+          }
         }
-        // Customized RPC ports
-        if (propertyName.startsWith(RPC_METRIC_PREFIX)) {
-          // metric.rpc.client.port
-          int beginIdx = RPC_METRIC_PREFIX.length() + 1;
-          String suffixStr = propertyName.substring(beginIdx); // client.port
-          String configPrefix = suffixStr.substring(0, suffixStr.indexOf(".")); // client
-          rpcPortSuffixes.put(conf.getString(propertyName).trim(), configPrefix.trim());
-        }
+        useTagsMap.put(contextName, set);
       }
-    }
-    if (!rpcPortSuffixes.isEmpty()) {
-      LOG.info("RPC port properties configured: " + rpcPortSuffixes);
     }
   }
 
@@ -188,41 +165,14 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
       StringBuilder sb = new StringBuilder();
       sb.append(contextName);
       sb.append('.');
-      // Similar to GangliaContext adding processName to distinguish jvm
-      // metrics for co-hosted daemons. We only do this for HBase since the
-      // appId is shared for Master and RS.
-      if (contextName.equals("jvm")) {
-        if (record.tags() != null) {
-          for (MetricsTag tag : record.tags()) {
-            if (tag.info().name().equalsIgnoreCase("processName") &&
-               (tag.value().equals("RegionServer") || tag.value().equals("Master"))) {
-              sb.append(tag.value());
-              sb.append('.');
-            }
-          }
-        }
-      }
-
       sb.append(recordName);
+
       appendPrefix(record, sb);
-      sb.append('.');
-
-      // Add port tag for rpc metrics to distinguish rpc calls based on port
-      if (!rpcPortSuffixes.isEmpty() && contextName.contains("rpc")) {
-        if (record.tags() != null) {
-          for (MetricsTag tag : record.tags()) {
-            if (tag.info().name().equalsIgnoreCase("port") &&
-                rpcPortSuffixes.keySet().contains(tag.value())) {
-              sb.append(rpcPortSuffixes.get(tag.value()));
-              sb.append('.');
-            }
-          }
-        }
-      }
-
+      sb.append(".");
       int sbBaseLen = sb.length();
 
-      Collection<AbstractMetric> metrics = (Collection<AbstractMetric>) record.metrics();
+      Collection<AbstractMetric> metrics =
+        (Collection<AbstractMetric>) record.metrics();
 
       List<TimelineMetric> metricList = new ArrayList<TimelineMetric>();
       long startTime = record.timestamp();
@@ -236,7 +186,7 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
         timelineMetric.setHostName(hostName);
         timelineMetric.setAppId(serviceName);
         timelineMetric.setStartTime(startTime);
-        timelineMetric.setType(metric.type() != null ? metric.type().name() : null);
+        timelineMetric.setType(ClassUtils.getShortCanonicalName(value, "Number"));
         timelineMetric.getMetricValues().put(startTime, value.doubleValue());
         // Put intermediate values into the cache until it is time to send
         boolean isCounter = MetricType.COUNTER == metric.type();
@@ -290,5 +240,4 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
   public void flush() {
     // TODO: Buffering implementation
   }
-
 }

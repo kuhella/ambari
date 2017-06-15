@@ -26,10 +26,10 @@ from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
-from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries import functions
+
 
 import status_params
 
@@ -135,12 +135,10 @@ yarn_nodemanager_container_executor_class =  config['configurations']['yarn-site
 is_linux_container_executor = (yarn_nodemanager_container_executor_class == 'org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor')
 container_executor_mode = 06050 if is_linux_container_executor else 02050
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
-yarn_http_policy = config['configurations']['yarn-site']['yarn.http.policy']
-yarn_https_on = (yarn_http_policy.upper() == 'HTTPS_ONLY')
 rm_hosts = config['clusterHostInfo']['rm_host']
 rm_host = rm_hosts[0]
 rm_port = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'].split(':')[-1]
-rm_https_port = default('/configurations/yarn-site/yarn.resourcemanager.webapp.https.address', ":8090").split(':')[-1]
+rm_https_port = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.https.address'].split(':')[-1]
 # TODO UPGRADE default, update site during upgrade
 rm_nodes_exclude_path = default("/configurations/yarn-site/yarn.resourcemanager.nodes.exclude-path","/etc/hadoop/conf/yarn.exclude")
 
@@ -261,13 +259,6 @@ hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_nam
 
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
-is_webhdfs_enabled = hdfs_site['dfs.webhdfs.enabled']
-
-# Path to file that contains list of HDFS resources to be skipped during processing
-hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore"
-
-dfs_type = default("/commandParams/dfs_type", "")
-
 
 import functools
 #create partial functions with common arguments for every HdfsResource call
@@ -275,7 +266,6 @@ import functools
 HdfsResource = functools.partial(
   HdfsResource,
   user=hdfs_user,
-  hdfs_resource_ignore_file = hdfs_resource_ignore_file,
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
@@ -283,9 +273,7 @@ HdfsResource = functools.partial(
   hadoop_conf_dir = hadoop_conf_dir,
   principal_name = hdfs_principal_name,
   hdfs_site = hdfs_site,
-  default_fs = default_fs,
-  immutable_paths = get_not_managed_resources(),
-  dfs_type = dfs_type
+  default_fs = default_fs
  )
 update_exclude_file_only = default("/commandParams/update_exclude_file_only",False)
 
@@ -318,6 +306,8 @@ else:
 
 ranger_admin_log_dir = default("/configurations/ranger-env/ranger_admin_log_dir","/var/log/ranger/admin")
 
+yarn_http_policy = config['configurations']['yarn-site']['yarn.http.policy']
+yarn_https_on = (yarn_http_policy.upper() == 'HTTPS_ONLY')
 scheme = 'http' if not yarn_https_on else 'https'
 yarn_rm_address = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'] if not yarn_https_on else config['configurations']['yarn-site']['yarn.resourcemanager.webapp.https.address']
 rm_active_port = rm_https_port if yarn_https_on else rm_port

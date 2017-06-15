@@ -209,7 +209,7 @@ public class GangliaReportPropertyProvider extends MetricsReportPropertyProvider
 
     StringBuilder sb = new StringBuilder();
 
-    if (configuration.isHttpsEnabled()) {
+    if (configuration.isGangliaSSL()) {
       sb.append("https://");
     } else {
       sb.append("http://");

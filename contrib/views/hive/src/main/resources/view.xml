@@ -84,16 +84,6 @@
       <required>false</required>
     </parameter>
 
-    <parameter>
-        <name>hive.metastore.warehouse.dir</name>
-        <description>Hive Metastore directory (example: /apps/hive/warehouse)</description>
-        <label>Hive Metastore directory</label>
-        <placeholder>/apps/hive/warehouse</placeholder>
-        <default-value>/apps/hive/warehouse</default-value>
-        <cluster-config>hive-site/hive.metastore.warehouse.dir</cluster-config>
-        <required>false</required>
-    </parameter>
-
     <!-- HDFS Configs -->
     <parameter>
         <name>webhdfs.url</name>
@@ -174,15 +164,6 @@
         <label>WebHDFS Authentication</label>
         <placeholder>auth=SIMPLE</placeholder>
         <required>false</required>
-    </parameter>
-
-    <parameter>
-        <name>hdfs.umask-mode</name>
-        <description>The umask used when creating files and directories. Defaults to 022</description>
-        <label>Umask</label>
-        <default-value>022</default-value>
-        <required>false</required>
-        <cluster-config>hdfs-site/fs.permissions.umask-mode</cluster-config>
     </parameter>
 
     <parameter>

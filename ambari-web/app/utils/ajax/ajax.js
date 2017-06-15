@@ -624,6 +624,26 @@ var urls = {
       }
     }
   },
+  'service.item.immediateStopHawqCluster': {
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          RequestInfo: {
+            'context': data.context,
+            'command': data.command
+          },
+          "Requests/resource_filters": [{
+            "service_name": data.serviceName,
+            "component_name": data.componentName,
+            'hosts': data.hosts
+          }]
+        })
+      }
+    }
+  },
   /*************************CONFIG THEME****************************************/
 
   'configs.theme': {
@@ -1110,7 +1130,7 @@ var urls = {
     'testInProduction': true
   },
   'service.metrics.hdfs.rpc': {
-    'real': '/clusters/{clusterName}/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/rpc/client/RpcQueueTime_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/rpc/RpcQueueTime_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/hdfs/rpc.json',
     'testInProduction': true
   },
@@ -1461,21 +1481,6 @@ var urls = {
     }
   },
 
-  'admin.kerberize.cluster.force': {
-    'type': 'PUT',
-    'real': '/clusters/{clusterName}?force_toggle_kerberos=true',
-    'mock': '/data/wizard/kerberos/kerberize_cluster.json',
-    'format': function (data) {
-      return {
-        data: JSON.stringify({
-          Clusters: {
-            security_type: "KERBEROS"
-          }
-        })
-      }
-    }
-  },
-
   'admin.unkerberize.cluster.skip': {
     'type': 'PUT',
     'real': '/clusters/{clusterName}?manage_kerberos_identities=false',
@@ -1576,7 +1581,6 @@ var urls = {
     'Upgrade/progress_percent,Upgrade/request_context,Upgrade/request_status,Upgrade/direction,Upgrade/downgrade_allowed,' +
     'upgrade_groups/UpgradeGroup,' +
     'upgrade_groups/upgrade_items/UpgradeItem/status,' +
-    'upgrade_groups/upgrade_items/UpgradeItem/display_status,' +
     'upgrade_groups/upgrade_items/UpgradeItem/context,' +
     'upgrade_groups/upgrade_items/UpgradeItem/group_id,' +
     'upgrade_groups/upgrade_items/UpgradeItem/progress_percent,' +
@@ -1664,30 +1668,8 @@ var urls = {
     'format': function (data) {
       return {
         data: JSON.stringify({
-          "RequestInfo": {
-            "downgrade": data.isDowngrade
-          },
           "Upgrade": {
-            "request_status": "ABORTED",
-            "suspended": "false"
-          }
-        })
-      }
-    }
-  },
-  'admin.upgrade.suspend': {
-    'real': '/clusters/{clusterName}/upgrades/{upgradeId}',
-    'mock': '',
-    'type': 'PUT',
-    'format': function (data) {
-      return {
-        data: JSON.stringify({
-          "RequestInfo": {
-            "downgrade": data.isDowngrade
-          },
-          "Upgrade": {
-            "request_status": "ABORTED",
-            "suspended": "true"
+            "request_status": "ABORTED"
           }
         })
       }
@@ -1816,7 +1798,12 @@ var urls = {
   },
   'wizard.service_components': {
     'real': '{stackUrl}/services?fields=StackServices/*,components/*,components/dependencies/Dependencies/scope,artifacts/Artifacts/artifact_name',
-    'mock': '/data/stacks/HDP-2.1/service_components.json'
+    'mock': '/data/stacks/HDP-2.1/service_components.json',
+    'format': function (data) {
+      return {
+        timeout: 10000
+      };
+    }
   },
   'wizard.step9.installer.get_host_status': {
     'real': '/clusters/{cluster}/hosts?fields=Hosts/host_state,host_components/HostRoles/state',
@@ -2991,18 +2978,6 @@ var ajax = Em.Object.extend({
    */
   defaultErrorKDCHandler: function(opt, msg) {
     return App.showInvalidKDCPopup(opt, msg);
-  },
-
-  /**
-   * Abort all requests stored in the certain array
-   * @param requestsArray
-   */
-  abortRequests: function (requestsArray) {
-    requestsArray.forEach(function (xhr) {
-      xhr.isForcedAbort = true;
-      xhr.abort();
-    });
-    requestsArray.clear();
   }
 
 });

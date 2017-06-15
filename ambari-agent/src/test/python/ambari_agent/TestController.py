@@ -545,6 +545,8 @@ class TestController(unittest.TestCase):
     response["restartAgent"] = "false"
     self.controller.heartbeatWithServer()
 
+    event_mock.assert_any_call(timeout=
+      self.controller.netutil.MINIMUM_INTERVAL_BETWEEN_HEARTBEATS)
 
     # Check that server continues to heartbeat after connection errors
     self.controller.responseId = 1
@@ -563,6 +565,9 @@ class TestController(unittest.TestCase):
     sendRequest.side_effect = util_throw_IOErrors
     self.controller.heartbeatWithServer()
     self.assertTrue(sendRequest.call_count > 5)
+
+    event_mock.assert_called_with(timeout=
+      self.controller.netutil.MINIMUM_INTERVAL_BETWEEN_HEARTBEATS)
 
     sys.stdout = sys.__stdout__
     self.controller.sendRequest = Controller.Controller.sendRequest

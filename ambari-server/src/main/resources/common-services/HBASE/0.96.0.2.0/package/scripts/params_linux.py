@@ -24,7 +24,6 @@ from functions import calc_xmn_from_xms, ensure_unit_for_memory
 
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from ambari_commons.os_check import OSCheck
-from ambari_commons.str_utils import cbool, cint
 
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import conf_select
@@ -35,7 +34,6 @@ from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import is_empty
 from resource_management.libraries.functions import get_unique_id_and_date
-from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.script.script import Script
 
 
@@ -45,9 +43,6 @@ exec_tmp_dir = Script.get_tmp_dir()
 sudo = AMBARI_SUDO_BINARY
 
 stack_name = default("/hostLevelParams/stack_name", None)
-agent_stack_retry_on_unavailability = cbool(default("/hostLevelParams/agent_stack_retry_on_unavailability", None))
-agent_stack_retry_count = cint(default("/hostLevelParams/agent_stack_retry_count", None))
-
 version = default("/commandParams/version", None)
 component_directory = status_params.component_directory
 etc_prefix_dir = "/etc/hbase"
@@ -155,22 +150,14 @@ if has_metric_collector:
       'metrics_collector_vip_port' in config['configurations']['cluster-env']:
     metric_collector_port = config['configurations']['cluster-env']['metrics_collector_vip_port']
   else:
-    metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "localhost:6188")
+    metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188")
     if metric_collector_web_address.find(':') != -1:
       metric_collector_port = metric_collector_web_address.split(':')[1]
     else:
       metric_collector_port = '6188'
-  if default("/configurations/ams-site/timeline.metrics.service.http.policy", "HTTP_ONLY") == "HTTPS_ONLY":
-    metric_collector_protocol = 'https'
-  else:
-    metric_collector_protocol = 'http'
-  metric_truststore_path= default("/configurations/ams-ssl-client/ssl.client.truststore.location", "")
-  metric_truststore_type= default("/configurations/ams-ssl-client/ssl.client.truststore.type", "")
-  metric_truststore_password= default("/configurations/ams-ssl-client/ssl.client.truststore.password", "")
-
   pass
 metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
-metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 10)
+metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 60)
 
 # if hbase is selected the hbase_rs_hosts, should not be empty, but still default just in case
 if 'slave_hosts' in config['clusterHostInfo']:
@@ -201,11 +188,9 @@ kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executab
 if security_enabled:
   kinit_cmd = format("{kinit_path_local} -kt {hbase_user_keytab} {hbase_principal_name};")
   kinit_cmd_master = format("{kinit_path_local} -kt {master_keytab_path} {master_jaas_princ};")
-  master_security_config = format("-Djava.security.auth.login.config={hbase_conf_dir}/hbase_master_jaas.conf")
 else:
   kinit_cmd = ""
   kinit_cmd_master = ""
-  master_security_config = ""
 
 #log4j.properties
 if (('hbase-log4j' in config['configurations']) and ('content' in config['configurations']['hbase-log4j'])):
@@ -227,16 +212,12 @@ hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_nam
 
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
-
-dfs_type = default("/commandParams/dfs_type", "")
-
 import functools
 #create partial functions with common arguments for every HdfsResource call
 #to create/delete hdfs directory/file/copyfromlocal we need to call params.HdfsResource in code
 HdfsResource = functools.partial(
   HdfsResource,
   user=hdfs_user,
-  hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore",
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
@@ -244,9 +225,7 @@ HdfsResource = functools.partial(
   hadoop_conf_dir = hadoop_conf_dir,
   principal_name = hdfs_principal_name,
   hdfs_site = hdfs_site,
-  default_fs = default_fs,
-  immutable_paths = get_not_managed_resources(),
-  dfs_type = dfs_type
+  default_fs = default_fs
 )
 
 # ranger host
@@ -352,3 +331,19 @@ if has_ranger_admin:
   #For SQLA explicitly disable audit to DB for Ranger
   if xa_audit_db_flavor == 'sqla':
     xa_audit_db_is_enabled = False
+
+# Used to dynamically set the hbase-site props that are referenced during Kerberization
+if security_enabled:
+  if not enable_ranger_hbase: # Default props, no ranger plugin
+    hbase_coprocessor_master_classes = "org.apache.hadoop.hbase.security.access.AccessController"
+    hbase_coprocessor_regionserver_classes = "org.apache.hadoop.hbase.security.access.AccessController"
+    hbase_coprocessor_region_classes = "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,org.apache.hadoop.hbase.security.access.AccessController"
+  elif xml_configurations_supported: # HDP stack 2.3+ ranger plugin enabled
+    hbase_coprocessor_master_classes = "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor "
+    hbase_coprocessor_regionserver_classes = "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor"
+    hbase_coprocessor_region_classes = "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor"
+  else: # HDP Stack 2.2 and less / ranger plugin enabled
+    hbase_coprocessor_master_classes = "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
+    hbase_coprocessor_regionserver_classes = "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
+    hbase_coprocessor_region_classes = "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
+

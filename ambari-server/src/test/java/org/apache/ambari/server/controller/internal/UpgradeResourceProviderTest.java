@@ -27,7 +27,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -58,13 +57,11 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
@@ -113,7 +110,6 @@ import com.google.inject.util.Modules;
 public class UpgradeResourceProviderTest {
 
   private UpgradeDAO upgradeDao = null;
-  private RequestDAO requestDao = null;
   private RepositoryVersionDAO repoVersionDao = null;
   private Injector injector;
   private Clusters clusters;
@@ -160,7 +156,6 @@ public class UpgradeResourceProviderTest {
 
     stackDAO = injector.getInstance(StackDAO.class);
     upgradeDao = injector.getInstance(UpgradeDAO.class);
-    requestDao = injector.getInstance(RequestDAO.class);
     repoVersionDao = injector.getInstance(RepositoryVersionDAO.class);
 
     AmbariEventPublisher publisher = createNiceMock(AmbariEventPublisher.class);
@@ -560,13 +555,6 @@ public class UpgradeResourceProviderTest {
 
     // a downgrade MUST have an upgrade to come from, so populate an upgrade in
     // the DB
-    RequestEntity requestEntity = new RequestEntity();
-    requestEntity.setRequestId(2L);
-    requestEntity.setClusterId(cluster.getClusterId());
-    requestEntity.setStatus(HostRoleStatus.PENDING);
-    requestEntity.setStages(new ArrayList<StageEntity>());
-    requestDao.create(requestEntity);
-
     UpgradeEntity upgradeEntity = new UpgradeEntity();
     upgradeEntity.setClusterId(cluster.getClusterId());
     upgradeEntity.setDirection(Direction.UPGRADE);
@@ -574,7 +562,7 @@ public class UpgradeResourceProviderTest {
     upgradeEntity.setToVersion("2.2.2.2");
     upgradeEntity.setUpgradePackage("upgrade_test");
     upgradeEntity.setUpgradeType(UpgradeType.ROLLING);
-    upgradeEntity.setRequestId(2L);
+    upgradeEntity.setRequestId(1L);
 
     upgradeDao.create(upgradeEntity);
     upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
@@ -696,7 +684,6 @@ public class UpgradeResourceProviderTest {
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_ID, id.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_STATUS, "ABORTED");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_SUSPENDED, "true");
 
     UpgradeResourceProvider urp = createProvider(amc);
 
@@ -720,7 +707,6 @@ public class UpgradeResourceProviderTest {
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_ID, id.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_STATUS, "ABORTED");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_SUSPENDED, "true");
 
     UpgradeResourceProvider urp = createProvider(amc);
 
@@ -752,32 +738,12 @@ public class UpgradeResourceProviderTest {
     requestProps = new HashMap<String, Object>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_ID, id.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_STATUS, "PENDING");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_SUSPENDED, "false");
 
     // !!! make sure we can.  actual reset is tested elsewhere
     req = PropertyHelper.getUpdateRequest(requestProps, null);
     urp.updateResources(req, null);
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testAbortWithoutSuspendFlag() throws Exception {
-    RequestStatus status = testCreateResources();
-
-    Set<Resource> createdResources = status.getAssociatedResources();
-    assertEquals(1, createdResources.size());
-    Resource res = createdResources.iterator().next();
-    Long id = (Long) res.getPropertyValue("Upgrade/request_id");
-    assertNotNull(id);
-    assertEquals(Long.valueOf(1), id);
-
-    Map<String, Object> requestProps = new HashMap<String, Object>();
-    requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_ID, id.toString());
-    requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_STATUS, "ABORTED");
-
-    UpgradeResourceProvider urp = createProvider(amc);
-    Request req = PropertyHelper.getUpdateRequest(requestProps, null);
-    urp.updateResources(req, null);
-  }
 
   @Test
   public void testDirectionUpgrade() throws Exception {

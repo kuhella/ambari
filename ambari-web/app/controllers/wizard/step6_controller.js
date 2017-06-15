@@ -72,18 +72,6 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
   submitDisabled: false,
 
   /**
-   * timer for validation request
-   */
-  timer: null,
-
-  /**
-   * true if request for validation is in progress
-   *
-   * @type {bool}
-   */
-  validationInProgress: false,
-
-  /**
    * Check if <code>addHostWizard</code> used
    * @type {bool}
    */
@@ -314,7 +302,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
         if (serviceComponent.get('isShownOnInstallerSlaveClientPage')) {
           headers.pushObject(Em.Object.create({
             name: serviceComponent.get('componentName'),
-            label: App.format.role(serviceComponent.get('componentName'), false),
+            label: App.format.role(serviceComponent.get('componentName')),
             allChecked: false,
             isRequired: serviceComponent.get('isRequired'),
             noChecked: true,
@@ -328,7 +316,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
     if (this.get('content.clients') && !!this.get('content.clients').length) {
       headers.pushObject(Em.Object.create({
         name: 'CLIENT',
-        label: App.format.role('CLIENT', false),
+        label: App.format.role('CLIENT'),
         allChecked: false,
         noChecked: true,
         isDisabled: false,
@@ -575,24 +563,15 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
   },
 
   callValidation: function (successCallback) {
-    var self = this;
-    clearTimeout(this.get('timer'));
-    if (this.get('validationInProgress')) {
-      this.set('timer', setTimeout(function () {
-        self.callValidation(successCallback);
-      }, 700));
-    } else {
-      this.callServerSideValidation(successCallback);
-    }
+    this.callServerSideValidation(successCallback);
   },
 
   /**
    * Update submit button status
-   * @method callServerSideValidation
+   * @metohd callServerSideValidation
    */
   callServerSideValidation: function (successCallback) {
     var self = this;
-    this.set('validationInProgress', true);
 
     var selectedServices = App.StackService.find().filterProperty('isSelected').mapProperty('serviceName');
     var installedServices = App.StackService.find().filterProperty('isInstalled').mapProperty('serviceName');
@@ -652,7 +631,6 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
       error: 'updateValidationsErrorCallback'
     }).
       then(function () {
-        self.set('validationInProgress', false);
         if (!self.get('submitDisabled') && successCallback) {
           successCallback();
         }

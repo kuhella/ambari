@@ -54,13 +54,10 @@ public class ProxyHelper {
       URLConnectionProvider provider = viewContext.getURLConnectionProvider();
       HttpURLConnection connection = provider.getConnectionAsCurrent(url, "GET", (String) null, headers);
 
-      if (!(connection.getResponseCode() >= 200 && connection.getResponseCode() < 300)) {
+      if(connection.getResponseCode() != Response.Status.OK.getStatusCode()) {
         LOG.error("Failure in fetching results for the URL: {}. Status: {}", url, connection.getResponseCode());
-        String trace = "";
         inputStream = connection.getErrorStream();
-        if (inputStream != null) {
-          trace = IOUtils.toString(inputStream);
-        }
+        String trace = IOUtils.toString(inputStream);
         throw new ProxyException("Failed to fetch results by the proxy from url: " + url, connection.getResponseCode(), trace);
       }
 
