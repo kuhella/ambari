@@ -51,6 +51,7 @@
       DBROOT={{hcat_dbroot}}
       USER={{hcat_user}}
       METASTORE_PORT={{hive_metastore_port}}
+      HIVE_HOME=/usr/lib/hive
     </value>
   </property>
   
