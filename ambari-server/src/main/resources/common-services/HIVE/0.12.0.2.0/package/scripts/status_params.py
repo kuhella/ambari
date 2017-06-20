@@ -59,7 +59,10 @@ else:
   if OSCheck.is_suse_family() or OSCheck.is_ubuntu_family():
     daemon_name = 'mysql'
   else:
-    daemon_name = 'mysqld'
+    if OSCheck.is_redhat7():
+      daemon_name = 'mariadb'
+    else:
+      daemon_name = 'mysqld'
 
   # Security related/required params
   hostname = config['hostname']
