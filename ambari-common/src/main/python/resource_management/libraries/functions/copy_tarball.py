@@ -59,7 +59,7 @@ TARBALL_MAP = {
                   "/hdp/apps/{0}/spark/spark-hdp-assembly.jar".format(STACK_VERSION_PATTERN))
   },
   "ADH": {
-    "tez":       ("/usr/lib/tez/share/tez.tar.gz", "/hdp/apps/tez/tez.tar.gz"),
+    "tez":       ("/usr/lib/tez/share/tez.tar.gz", "/apps/tez/tez.tar.gz"),
   }
 }
 
