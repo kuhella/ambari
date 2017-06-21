@@ -36,7 +36,7 @@ STACK_VERSION_PATTERN = "{{ stack_version }}"
 TARBALL_MAP = {
   "HDP": {
     "slider":      ("/usr/hdp/{0}/slider/lib/slider.tar.gz".format(STACK_VERSION_PATTERN),
-                  "/hdp/apps/{0}/slider/slider.tar.gz".format(STACK_VERSION_PATTERN)),    
+                  "/hdp/apps/{0}/slider/slider.tar.gz".format(STACK_VERSION_PATTERN)),
     "tez":       ("/usr/hdp/{0}/tez/lib/tez.tar.gz".format(STACK_VERSION_PATTERN),
                   "/hdp/apps/{0}/tez/tez.tar.gz".format(STACK_VERSION_PATTERN)),
 
@@ -57,6 +57,9 @@ TARBALL_MAP = {
 
     "spark": ("/usr/hdp/{0}/spark/lib/spark-hdp-assembly.jar".format(STACK_VERSION_PATTERN),
                   "/hdp/apps/{0}/spark/spark-hdp-assembly.jar".format(STACK_VERSION_PATTERN))
+  },
+  "ADH": {
+    "tez":       ("/usr/lib/tez/share/tez.tar.gz", "/apps/tez/tez.tar.gz"),
   }
 }
 
@@ -137,33 +140,6 @@ def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=Non
     Logger.info("Skipping copying {0} to {1} for {2} as its a sys_prepped host.".format(str(source_file), str(dest_file), str(name)))
     return True
 
-  upgrade_direction = default("/commandParams/upgrade_direction", None)
-  is_stack_upgrade = upgrade_direction is not None
-  current_version = default("/hostLevelParams/current_version", None)
-  Logger.info("Default version is {0}".format(current_version))
-  if is_stack_upgrade:
-    if use_upgrading_version_during_uprade:
-      # This is the version going to. In the case of a downgrade, it is the lower version.
-      current_version = default("/commandParams/version", None)
-      Logger.info("Because this is a Stack Upgrade, will use version {0}".format(current_version))
-    else:
-      Logger.info("This is a Stack Upgrade, but keep the version unchanged.")
-  else:
-    if current_version is None:
-      # During normal operation, the first installation of services won't yet know about the version, so must rely
-      # on hdp-select to get it.
-      hdp_version = _get_single_version_from_hdp_select()
-      if hdp_version:
-        Logger.info("Will use stack version {0}".format(hdp_version))
-        current_version = hdp_version
-
-  if current_version is None:
-    message_suffix = "during rolling %s" % str(upgrade_direction) if is_stack_upgrade else ""
-    Logger.warning("Cannot copy {0} tarball because unable to determine current version {1}.".format(name, message_suffix))
-    return False
-
-  source_file = source_file.replace(STACK_VERSION_PATTERN, current_version)
-  dest_file = dest_file.replace(STACK_VERSION_PATTERN, current_version)
   Logger.info("Source file: {0} , Dest file in HDFS: {1}".format(source_file, dest_file))
 
   if not os.path.exists(source_file):
