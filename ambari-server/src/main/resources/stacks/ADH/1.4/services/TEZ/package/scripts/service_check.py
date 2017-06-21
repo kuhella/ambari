@@ -67,8 +67,7 @@ class TezServiceCheckLinux(TezServiceCheck):
       source = format("{tmp_dir}/sample-tez-test"),
     )
 
-    if params.hdp_stack_version and compare_versions(params.hdp_stack_version, '2.2.0.0') >= 0:
-      copy_to_hdfs("tez", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
+    copy_to_hdfs("tez", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
 
     params.HdfsResource(None, action = "execute")
 

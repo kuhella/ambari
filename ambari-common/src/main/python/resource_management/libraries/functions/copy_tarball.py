@@ -36,7 +36,7 @@ STACK_VERSION_PATTERN = "{{ stack_version }}"
 TARBALL_MAP = {
   "HDP": {
     "slider":      ("/usr/hdp/{0}/slider/lib/slider.tar.gz".format(STACK_VERSION_PATTERN),
-                  "/hdp/apps/{0}/slider/slider.tar.gz".format(STACK_VERSION_PATTERN)),    
+                  "/hdp/apps/{0}/slider/slider.tar.gz".format(STACK_VERSION_PATTERN)),
     "tez":       ("/usr/hdp/{0}/tez/lib/tez.tar.gz".format(STACK_VERSION_PATTERN),
                   "/hdp/apps/{0}/tez/tez.tar.gz".format(STACK_VERSION_PATTERN)),
 
@@ -57,6 +57,9 @@ TARBALL_MAP = {
 
     "spark": ("/usr/hdp/{0}/spark/lib/spark-hdp-assembly.jar".format(STACK_VERSION_PATTERN),
                   "/hdp/apps/{0}/spark/spark-hdp-assembly.jar".format(STACK_VERSION_PATTERN))
+  },
+  "ADH": {
+    "tez":       ("/usr/lib/tez/share/tez.tar.gz", "/hdp/apps/tez/tez.tar.gz"),
   }
 }
 
