@@ -58,6 +58,13 @@ version = default("/commandParams/version", None)
 spark_conf = '/etc/spark/conf'
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 
+hadoop_home = "/usr/lib/hadoop"                                                  
+hadoop_bin_dir = hadoop_home + "/bin/"
+spark_home = "/usr/lib/spark"
+spark_conf = spark_home + "/conf"                                               
+spark_log_dir = "/var/log/spark"                                                 
+spark_pid_dir = "/var/run/spark"                                                 
+
 spark_thrift_server_conf_file = spark_conf + "/spark-thrift-sparkconf.conf"
 java_home = config['hostLevelParams']['java_home']
 
