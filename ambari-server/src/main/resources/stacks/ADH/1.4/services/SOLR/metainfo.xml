@@ -10,7 +10,7 @@
                 faceted search, dynamic clustering, database integration, and
                 rich document (e.g., Word, PDF) handling.
             </comment>
-            <version>4.10.4.1.4</version>
+            <version>4.10.4</version>
 
             <components>
                 <component>
@@ -20,7 +20,7 @@
                     <cardinality>1+</cardinality>
                     <versionAdvertised>true</versionAdvertised>
                     <commandScript>
-                        <script>scripts/master.py</script>
+                        <script>scripts/solr.py</script>
                         <scriptType>PYTHON</scriptType>
                         <timeout>5000</timeout>
                     </commandScript>
@@ -33,9 +33,6 @@
                     <packages>
                         <package>
                             <name>solr-server</name>
-                        </package>
-	             <package>
-                            <name>solr-doc</name>
                         </package>
                     </packages>
                 </osSpecific>
@@ -53,11 +50,14 @@
             </commandScript>
 
             <configuration-dependencies>
-                <config-type>solr-config</config-type>
-                <config-type>solr-env</config-type>
-                <config-type>solr-log4j-env</config-type>
-                <config-type>solr-xml-env</config-type>
-                <config-type>solr-zoo-env</config-type>
+                <config-type>solr-config-env</config-type>
+                <config-type>solr-cloud</config-type>
+                <config-type>solr-hdfs</config-type>
+                <config-type>solr-log4j</config-type>
+                <config-type>solr-ssl</config-type>
+                <config-type>example-collection</config-type>
+                <config-type>solr-security</config-type>
+                <config-type>solr-metrics</config-type>
             </configuration-dependencies>
             <restartRequiredAfterChange>true</restartRequiredAfterChange>
 
