@@ -27,6 +27,6 @@ if [ ! -f "$PID_FILE" ]
 then
 	cd $START_PATH
 	echo "Starting Solr..."	
-	./solrd start >> $LOGFILE 2>&1 &	
+	./solr start >> $LOGFILE 2>&1 &	
 	echo $! > $PID_FILE
 fi

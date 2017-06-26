@@ -72,21 +72,6 @@ class Master(Script):
     import params
     env.set_params(params)
     
-    #write content in jinja text field to solr.in.sh
-    env_content=InlineTemplate(params.solr_env_content)
-    File(format("{solr_conf}/solr.in.sh"), content=env_content, owner=params.solr_user)    
-
-    
-    xml_content=InlineTemplate(params.solr_xml_content)    
-    File(format("{solr_datadir}/solr.xml"), content=xml_content, owner=params.solr_user)    
-
-    log4j_content=InlineTemplate(params.solr_log4j_content)    
-    File(format("{solr_datadir}/resources/log4j.properties"), content=log4j_content, owner=params.solr_user)    
-
-    zoo_content=InlineTemplate(params.solr_zoo_content)    
-    File(format("{solr_datadir}/zoo.cfg"), content=zoo_content, owner=params.solr_user)    
-
-      
 
   #Call start.sh to start the service
   def start(self, env):
@@ -103,11 +88,6 @@ class Master(Script):
         
     Execute('find '+params.service_packagedir+' -iname "*.sh" | xargs chmod +x')
 
-    #form command to invoke setup_solr.sh with its arguments and execute it
-    cmd = format("{service_packagedir}/scripts/setup_solr.sh {solr_dir} {solr_user} >> {solr_log}")
-    Execute('echo "Running ' + cmd + '" as root')
-    Execute(cmd, ignore_failures=True)
-    
      
     #form command to invoke start.sh with its arguments and execute it
     if params.solr_cloudmode:
@@ -119,18 +99,16 @@ class Master(Script):
 #	Execute (format("export JAVA_HOME={java64_home};{cloud_scripts}/zkcli.sh -zkhost {zookeeper_hosts} -cmd makepath {solr_znode}"), user=params.solr_user, ignore_failures=True)
     
       #$SOLR_IN_PATH/solr.in.sh ./solr start -cloud -noprompt -s $SOLR_DATA_DIR
-      Execute(format('source {solr_conf}/solr.in.sh; {solr_bindir}/solrd start -e cloud -noprompt'), user=params.solr_user)
+      Execute(format('export JAVA_HOME={java64_home};export SOLR_PID_DIR={solr_piddir};{solr_bindir}/solr start -e cloud -noprompt'), user=params.solr_user)
       
       if params.demo_mode:
-        Execute(format('source {solr_conf}/solr.in.sh {solr_bindir}/solrd create -c tweets'), user=params.solr_user, ignore_failures=True)
+        Execute(format('export JAVA_HOME={java64_home};export SOLR_PID_DIR={solr_piddir};{solr_bindir}/solr create -c tweets'), user=params.solr_user, ignore_failures=True)
       
     else:
-      cmd = params.service_packagedir + '/scripts/start.sh ' + params.solr_dir + ' ' + params.solr_log + ' ' + status_params.solr_pidfile + ' ' + params.solr_bindir
-      Execute('echo "Running cmd: ' + cmd + '"')    
-      Execute(cmd, user=params.solr_user)
+      Execute(format('export JAVA_HOME={java64_home};export SOLR_PID_DIR={solr_piddir};{solr_bindir}/solr start -noprompt'), user=params.solr_user)
       
 
-  #Called to stop the service using the pidfile
+  #Call tm stmt('source {solr_conf}/solr.in.sh; {solr_bindir}/solr start -e cloud -noprompt'), user=params.solr_user)p the service using the pidfile
   def stop(self, env):
     import params
      
@@ -143,7 +121,7 @@ class Master(Script):
 
     
     #kill the instances of solr
-    Execute (format('source {solr_conf}/solr.in.sh; {solr_bindir}/solrd stop -all >> {solr_log}'), user=params.solr_user, ignore_failures=True)  
+    Execute (format('export JAVA_HOME={java64_home};export SOLR_PID_DIR={solr_piddir};{solr_bindir}/solr stop -all >> {solr_log}'), user=params.solr_user, ignore_failures=True)  
 
     #delete the pid file
     Execute (format("rm -f {solr_pidfile} >> {solr_log}"), user=params.solr_user, ignore_failures=True)

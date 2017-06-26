@@ -10,7 +10,7 @@
                 faceted search, dynamic clustering, database integration, and
                 rich document (e.g., Word, PDF) handling.
             </comment>
-            <version>4.10.4.1.4</version>
+            <version>6.6.0.1.4</version>
 
             <components>
                 <component>
@@ -31,11 +31,11 @@
                 <osSpecific>
                     <osFamily>any</osFamily>
                     <packages>
-                        <package>
-                            <name>solr-server</name>
+                       <package>
+                            <name>lsof</name>
                         </package>
-	             <package>
-                            <name>solr-doc</name>
+                        <package>
+                            <name>solr</name>
                         </package>
                     </packages>
                 </osSpecific>
@@ -58,6 +58,7 @@
                 <config-type>solr-log4j-env</config-type>
                 <config-type>solr-xml-env</config-type>
                 <config-type>solr-zoo-env</config-type>
+		<config-type>example-collection</config-type>
             </configuration-dependencies>
             <restartRequiredAfterChange>true</restartRequiredAfterChange>
 

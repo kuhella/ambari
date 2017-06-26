@@ -5,24 +5,33 @@
 
   <!-- Define configuration paramaters for service within Ambari: property name, default value and description (shown as help text) -->
 
+    <property>
+        <name>solr.cloudmode</name>	
+	<value>true</value>	
+	<description>Whether Solr should be started in Cloud mode</description>        
+        <display-name>Enable Cloud Mode</display-name>
+        <value-attributes>
+            <type>boolean</type>
+            <overridable>false</overridable>
+        </value-attributes>
+    </property>
+ 
+    <property>
+        <name>solr.demo_mode</name>
+        <value>false</value>
+        <description>Whether Solr should be configured for demos. If true, a collection named tweets will be created using data_driven schema</description>
+        <display-name>Enable Demo Mode</display-name>
+        <value-attributes>
+            <type>boolean</type>
+            <overridable>false</overridable>
+        </value-attributes>
+    </property>
 
-  <property>
-    <name>solr.cloudmode</name>
-    <value>true</value>
-    <description>Whether Solr should be started in Cloud mode</description>
-  </property>  
-  
 
-  <property>
-    <name>solr.demo_mode</name>
-    <value>false</value>
-    <description>Whether Solr should be configured for HDP demos. If true, a collection named tweets will be created using data_driven schema</description>
-  </property>  
-    
   <property>
     <name>solr.dir</name>
     <value>/usr/lib/solr</value>
-    <description>Path to Solr root. If HDPSearch is selected, it will be installed under /opt/lucidworks-hdpsearch/solr/</description>
+    <description>Path to Solr root.</description>
   </property>  
 
   <property>

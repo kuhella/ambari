@@ -25,5 +25,3 @@ SOLR_USER=$2
     	sudo -u hdfs hdfs dfs -mkdir -p /user/$SOLR_USER
     	sudo -u hdfs hdfs dfs -chown $SOLR_USER /user/solr 
 	fi
-	
-solrctl init --force

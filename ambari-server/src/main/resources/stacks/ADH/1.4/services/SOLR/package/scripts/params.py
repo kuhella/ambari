@@ -55,7 +55,11 @@ if not solr_datadir.strip():
 
 solr_data_resources_dir = os.path.join(solr_datadir,'resources')
 
-
+# solr collection sample
+map_example_collection = config['configurations']['example-collection']
+solr_collection_sample_create = bool(map_example_collection['solr_collection_sample_create'])
+solr_collection_name = map_example_collection['solr_collection_sample_name']
+solr_collection_config_dir = map_example_collection['solr_collection_sample_config_directory']
 
 solr_user = config['configurations']['solr-env']['solr.user']
 solr_group = config['configurations']['solr-env']['solr.group']
