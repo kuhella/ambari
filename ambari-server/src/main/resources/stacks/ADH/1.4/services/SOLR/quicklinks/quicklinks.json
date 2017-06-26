@@ -3,12 +3,12 @@
   "description": "default quick links configuration",
   "configuration": {
     "protocol": {
-      "type": "https",
-      "checks": [
+      "type":"https",
+      "checks":[
         {
-          "property": "solr_ssl_enable",
-          "desired": "true",
-          "site": "solr-ssl"
+          "property":"solr.ssl",
+          "desired":"true",
+          "site":"solr-env"
         }
       ]
     },
@@ -16,34 +16,33 @@
       {
         "name": "solr_ui",
         "label": "Solr UI",
-        "component_name": "SOLR_SERVER",
-        "url": "%@://%@:%@/solr",
         "requires_user_name": "false",
-        "port": {
-          "http_property": "solr_config_port",
+        "component_name": "SOLR_MASTER",
+        "url":"%@://%@:%@/solr",
+        "port":{
+          "http_property": "solr.port",
           "http_default_port": "8983",
-          "https_property": "solr_config_port",
+          "https_property": "solr.port",
           "https_default_port": "8983",
           "regex": "^(\\d+)$",
-          "site": "solr-config-env"
+          "site": "solr-env"
         }
       },
       {
-        "name": "solr_banana_ui",
+        "name": "banana_ui",
         "label": "Banana UI",
-        "component_name": "SOLR_SERVER",
-        "url": "%@://%@:%@/solr/banana/index.html",
         "requires_user_name": "false",
-        "port": {
-          "http_property": "solr_config_port",
+        "component_name": "SOLR_MASTER",
+        "url":"%@://%@:%@/solr/banana/index.html",
+        "port":{
+          "http_property": "solr.port",
           "http_default_port": "8983",
-          "https_property": "solr_config_port",
+          "https_property": "solr.port",
           "https_default_port": "8983",
           "regex": "^(\\d+)$",
-          "site": "solr-config-env"
+          "site": "solr-env"
         }
-      }
+      }      
     ]
   }
 }
-
