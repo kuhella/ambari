@@ -1,78 +1,128 @@
 #!/usr/bin/env python
-from resource_management import *
-import os
 
-# config object that holds the configurations declared in the -config.xml file
+import functools
+
+from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import default
+from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.resources.hdfs_resource import HdfsResource
+from resource_management.libraries.script.script import Script
+
+import status_params
+
+
+def build_zookeeper_hosts():
+    zookeeper_hosts_length = len(zookeeper_hosts_list)
+    response = ''
+    for i, val in enumerate(zookeeper_hosts_list):
+        response += val + ':' + zk_client_port
+        if (i + 1) < zookeeper_hosts_length:
+            response += ','
+    return response
+
+
 config = Script.get_config()
 
+java64_home = config['hostLevelParams']['java_home']
+hostname = config['hostname']
+zk_client_port = str(default('/configurations/zoo.cfg/clientPort', None))
+zookeeper_hosts_list = config['clusterHostInfo']['zookeeper_hosts']
+zookeeper_hosts = build_zookeeper_hosts()
 
-#e.g. /var/lib/ambari-agent/cache/stacks/HDP/2.3/services/SOLR/package
-service_packagedir = os.path.realpath(__file__).split('/scripts')[0]
+map_solr_config = config['configurations']['solr-config-env']
+solr_config_user = map_solr_config['solr_config_user']
+solr_hdfs_home_directory = format('/user/{solr_config_user}')
+solr_config_group = map_solr_config['solr_config_group']
+solr_config_port = status_params.solr_config_port
+solr_config_memory = map_solr_config['solr_config_memory']
+solr_config_log_dir = map_solr_config['solr_config_log_dir']
+solr_config_service_log_dir = map_solr_config['solr_config_service_log_dir']
+solr_config_service_log_file = format('{solr_config_service_log_dir}/solr-service.log')
+solr_config_conf_dir = map_solr_config['solr_config_conf_dir']
+solr_config_data_dir = map_solr_config['solr_config_data_dir']
+solr_config_in_sh = map_solr_config['solr_in_sh_template']
+solr_hostname = hostname
 
-#shared configs
-java64_home = config['hostLevelParams']['java_home']  
-#get comma separated list of zookeeper hosts from clusterHostInfo
-zookeeper_hosts = ",".join(config['clusterHostInfo']['zookeeper_hosts'])
-cluster_name=str(config['clusterName'])
+log4j_properties = config['configurations']['solr-log4j']['content']
 
-#form the zk quorum string
-zookeeper_port=default('/configurations/zoo.cfg/clientPort', None)
-#get comma separated list of zookeeper hosts from clusterHostInfo
-index = 0 
-zookeeper_quorum=""
-for host in config['clusterHostInfo']['zookeeper_hosts']:
-  zookeeper_quorum += host + ":"+str(zookeeper_port)
-  index += 1
-  if index < len(config['clusterHostInfo']['zookeeper_hosts']):
-    zookeeper_quorum += ","
+solr_package_dir = '/usr/lib/'
+solr_config_dir = format('{solr_package_dir}/solr')
+solr_config_bin_dir = format('{solr_config_dir}/bin')
+solr_config_pid_dir = status_params.solr_config_pid_dir
+solr_config_pid_file = status_params.solr_config_pid_file
+solr_webapp_dir = format('{solr_config_dir}/server/solr-webapp')
 
-
-
-#####################################
-#Solr configs
-#####################################
-
-
-solr_cloudmode = config['configurations']['solr-config']['solr.cloudmode']
-solr_dir = config['configurations']['solr-config']['solr.dir']
-
-solr_znode = config['configurations']['solr-config']['solr.znode']
-solr_port = config['configurations']['solr-env']['solr.port']
-solr_min_mem = config['configurations']['solr-config']['solr.minmem']
-solr_max_mem = config['configurations']['solr-config']['solr.maxmem']
-demo_mode = config['configurations']['solr-config']['solr.demo_mode']
-solr_bindir = solr_dir + '/bin' 
-cloud_scripts = solr_dir + '/bin'
-server_dir=os.path.join(*[solr_dir,'server'])  
-
-solr_conf = config['configurations']['solr-config']['solr.conf']
-if not solr_conf.strip():
-  solr_conf=solr_bindir
-  
-solr_datadir = config['configurations']['solr-config']['solr.datadir']
-if not solr_datadir.strip():
-  solr_datadir=os.path.join(*[server_dir,'solr'])
-
-solr_data_resources_dir = os.path.join(solr_datadir,'resources')
+# solr cloud
+cloud_scripts = format('{solr_config_dir}/server/scripts/cloud-scripts')
+map_solr_cloud = config['configurations']['solr-cloud']
+solr_cloud_mode = map_solr_cloud['solr_cloud_enable']
+solr_cloud_zk_directory = map_solr_cloud['solr_cloud_zk_directory']
+zk_client_prefix = format('{cloud_scripts}/zkcli.sh -zkhost {zookeeper_hosts}')
+clusterprops_json = '/clusterprops.json'
+clusterstate_json = '/clusterstate.json'
 
 # solr collection sample
 map_example_collection = config['configurations']['example-collection']
 solr_collection_sample_create = bool(map_example_collection['solr_collection_sample_create'])
 solr_collection_name = map_example_collection['solr_collection_sample_name']
 solr_collection_config_dir = map_example_collection['solr_collection_sample_config_directory']
+solr_collection_shards = str(map_example_collection['solr_collection_sample_shards'])
+solr_collection_replicas = str(map_example_collection['solr_collection_sample_replicas'])
 
-solr_user = config['configurations']['solr-env']['solr.user']
-solr_group = config['configurations']['solr-env']['solr.group']
-solr_log_dir = config['configurations']['solr-env']['solr.log.dir']
-solr_log = solr_log_dir+'/solr-install.log'
+# solr + HDFS
+map_solr_hdfs = config['configurations']['solr-hdfs']
+solr_hdfs_enable = bool(map_solr_hdfs['solr_hdfs_enable'])
+solr_hdfs_prefix = '#' if not solr_hdfs_enable else ''
+solr_hdfs_directory = map_solr_hdfs['solr_hdfs_directory']
+hadoop_bin_dir = '/usr/lib/hadoop/bin'
+hadoop_conf_dir = '/etc/hadoop/conf'
+hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
+hdfs_site = config['configurations']['hdfs-site']
+hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
+default_fs = config['configurations']['core-site']['fs.defaultFS']
+dfs_type = default('/commandParams/dfs_type', '')
+security_enabled = config['configurations']['cluster-env']['security_enabled']
+kinit_path_local = get_kinit_path(
+        default('/configurations/kerberos-env/executable_search_paths', None))
+hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
+solr_hdfs_delete_write_lock_files = bool(map_solr_hdfs['solr_hdfs_delete_write_lock_files'])
 
-solr_piddir = config['configurations']['solr-env']['solr_pid_dir']
-solr_pidfile = format("{solr_piddir}/solr-{solr_port}.pid")
+HdfsResource = functools.partial(
+        HdfsResource,
+        user=hdfs_user,
+        security_enabled=security_enabled,
+        keytab=hdfs_user_keytab,
+        kinit_path_local=kinit_path_local,
+        hadoop_bin_dir=hadoop_bin_dir,
+        hadoop_conf_dir=hadoop_conf_dir,
+        principal_name=hdfs_principal_name,
+        hdfs_site=hdfs_site,
+        default_fs=default_fs
+)
 
-solr_env_content = config['configurations']['solr-env']['content']
+# solr + SSL
+map_solr_ssl = config['configurations']['solr-ssl']
+solr_ssl_enable = bool(map_solr_ssl['solr_ssl_enable'])
+solr_ssl_prefix = '#' if not solr_ssl_enable else ''
+solr_ssl_key_store = map_solr_ssl['solr_ssl_key_store']
+solr_ssl_key_store_password = map_solr_ssl['solr_ssl_key_store_password']
+solr_ssl_trust_store = map_solr_ssl['solr_ssl_trust_store']
+solr_ssl_trust_store_password = map_solr_ssl['solr_ssl_trust_store_password']
+solr_ssl_need_client_auth = map_solr_ssl['solr_ssl_need_client_auth']
+solr_ssl_want_client_auth = map_solr_ssl['solr_ssl_want_client_auth']
+solr_protocol = 'https' if solr_ssl_enable else 'http'
 
-solr_xml_content = config['configurations']['solr-xml-env']['content']
+# solr + kerberos auth
+solr_kerberos_prefix = '#' if not security_enabled else ''
+solr_kerberos_jaas_config = format('{solr_config_conf_dir}/solr_server_jaas.conf')
+solr_kerberos_cookie_domain = hostname
+solr_kerberos_keytab = map_solr_config.get('solr_keytab_path', '')
+solr_kerberos_principal = map_solr_config.get('solr_principal_name', '')
+solr_spnego_keytab = map_solr_config.get('solr_spnego_keytab_path', '')
+solr_spnego_principal = map_solr_config.get('solr_spnego_principal_name', '')
+security_json = '/security.json'
 
-solr_log4j_content = config['configurations']['solr-log4j-env']['content']
-
-solr_zoo_content = config['configurations']['solr-zoo-env']['content']
+if security_enabled:
+    solr_kerberos_principal = solr_kerberos_principal.replace('_HOST', hostname)
+    solr_spnego_principal = solr_spnego_principal.replace('_HOST', hostname)
