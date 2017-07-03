@@ -30,7 +30,8 @@
   </property>
   <property>
     <name>oozie_admin_users</name>
-    <value>{oozie_user}, oozie-admin</value>
+    <display-name>Oozie Admin Users</display-name>
+    <value>{oozie_user}, oozie-admin, admin</value>
     <description>Oozie admin users.</description>
   </property>
   <property>
