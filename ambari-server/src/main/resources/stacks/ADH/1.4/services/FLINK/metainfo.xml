@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<metainfo>
+    <schemaVersion>2.0</schemaVersion>
+    <services>
+        <service>
+            <name>FLINK</name>
+            <displayName>Flink</displayName>
+            <comment>Apache Flink is a streaming dataflow engine that provides data distribution, communication, and fault tolerance for distributed computations over data streams.</comment>
+            <version>1.2</version>
+            <components>
+                <component>
+                  <name>FLINK_MASTER</name>
+                  <displayName>Flink</displayName>
+                  <category>MASTER</category>
+                  <cardinality>1</cardinality>
+                  <commandScript>
+                    <script>scripts/flink.py</script>
+                    <scriptType>PYTHON</scriptType>
+                    <timeout>10000</timeout>
+                  </commandScript>
+                </component>
+            </components>
+
+            <osSpecifics>
+              <osSpecific>
+                <osFamily>any</osFamily>
+                <packages>
+                   <package><name>flink-jobmanager</name></package>
+                   <package><name>flink-taskmanager</name></package>
+                   <package><name>flink</name></package>
+                </packages>
+              </osSpecific>
+            </osSpecifics>
+
+            <requiredServices>
+               <service>HDFS</service>
+               <service>YARN</service>               
+            </requiredServices>
+                   
+      	<configuration-dependencies>
+	        	<config-type>flink-ambari-config</config-type>      	   
+      	</configuration-dependencies>
+      	
+            <restartRequiredAfterChange>false</restartRequiredAfterChange>
+        </service>
+    </services>
+</metainfo>
