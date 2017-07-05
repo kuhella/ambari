@@ -28,12 +28,7 @@ from resource_management.libraries.functions import conf_select
 config = Script.get_config()
 
 
-default_conf_file = "application.properties"
-
-# get the correct version to use for checking stack features
 default_conf_file = "atlas-application.properties"
-
-
 conf_file = default("/configurations/atlas-env/metadata_conf_file", default_conf_file)
 conf_dir = os.environ['METADATA_CONF'] if 'METADATA_CONF' in os.environ else '/etc/atlas/conf'
 pid_dir = default("/configurations/atlas-env/metadata_pid_dir", "/var/run/atlas")

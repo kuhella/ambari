@@ -124,15 +124,10 @@ def metadata(type='server'):
       TemplateConfig(format(params.atlas_jaas_file),
                      owner=params.metadata_user)
 
-    if type == 'server' and params.search_backend_solr and params.has_infra_solr:
-      solr_cloud_util.setup_solr_client(params.config)
-      check_znode()
-      jaasFile=params.atlas_jaas_file if params.security_enabled else None
-      upload_conf_set('atlas_configs', jaasFile)
-
-      create_collection('vertex_index', 'atlas_configs', jaasFile)
-      create_collection('edge_index', 'atlas_configs', jaasFile)
-      create_collection('fulltext_index', 'atlas_configs', jaasFile)
+    if type == 'server' and params.search_backend_solr:
+      create_collection('vertex_index')
+      create_collection('edge_index')
+      create_collection('fulltext_index')
 
     File(params.atlas_hbase_setup,
          group=params.user_group,
@@ -155,18 +150,21 @@ def upload_conf_set(config_set, jaasFile):
       jaas_file=jaasFile,
       retry=30, interval=5)
 
-def create_collection(collection, config_set, jaasFile):
+def create_collection(collection):
   import params
 
-  solr_cloud_util.create_collection(
-      zookeeper_quorum=params.zookeeper_quorum,
-      solr_znode=params.infra_solr_znode,
-      collection = collection,
-      config_set=config_set,
-      java64_home=params.java64_home,
-      jaas_file=jaasFile,
-      shards=params.atlas_solr_shards,
-      replication_factor = params.infra_solr_replication_factor)
+  try: 
+    Execute(("/usr/lib/solr/bin/solr", 
+	"create", 
+	"-c", 
+	collection,
+	"-d", 
+	format("{conf_dir}/solr"), 
+	"-shards", str(params.atlas_solr_shards),
+	"-replicationFactor", str(params.infra_solr_replication_factor)),
+	user=params.metadata_user)
+  except Fail:
+    pass
 
 @retry(times=10, sleep_time=5, err_class=Fail)
 def check_znode():

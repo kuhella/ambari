@@ -31,6 +31,41 @@
           <cardinality>1</cardinality>
           <versionAdvertised>false</versionAdvertised>
           <dependencies>
+            <dependency>
+              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>SOLR/SOLR_SERVER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>KAFKA/KAFKA_BROKER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>HBASE/HBASE_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
           </dependencies>
           <commandScript>
             <script>scripts/metadata_server.py</script>
