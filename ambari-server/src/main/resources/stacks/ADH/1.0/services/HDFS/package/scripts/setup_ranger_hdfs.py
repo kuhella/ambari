@@ -69,6 +69,7 @@ def setup_ranger_hdfs(upgrade_type=None):
   else:
     Logger.info('Ranger admin not installed')
 
+
 def create_ranger_audit_hdfs_directories(check):
   import params
 

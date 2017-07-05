@@ -84,6 +84,8 @@ class NameNode(Script):
     import params
     self.install_packages(env, params.exclude_packages)
     env.set_params(params)
+    Execute(('ln','-sf', params.hadoop_conf_dir, params.hadoop_home),
+        sudo=True)
     #TODO we need this for HA because of manual steps
     self.configure(env)
 
@@ -97,6 +99,9 @@ class NameNode(Script):
   def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
+# Additional ln execution added because previous one in install func doesn't seem to work
+    Execute(('ln','-sf', params.hadoop_conf_dir, params.hadoop_home),
+        sudo=True)
     self.configure(env)
     hdfs_binary = self.get_hdfs_binary()
     namenode(action="start", hdfs_binary=hdfs_binary, upgrade_type=upgrade_type, env=env)
