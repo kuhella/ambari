@@ -63,7 +63,7 @@
   </property>
   <property>
     <name>metadata_conf_file</name>
-    <value>application.properties</value>
+    <value>atlas-application.properties</value>
     <description>Atlas configuration file</description>
     <value-attributes>
       <read-only>true</read-only>
