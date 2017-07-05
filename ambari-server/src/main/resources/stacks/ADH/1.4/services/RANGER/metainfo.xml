@@ -23,7 +23,70 @@
   <services>
     <service>
       <name>RANGER</name>
-      <version>0.7.0.1.4</version>
+      <displayName>Ranger</displayName>
+      <comment>Comprehensive security for Hadoop</comment>
+      <version>0.4.0</version>
+       <osSpecifics>
+        <osSpecific>
+          <osFamily>redhat7</osFamily>
+          <packages>
+            <package>
+              <name>ranger-admin</name>
+            </package>
+            <package>
+              <name>ranger-solr-plugin</name>
+            </package>
+            <package>
+              <name>ranger-tagsync</name>
+            </package>
+            <package>
+              <name>ranger-usersync</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+      <components>
+          
+        <component>
+          <name>RANGER_ADMIN</name>
+          <displayName>Ranger Admin</displayName>
+          <category>MASTER</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <commandScript>
+            <script>scripts/ranger_admin.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+        </component>
+
+        <component>
+          <name>RANGER_USERSYNC</name>
+          <displayName>Ranger Usersync</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <commandScript>
+            <script>scripts/ranger_usersync.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>        
+        </component>
+
+      </components>              
+
+      <configuration-dependencies>
+        <config-type>admin-properties</config-type>
+        <config-type>ranger-site</config-type>
+        <config-type>usersync-properties</config-type>
+      </configuration-dependencies>
+
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>        
+      </commandScript>
+
     </service>
   </services>
 </metainfo>
