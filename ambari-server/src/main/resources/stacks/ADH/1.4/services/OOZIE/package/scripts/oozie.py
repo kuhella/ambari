@@ -128,18 +128,12 @@ def oozie(is_server=False):
       owner=params.oozie_user
     )
 
-  if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2') >= 0:
-    File(format("{params.conf_dir}/adminusers.txt"),
-      mode=0644,
-      group=params.user_group,
-      owner=params.oozie_user,
-      content=Template('adminusers.txt.j2', oozie_admin_users=params.oozie_admin_users)
-    )
-  else:
-    File ( format("{params.conf_dir}/adminusers.txt"),
-           owner = params.oozie_user,
-           group = params.user_group
-    )
+  File(format("{params.conf_dir}/adminusers.txt"),
+    mode=0644,
+    group=params.user_group,
+    owner=params.oozie_user,
+    content=Template('adminusers.txt.j2', oozie_admin_users=params.oozie_admin_users)
+  )
 
   if params.jdbc_driver_name == "com.mysql.jdbc.Driver" or \
      params.jdbc_driver_name == "com.microsoft.sqlserver.jdbc.SQLServerDriver" or \
