@@ -409,7 +409,7 @@ class Master(Script):
 
     self.set_interpreter_settings(config_data)
 
-  @retry(times=30, sleep_time=5, err_class=Fail)
+  @retry(times=30, sleep_time=15, err_class=Fail)
   def check_zeppelin_server(self):
     import params
     path = params.conf_dir + "/interpreter.json"
