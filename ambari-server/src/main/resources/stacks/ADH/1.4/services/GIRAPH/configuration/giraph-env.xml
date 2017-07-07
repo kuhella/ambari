@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<configuration>
+
+  <property>
+    <name>giraph_log_dir</name>
+    <value>/usr/lib/giraph/log</value>    
+    <description>Flink Log dir</description>
+  </property> 
+
+ <property>
+    <name>giraph_pid_dir</name>
+    <value>/var/run/giraph</value>
+    <description>Dir containing process ID file</description>
+  </property>
+  
+ <property>
+    <name>giraph_home_dir</name>
+    <value>/home/giraph</value>
+    <description>Flink home dir</description>
+  </property>
+  
+  <property>
+    <name>giraph_user</name>
+    <value>giraph</value>
+    <property-type>USER</property-type>
+    <description>User giraph daemon runs as</description>
+  </property> 
+        
+  <property>
+    <name>giraph_group</name>
+    <value>giraph</value>
+    <property-type>GROUP</property-type>
+    <description>giraph group</description>
+  </property> 
+                      
+</configuration>
