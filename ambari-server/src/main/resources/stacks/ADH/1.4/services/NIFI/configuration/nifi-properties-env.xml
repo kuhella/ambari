@@ -27,8 +27,8 @@ nifi.templates.directory=./conf/templates
 nifi.ui.banner.text=
 nifi.ui.autorefresh.interval=30 sec
 nifi.nar.library.directory=./lib
-nifi.nar.working.directory=./work/nar/
-nifi.documentation.working.directory=./work/docs/components
+nifi.nar.working.directory=/var/lib/nifi/work/nar/
+nifi.documentation.working.directory=/var/lib/nifi/work/docs/components
 
 ####################
 # State Management #
@@ -45,12 +45,12 @@ nifi.state.management.embedded.zookeeper.properties=./conf/zookeeper.properties
 
 
 # H2 Settings
-nifi.database.directory=./database_repository
+nifi.database.directory=/var/lib/nifi/database_repository
 nifi.h2.url.append=;LOCK_TIMEOUT=25000;WRITE_DELAY=0;AUTO_SERVER=FALSE
 
 # FlowFile Repository
 nifi.flowfile.repository.implementation=org.apache.nifi.controller.repository.WriteAheadFlowFileRepository
-nifi.flowfile.repository.directory=./flowfile_repository
+nifi.flowfile.repository.directory=/var/lib/nifi/flowfile_repository
 nifi.flowfile.repository.partitions=256
 nifi.flowfile.repository.checkpoint.interval=2 mins
 nifi.flowfile.repository.always.sync=false
@@ -66,7 +66,7 @@ nifi.swap.out.threads=4
 nifi.content.repository.implementation=org.apache.nifi.controller.repository.FileSystemRepository
 nifi.content.claim.max.appendable.size=10 MB
 nifi.content.claim.max.flow.files=100
-nifi.content.repository.directory.default=./content_repository
+nifi.content.repository.directory.default=/var/lib/nifi/content_repository
 nifi.content.repository.archive.max.retention.period=12 hours
 nifi.content.repository.archive.max.usage.percentage=50%
 nifi.content.repository.archive.enabled=true
@@ -77,7 +77,7 @@ nifi.content.viewer.url=/nifi-content-viewer/
 nifi.provenance.repository.implementation=org.apache.nifi.provenance.PersistentProvenanceRepository
 
 # Persistent Provenance Repository Properties
-nifi.provenance.repository.directory.default=./provenance_repository
+nifi.provenance.repository.directory.default=/var/lib/nifi/provenance_repository
 nifi.provenance.repository.max.storage.time=24 hours
 nifi.provenance.repository.max.storage.size=1 GB
 nifi.provenance.repository.rollover.time=30 secs
@@ -120,7 +120,7 @@ nifi.web.http.host={{nifi_node_host}}
 nifi.web.http.port={{nifi_port}}
 nifi.web.https.host=
 nifi.web.https.port=
-nifi.web.jetty.working.directory=./work/jetty
+nifi.web.jetty.working.directory=/var/lib/nifi/work/jetty
 nifi.web.jetty.threads=200
 
 # security properties #
