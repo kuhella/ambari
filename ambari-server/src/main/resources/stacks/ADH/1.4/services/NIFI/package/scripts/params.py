@@ -53,15 +53,15 @@ nifi_node_protocol_port = config['configurations']['nifi-ambari-config']['nifi.n
 nifi_dir = nifi_install_dir
 #nifi_dir = os.path.join(*[nifi_install_dir,nifi_dirname])
 
-conf_dir = os.path.join(*[nifi_dir,'conf'])
+conf_dir = '/etc/nifi/conf'
 bin_dir = os.path.join(*[nifi_dir,'bin'])
 
 # params from nifi-boostrap
 nifi_boostrap_content = config['configurations']['nifi-bootstrap-env']['content']
-#nifi_user = config['configurations']['nifi-bootstrap-env']['nifi_user']
-#nifi_group = config['configurations']['nifi-bootstrap-env']['nifi_group']
-nifi_user = 'root'
-nifi_group = 'root'
+nifi_user = config['configurations']['nifi-bootstrap-env']['nifi_user']
+nifi_group = config['configurations']['nifi-bootstrap-env']['nifi_group']
+#nifi_user = 'root'
+#nifi_group = 'root'
 nifi_log_dir = config['configurations']['nifi-bootstrap-env']['nifi_log_dir']
 nifi_log_file = os.path.join(nifi_log_dir,'nifi-setup.log')
 

@@ -37,7 +37,7 @@
 java=java
 
 # Username to use when running NiFi. This value will be ignored on Windows.
-run.as=root
+run.as={{nifi_user}}
 
 # Configure where NiFi's lib and conf directories live
 lib.dir=./lib

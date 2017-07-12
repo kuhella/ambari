@@ -36,7 +36,7 @@ class Master(Script):
             owner=params.nifi_user,
             group=params.nifi_group,
     )  
-    Execute('touch ' +  params.nifi_log_file, user="root")    
+    Execute('touch ' +  params.nifi_log_file, user=params.nifi_user)    
 
 
     #Fetch and unzip snapshot build, if no cached nifi tar package exists on Ambari server node
@@ -47,8 +47,8 @@ class Master(Script):
     #        group=params.nifi_group,
     #)  
 
-    #Execute('unzip '+params.temp_file+' -d ' + params.nifi_install_dir + ' >> ' + params.nifi_log_file, user="root")
-    #Execute('mv '+params.nifi_dir+'/*/*/* ' + params.nifi_dir, user="root")
+    #Execute('unzip '+params.temp_file+' -d ' + params.nifi_install_dir + ' >> ' + params.nifi_log_file, user=params.nifi_user)
+    #Execute('mv '+params.nifi_dir+'/*/*/* ' + params.nifi_dir, user=params.nifi_user)
 
     self.configure(env, True)  
 
@@ -79,8 +79,8 @@ class Master(Script):
       Execute('echo "First time setup so generating flow.xml.gz" >> ' + params.nifi_log_file)    
       flow_content=InlineTemplate(params.nifi_flow_content)
       File(format("{params.conf_dir}/flow.xml"), content=flow_content, owner=params.nifi_user, group=params.nifi_group)
-      Execute(format("cd {params.conf_dir}; mv flow.xml.gz flow_$(date +%d-%m-%Y).xml.gz ;"),user="root",ignore_failures=True)
-      Execute(format("cd {params.conf_dir}; gzip flow.xml;"), user="root")
+      Execute(format("cd {params.conf_dir}; mv flow.xml.gz flow_$(date +%d-%m-%Y).xml.gz ;"),user=params.nifi_user,ignore_failures=True)
+      Execute(format("cd {params.conf_dir}; gzip flow.xml;"), user=params.nifi_user)
 
     #write out boostrap.conf
     bootstrap_content=InlineTemplate(params.nifi_boostrap_content)
@@ -99,18 +99,22 @@ class Master(Script):
     import params
     import status_params    
 
-    Execute ('export JAVA_HOME='+params.jdk64_home+';'+params.bin_dir+'/nifi.sh stop >> ' + params.nifi_log_file, user="root")
+    Execute ('export JAVA_HOME='+params.jdk64_home+';'+params.bin_dir+'/nifi.sh stop >> ' + params.nifi_log_file, user=params.nifi_user)
     if os.path.isfile(status_params.nifi_node_pid_file):
       os.unlink(status_params.nifi_node_pid_file) 
       
   def start(self, env):
     import params
     import status_params
+    Directory('/var/lib/nifi',
+            owner=params.nifi_user,
+            group=params.nifi_group,
+    )  
     self.configure(env) 
     Execute('echo pid file ' + status_params.nifi_pid_file)
     Execute('echo JAVA_HOME=' + params.jdk64_home)
 
-    Execute ('export JAVA_HOME='+params.jdk64_home+';'+params.bin_dir+'/nifi.sh start >> ' + params.nifi_log_file, user="root")
+    Execute ('export JAVA_HOME='+params.jdk64_home+';'+params.bin_dir+'/nifi.sh start >> ' + params.nifi_log_file, user=params.nifi_user)
     #If nifi pid file not created yet, wait a bit
     if not os.path.isfile(status_params.nifi_pid_dir+'/nifi.pid'):
       Execute ('sleep 5')
