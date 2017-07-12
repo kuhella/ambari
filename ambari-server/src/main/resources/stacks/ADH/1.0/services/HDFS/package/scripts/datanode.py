@@ -20,8 +20,6 @@ import datanode_upgrade
 from hdfs_datanode import datanode
 from resource_management import *
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
-from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, FILE_TYPE_XML
 from hdfs import hdfs
@@ -46,7 +44,7 @@ class DataNode(Script):
 
   def install(self, env):
     import params
-    self.install_packages(env, params.exclude_packages)
+    self.install_packages(env)
     env.set_params(params)
 
   def configure(self, env):
@@ -87,9 +85,6 @@ class DataNodeDefault(DataNode):
     Logger.info("Executing DataNode Stack Upgrade pre-restart")
     import params
     env.set_params(params)
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
-      conf_select.select(params.stack_name, "hadoop", params.version)
-      hdp_select.select("hadoop-hdfs-datanode", params.version)
 
   def post_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing DataNode Stack Upgrade post-restart")
@@ -161,7 +156,7 @@ class DataNodeDefault(DataNode):
 class DataNodeWindows(DataNode):
   def install(self, env):
     import install_params
-    self.install_packages(env, install_params.exclude_packages)
+    self.install_packages(env)
 
 if __name__ == "__main__":
   DataNode().execute()

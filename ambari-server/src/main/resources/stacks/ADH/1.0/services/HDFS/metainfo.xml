@@ -163,10 +163,6 @@
               <name>hadoop</name>
             </package>
             <package>
-              <name>hadoop-lzo</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
-            <package>
               <name>ranger-hdfs-plugin</name>
               <skipUpgrade>true</skipUpgrade>
             </package>
@@ -184,10 +180,6 @@
             </package>
             <package>
               <name>lzo</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
-            <package>
-              <name>hadoop-lzo-native</name>
               <skipUpgrade>true</skipUpgrade>
             </package>
             <package>

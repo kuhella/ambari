@@ -31,17 +31,6 @@ from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.script import Script
 
 
-def setup_hdp_install_directory():
-  # This is a name of marker file.
-  SELECT_ALL_PERFORMED_MARKER = "/var/lib/ambari-agent/data/hdp-select-set-all.performed"
-  import params
-  if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2') >= 0:
-    Execute(as_sudo(['touch', SELECT_ALL_PERFORMED_MARKER]) + ' ; ' +
-                   format('{sudo} /usr/bin/hdp-select set all `ambari-python-wrap /usr/bin/hdp-select versions | grep ^{stack_version_unformatted} | tail -1`'),
-            only_if=format('ls -d /usr/hdp/{stack_version_unformatted}*'),   # If any HDP version is installed
-            not_if=format("test -f {SELECT_ALL_PERFORMED_MARKER}")           # Do that only once (otherwise we break stack upgrade logic)
-    )
-
 def setup_config():
   import params
   stackversion = params.stack_version_unformatted
@@ -77,7 +66,7 @@ def link_configs(struct_out_file):
   Links configs, only on a fresh install of HDP-2.3 and higher
   """
 
-  if not Script.is_hdp_stack_greater_or_equal("2.3"):
+  if True:
     Logger.info("Can only link configs for HDP-2.3 and higher.")
     return
 

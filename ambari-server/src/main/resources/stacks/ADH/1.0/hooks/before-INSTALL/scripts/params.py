@@ -18,7 +18,6 @@ limitations under the License.
 """
 
 from ambari_commons.constants import AMBARI_SUDO_BINARY
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from resource_management.core.system import System
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import default, format
@@ -28,7 +27,6 @@ tmp_dir = Script.get_tmp_dir()
 sudo = AMBARI_SUDO_BINARY
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
 #users and groups
 hbase_user = config['configurations']['hbase-env']['hbase_user']

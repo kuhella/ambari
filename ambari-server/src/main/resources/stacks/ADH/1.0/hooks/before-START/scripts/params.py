@@ -20,11 +20,10 @@ limitations under the License.
 import os
 
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import default
 from resource_management.libraries.functions import format_jvm_option
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from ambari_commons.os_check import OSCheck
 from resource_management.libraries.script.script import Script
 
@@ -32,23 +31,16 @@ from resource_management.libraries.script.script import Script
 config = Script.get_config()
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
 # hadoop default params
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
 
-hadoop_libexec_dir = hdp_select.get_hadoop_dir("libexec")
-hadoop_lib_home = hdp_select.get_hadoop_dir("lib")
-hadoop_bin = hdp_select.get_hadoop_dir("sbin")
+hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
+hadoop_lib_home = stack_select.get_hadoop_dir("lib")
+hadoop_bin = stack_select.get_hadoop_dir("sbin")
 hadoop_home = '/usr'
 create_lib_snappy_symlinks = True
 
-# HDP 2.2+ params
-if Script.is_hdp_stack_greater_or_equal("2.2"):
-  mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
-  hadoop_home = hdp_select.get_hadoop_dir("home")
-  create_lib_snappy_symlinks = False
-  
 current_service = config['serviceName']
 
 #security params
