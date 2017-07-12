@@ -62,7 +62,8 @@ def check_stack_feature(stack_feature, stack_version):
             return False
         return True
   else:
-    raise Fail("Stack features not defined by stack")
+#    raise Fail("Stack features not defined by stack")
+    Logger.warning("Stack features not defined by stack")
         
   return False
 

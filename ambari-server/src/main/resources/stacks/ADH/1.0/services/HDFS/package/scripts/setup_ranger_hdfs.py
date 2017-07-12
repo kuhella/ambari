@@ -60,12 +60,6 @@ def setup_ranger_hdfs(upgrade_type=None):
                         ssl_truststore_password=params.ssl_truststore_password, ssl_keystore_password=params.ssl_keystore_password,
                         hdp_version_override = hdp_version, skip_if_rangeradmin_down= not params.retryAble)
 
-    if hdp_version and params.upgrade_direction == Direction.UPGRADE:
-      # when upgrading to 2.3+, this env file must be removed
-      if compare_versions(hdp_version, '2.3', format=True) > 0:
-        source_file = os.path.join(params.hadoop_conf_dir, 'set-hdfs-plugin-env.sh')
-        target_file = source_file + ".bak"
-        Execute(("mv", source_file, target_file), sudo=True, only_if=format("test -f {source_file}"))
   else:
     Logger.info('Ranger admin not installed')
 

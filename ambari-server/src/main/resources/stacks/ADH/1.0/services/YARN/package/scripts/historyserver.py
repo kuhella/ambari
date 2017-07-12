@@ -22,10 +22,8 @@ Ambari Agent
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
-from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
@@ -77,42 +75,13 @@ class HistoryServerDefault(HistoryServer):
     import params
     env.set_params(params)
 
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
-      conf_select.select(params.stack_name, "hadoop", params.version)
-      hdp_select.select("hadoop-mapreduce-historyserver", params.version)
-      # MC Hammer said, "Can't touch this"
-      copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
-      copy_to_hdfs("tez", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
-      copy_to_hdfs("slider", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
-      params.HdfsResource(None, action="execute")
-
   def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     self.configure(env) # FOR SECURITY
 
-    if params.hdp_stack_version_major and compare_versions(params.hdp_stack_version_major, '2.2.0.0') >= 0:
-      # MC Hammer said, "Can't touch this"
-      resource_created = copy_to_hdfs(
-        "mapreduce",
-        params.user_group,
-        params.hdfs_user,
-        host_sys_prepped=params.host_sys_prepped)
-      resource_created = copy_to_hdfs(
-        "tez",
-        params.user_group,
-        params.hdfs_user,
-        host_sys_prepped=params.host_sys_prepped) or resource_created
-      resource_created = copy_to_hdfs(
-        "slider",
-        params.user_group,
-        params.hdfs_user,
-        host_sys_prepped=params.host_sys_prepped) or resource_created
-      if resource_created:
-        params.HdfsResource(None, action="execute")
-    else:
-      # In HDP 2.1, tez.tar.gz was copied to a different folder in HDFS.
-      install_tez_jars()
+    # In HDP 2.1, tez.tar.gz was copied to a different folder in HDFS.
+    install_tez_jars()
 
     service('historyserver', action='start', serviceName='mapreduce')
 

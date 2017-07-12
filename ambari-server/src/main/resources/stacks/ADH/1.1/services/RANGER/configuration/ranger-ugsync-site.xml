@@ -171,7 +171,7 @@
   <property>
     <name>ranger.usersync.ldap.binddn</name>
     <display-name>​Bind User</display-name>
-    <value>cn=admin</admin>
+    <value>cn=admin</value>
     <description>Full distinguished name (DN), including common name (CN), of an LDAP user account that has privileges to search for users. This user is used for searching the users. This could be read-only LDAP user. Example: cn=admin,dc=example,dc=com</description>
   </property>
   <property>

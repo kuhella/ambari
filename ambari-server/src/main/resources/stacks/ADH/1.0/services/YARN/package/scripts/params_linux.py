@@ -23,10 +23,9 @@ import os
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
-from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries import functions
 
@@ -55,8 +54,6 @@ stack_name = default("/hostLevelParams/stack_name", None)
 
 # This is expected to be of the form #.#.#.#
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version_major = format_hdp_stack_version(stack_version_unformatted)
-hdp_stack_version = functions.get_hdp_version('hadoop-yarn-resourcemanager')
 
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade.
 # It cannot be used during the initial Cluser Install because the version is not yet known.
@@ -65,9 +62,9 @@ version = default("/commandParams/version", None)
 hostname = config['hostname']
 
 # hadoop default parameters
-hadoop_libexec_dir = hdp_select.get_hadoop_dir("libexec")
-hadoop_bin = hdp_select.get_hadoop_dir("sbin")
-hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
+hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
+hadoop_bin = stack_select.get_hadoop_dir("sbin")
+hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hadoop_yarn_home = '/usr/lib/hadoop-yarn'
 hadoop_mapred2_jar_location = "/usr/lib/hadoop-mapreduce"
@@ -75,29 +72,6 @@ mapred_bin = "/usr/lib/hadoop-mapreduce/sbin"
 yarn_bin = "/usr/lib/hadoop-yarn/sbin"
 yarn_container_bin = "/usr/lib/hadoop-yarn/bin"
 hadoop_java_io_tmpdir = os.path.join(tmp_dir, "hadoop_java_io_tmpdir")
-
-# hadoop parameters for 2.2+
-if Script.is_hdp_stack_greater_or_equal("2.2"):
-  # MapR directory root
-  mapred_role_root = "hadoop-mapreduce-client"
-  command_role = default("/role", "")
-  if command_role in MAPR_SERVER_ROLE_DIRECTORY_MAP:
-    mapred_role_root = MAPR_SERVER_ROLE_DIRECTORY_MAP[command_role]
-
-  # YARN directory root
-  yarn_role_root = "hadoop-yarn-client"
-  if command_role in YARN_SERVER_ROLE_DIRECTORY_MAP:
-    yarn_role_root = YARN_SERVER_ROLE_DIRECTORY_MAP[command_role]
-
-  hadoop_mapred2_jar_location = format("/usr/hdp/current/{mapred_role_root}")
-  mapred_bin = format("/usr/hdp/current/{mapred_role_root}/sbin")
-
-  hadoop_yarn_home = format("/usr/hdp/current/{yarn_role_root}")
-  yarn_bin = format("/usr/hdp/current/{yarn_role_root}/sbin")
-  yarn_container_bin = format("/usr/hdp/current/{yarn_role_root}/bin")
-
-  # Timeline Service property that was added in 2.2
-  ats_leveldb_state_store_dir = config['configurations']['yarn-site']['yarn.timeline-service.leveldb-state-store.path']
 
 # ats 1.5 properties
 entity_groupfs_active_dir = config['configurations']['yarn-site']['yarn.timeline-service.entity-group-fs-store.active-dir']

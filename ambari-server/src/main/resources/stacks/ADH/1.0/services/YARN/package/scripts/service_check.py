@@ -85,10 +85,7 @@ class ServiceCheckDefault(ServiceCheck):
     import params
     env.set_params(params)
 
-    if params.hdp_stack_version_major != "" and compare_versions(params.hdp_stack_version_major, '2.2') >= 0:
-      path_to_distributed_shell_jar = "/usr/hdp/current/hadoop-yarn-client/hadoop-yarn-applications-distributedshell.jar"
-    else:
-      path_to_distributed_shell_jar = "/usr/lib/hadoop-yarn/hadoop-yarn-applications-distributedshell*.jar"
+    path_to_distributed_shell_jar = "/usr/lib/hadoop-yarn/hadoop-yarn-applications-distributedshell*.jar"
 
     yarn_distrubuted_shell_check_cmd = format("yarn org.apache.hadoop.yarn.applications.distributedshell.Client "
                                               "-shell_command ls -num_containers {number_of_nm} -jar {path_to_distributed_shell_jar}")

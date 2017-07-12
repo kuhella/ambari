@@ -26,9 +26,8 @@ import re
 from ambari_commons.os_check import OSCheck
 
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_klist_path
 from resource_management.libraries.functions import get_kinit_path
@@ -46,7 +45,6 @@ tmp_dir = Script.get_tmp_dir()
 stack_name = default("/hostLevelParams/stack_name", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade
 version = default("/commandParams/version", None)
@@ -74,36 +72,15 @@ secure_dn_ports_are_in_use = False
 
 # hadoop default parameters
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
-hadoop_libexec_dir = hdp_select.get_hadoop_dir("libexec")
-hadoop_bin = hdp_select.get_hadoop_dir("sbin")
-hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
-hadoop_home = hdp_select.get_hadoop_dir("home")
+hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
+hadoop_bin = stack_select.get_hadoop_dir("sbin")
+hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
+hadoop_home = stack_select.get_hadoop_dir("home")
 hadoop_secure_dn_user = hdfs_user
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hadoop_conf_secure_dir = os.path.join(hadoop_conf_dir, "secure")
-hadoop_lib_home = hdp_select.get_hadoop_dir("lib")
+hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 
-# hadoop parameters for 2.2+
-if Script.is_hdp_stack_greater_or_equal("2.2"):
-  mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
-
-  if not security_enabled:
-    hadoop_secure_dn_user = '""'
-  else:
-    dfs_dn_port = utils.get_port(dfs_dn_addr)
-    dfs_dn_http_port = utils.get_port(dfs_dn_http_addr)
-    dfs_dn_https_port = utils.get_port(dfs_dn_https_addr)
-    # We try to avoid inability to start datanode as a plain user due to usage of root-owned ports
-    if dfs_http_policy == "HTTPS_ONLY":
-      secure_dn_ports_are_in_use = utils.is_secure_port(dfs_dn_port) or utils.is_secure_port(dfs_dn_https_port)
-    elif dfs_http_policy == "HTTP_AND_HTTPS":
-      secure_dn_ports_are_in_use = utils.is_secure_port(dfs_dn_port) or utils.is_secure_port(dfs_dn_http_port) or utils.is_secure_port(dfs_dn_https_port)
-    else:   # params.dfs_http_policy == "HTTP_ONLY" or not defined:
-      secure_dn_ports_are_in_use = utils.is_secure_port(dfs_dn_port) or utils.is_secure_port(dfs_dn_http_port)
-    if secure_dn_ports_are_in_use:
-      hadoop_secure_dn_user = hdfs_user
-    else:
-      hadoop_secure_dn_user = '""'
 
 ambari_libs_dir = "/var/lib/ambari-agent/lib"
 limits_conf_dir = "/etc/security/limits.d"
@@ -111,7 +88,7 @@ limits_conf_dir = "/etc/security/limits.d"
 hdfs_user_nofile_limit = default("/configurations/hadoop-env/hdfs_user_nofile_limit", "128000")
 hdfs_user_nproc_limit = default("/configurations/hadoop-env/hdfs_user_nproc_limit", "65536")
 
-create_lib_snappy_symlinks = not Script.is_hdp_stack_greater_or_equal("2.2")
+create_lib_snappy_symlinks = False
 jsvc_path = "/usr/lib/bigtop-utils"
 
 execute_path = os.environ['PATH'] + os.pathsep + hadoop_bin_dir
@@ -338,10 +315,6 @@ io_compression_codecs = default("/configurations/core-site/io.compression.codecs
 lzo_enabled = io_compression_codecs is not None and "com.hadoop.compression.lzo" in io_compression_codecs.lower()
 lzo_packages = get_lzo_packages(stack_version_unformatted)
 
-exclude_packages = []
-if not lzo_enabled:
-  exclude_packages += lzo_packages
-  
 name_node_params = default("/commandParams/namenode", None)
 
 java_home = config['hostLevelParams']['java_home']
