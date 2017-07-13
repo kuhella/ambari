@@ -30,6 +30,11 @@ from resource_management.core.exceptions import Fail
 from ambari_commons.os_check import OSCheck
 import subprocess
 
+# hue start fail fix
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
 if os.geteuid() == 0:
   def chown(path, owner, group):
     uid = owner.pw_uid if owner else -1
