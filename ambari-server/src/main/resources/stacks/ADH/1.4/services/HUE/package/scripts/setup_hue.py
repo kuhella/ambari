@@ -10,7 +10,8 @@ def setup_hue():
   Logger.info("Configure Hue Service")
   # create the pid and log dir
   Execute("mkdir -p --mode=0755 " + params.hue_log_dir + " " + params.hue_pid_dir) # NEW
-  Execute("chown " + params.hue_user + ":" + params.hue_group + " " + params.hue_log_dir + " " + params.hue_pid_dir)
+  Execute("chown " + params.hue_user + ":" + params.hue_group + " " + params.hue_log_dir + " " + params.hue_pid_dir) # NEW
+  Execute("ln -s /var/log/hue/ /usr/lib/hue/logs")
   # CHANGE
   # Directory([params.hue_log_dir, params.hue_pid_dir],
   #      mode=0755,
