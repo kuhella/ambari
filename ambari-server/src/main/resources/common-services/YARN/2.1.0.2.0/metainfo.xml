@@ -110,7 +110,7 @@
               <type>xml</type>
               <fileName>capacity-scheduler.xml</fileName>
               <dictionaryName>capacity-scheduler</dictionaryName>
-            </configFile>                        
+            </configFile>
           </configFiles>
         </component>
       </components>
@@ -131,13 +131,13 @@
           </packages>
         </osSpecific>
       </osSpecifics>
-
+<!--
       <commandScript>
         <script>scripts/service_check.py</script>
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
-      
+-->
       <requiredServices>
         <service>HDFS</service>
         <service>MAPREDUCE2</service>
@@ -241,7 +241,7 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
-      
+
       <requiredServices>
         <service>YARN</service>
       </requiredServices>
