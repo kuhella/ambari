@@ -82,6 +82,9 @@ def adh_tarball_paths(name):
   if name.lower() in TARBALL_ADH_MAP:
     (source_file, dest_file) = TARBALL_ADH_MAP[name.lower()]
     return (True, source_file, dest_file)
+  else:
+    Logger.error("Cannot copy {0} tarball to HDFS because missing key in TARBALL_ADH_MAP.".format(str(name)))    
+    return (False, None, None)
 
 def get_tarball_paths(name, use_upgrading_version_during_upgrade=True, custom_source_file=None, custom_dest_file=None):
   """
