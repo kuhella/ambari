@@ -20,7 +20,7 @@ limitations under the License.
 import re
 import os
 import sys
-from math import ceil, floor
+import math
 
 from stack_advisor import DefaultStackAdvisor
 
@@ -715,7 +715,7 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
     '''containers = max(3, min (2*cores,min (1.8*DISKS,(Total available RAM) / MIN_CONTAINER_SIZE))))'''
     cluster["containers"] = round(max(3,
                                 min(2 * cluster["cpu"],
-                                    min(ceil(1.8 * cluster["disk"]),
+                                    min(math.ceil(1.8 * cluster["disk"]),
                                             cluster["totalAvailableRam"] / cluster["minContainerSize"]))))
 
     '''ramPerContainers = max(2GB, RAM - reservedRam - hBaseRam) / containers'''
