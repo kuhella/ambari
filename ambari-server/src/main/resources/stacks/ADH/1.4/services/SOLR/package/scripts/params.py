@@ -51,7 +51,7 @@ solr_config_dir = format('{solr_package_dir}/solr')
 solr_config_bin_dir = format('{solr_config_dir}/bin')
 solr_config_pid_dir = status_params.solr_config_pid_dir
 solr_config_pid_file = status_params.solr_config_pid_file
-solr_webapp_dir = format('{solr_config_dir}/server/webapps')
+solr_webapp_dir = format('{solr_config_dir}/server/webapp')
 
 # solr cloud
 cloud_scripts = format('{solr_config_dir}/server/scripts/cloud-scripts')
