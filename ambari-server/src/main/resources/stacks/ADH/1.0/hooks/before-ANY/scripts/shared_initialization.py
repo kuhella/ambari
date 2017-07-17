@@ -54,7 +54,7 @@ def setup_users():
     Directory (params.hbase_tmp_dir,
                owner = params.hbase_user,
                mode=0775,
-               recursive = True,
+               create_parents= True,
                cd_access="a",
     )
     if not params.host_sys_prepped and params.override_uid == "true":
@@ -161,7 +161,7 @@ def setup_java():
       return
 
     Directory(params.artifact_dir,
-              recursive = True,
+              create_parents= True,
               )
 
     File(jdk_curl_target,
