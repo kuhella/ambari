@@ -325,7 +325,7 @@ class ADH13StackAdvisor(ADH12StackAdvisor):
       if hooks_value == " ":
         hooks_value = atlas_hook_class
       else:
-        hooks_value = hooks_value + "," + atlas_hook_class
+        hooks_value = hooks_value
     if not include_atlas and atlas_hook_class in hooks_value:
       hooks_classes = []
       for hook_class in hooks_value.split(","):
