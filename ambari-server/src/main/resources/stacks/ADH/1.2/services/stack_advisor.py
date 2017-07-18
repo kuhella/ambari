@@ -215,7 +215,7 @@ class ADH12StackAdvisor(ADH11StackAdvisor):
       keyserverHostsString = services["configurations"]["hadoop-env"]["properties"]["keyserver_host"]
       keyserverPortString = services["configurations"]["hadoop-env"]["properties"]["keyserver_port"]
 
-    # Irrespective of what hadoop-env has, if Ranger-KMS is installed, we use its values. 
+    # Irrespective of what hadoop-env has, if Ranger-KMS is installed, we use its values.
     rangerKMSServerHosts = self.getHostsWithComponent("RANGER_KMS", "RANGER_KMS_SERVER", services, hosts)
     if rangerKMSServerHosts is not None and len(rangerKMSServerHosts) > 0:
       rangerKMSServerHostsArray = []
@@ -953,7 +953,7 @@ class ADH12StackAdvisor(ADH11StackAdvisor):
     if "referenceNodeManagerHost" in clusterData:
       nodemanagerMinRam = min(clusterData["referenceNodeManagerHost"]["total_mem"]/1024, nodemanagerMinRam)
     putMapredProperty('yarn.app.mapreduce.am.resource.mb', configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])
-    putMapredProperty('yarn.app.mapreduce.am.command-opts', "-Xmx" + str(int(0.8 * int(configurations["mapred-site"]["properties"]["yarn.app.mapreduce.am.resource.mb"]))) + "m" + " -Dhdp.version=${hdp.version}")
+    putMapredProperty('yarn.app.mapreduce.am.command-opts', "-Xmx" + str(int(0.8 * int(configurations["mapred-site"]["properties"]["yarn.app.mapreduce.am.resource.mb"]))) + "m")
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     min_mapreduce_map_memory_mb = 0
     min_mapreduce_reduce_memory_mb = 0
@@ -1075,7 +1075,7 @@ class ADH12StackAdvisor(ADH11StackAdvisor):
           validationItems.append({"config-name" : address_property, "item" :
             self.getErrorItem(address_property + " does not contain a valid host:port authority: " + value)})
 
-    #Adding Ranger Plugin logic here 
+    #Adding Ranger Plugin logic here
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hdfs-plugin-properties")
     ranger_plugin_enabled = ranger_plugin_properties['ranger-hdfs-plugin-enabled'] if ranger_plugin_properties else 'No'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
@@ -1176,8 +1176,8 @@ class ADH12StackAdvisor(ADH11StackAdvisor):
 
   def validateHiveServer2Configurations(self, properties, recommendedDefaults, configurations, services, hosts):
     hive_server2 = properties
-    validationItems = [] 
-    #Adding Ranger Plugin logic here 
+    validationItems = []
+    #Adding Ranger Plugin logic here
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hive-plugin-properties")
     hive_env_properties = getSiteProperties(configurations, "hive-env")
     ranger_plugin_enabled = 'hive_security_authorization' in hive_env_properties and hive_env_properties['hive_security_authorization'].lower() == 'ranger'
@@ -1310,7 +1310,7 @@ class ADH12StackAdvisor(ADH11StackAdvisor):
                               "item": self.getWarnItem(
                               "{0} and {1} sum should not exceed {2}".format(prop_name1, prop_name2, props_max_sum))})
 
-    #Adding Ranger Plugin logic here 
+    #Adding Ranger Plugin logic here
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hbase-plugin-properties")
     ranger_plugin_enabled = ranger_plugin_properties['ranger-hbase-plugin-enabled'] if ranger_plugin_properties else 'No'
     prop_name = 'hbase.security.authorization'
@@ -1364,7 +1364,7 @@ class ADH12StackAdvisor(ADH11StackAdvisor):
                               "item": self.getWarnItem(
                                 "If bucketcache ioengine is enabled, {0} should be set".format(prop_name3))})
 
-    # Validate hbase.security.authentication. 
+    # Validate hbase.security.authentication.
     # Kerberos works only when security enabled.
     if "hbase.security.authentication" in properties:
       hbase_security_kerberos = properties["hbase.security.authentication"].lower() == "kerberos"
@@ -1504,7 +1504,7 @@ class ADH12StackAdvisor(ADH11StackAdvisor):
   def getAffectedConfigs(self, services):
     affectedConfigs = super(ADH12StackAdvisor, self).getAffectedConfigs(services)
 
-    # There are configs that are not defined in the stack but added/removed by 
+    # There are configs that are not defined in the stack but added/removed by
     # stack-advisor. Here we add such configs in order to clear the config
     # filtering down in base class
     configsList = [affectedConfig["type"] + "/" + affectedConfig["name"] for affectedConfig in affectedConfigs]
