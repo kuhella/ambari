@@ -70,15 +70,14 @@ def load_version(struct_out_file):
     pass
 
   return json_version
-  
+
 
 def link_configs(struct_out_file):
   """
-  Links configs, only on a fresh install of HDP-2.3 and higher
   """
 
   if not Script.is_hdp_stack_greater_or_equal("2.3"):
-    Logger.info("Can only link configs for HDP-2.3 and higher.")
+    Logger.info("")
     return
 
   json_version = load_version(struct_out_file)
