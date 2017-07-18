@@ -21,7 +21,7 @@
     <service>
       <name>ATLAS</name>
       <displayName>Atlas</displayName>
-      <comment>Atlas Metadata and Governance platform</comment>
+      <comment>Atlas Metadata and Governance platform. &lt;b&gt; This service requires HBase, Zookeeper, Solr & Kafka installed&lt;/b&gt;</comment>
       <version>0.7.1.1.4</version>
       <components>
         <component>
