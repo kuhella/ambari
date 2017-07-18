@@ -633,9 +633,7 @@ class ADH13StackAdvisor(ADH12StackAdvisor):
     putYarnSitePropertyAttributes = self.putPropertyAttribute(configurations, "yarn-site")
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
-    if "tez-site" not in services["configurations"]:
-      putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes', '')
-    else:
+    if "tez-site" in services["configurations"]:
       putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes', 'org.apache.tez.dag.history.logging.ats.TimelineCachePluginImpl')
 
     if "ranger-env" in services["configurations"] and "ranger-yarn-plugin-properties" in services["configurations"] and \
@@ -672,8 +670,8 @@ class ADH13StackAdvisor(ADH12StackAdvisor):
     if self.isHawqMasterComponentOnAmbariServer(services):
       if "hawq-site" in services["configurations"] and "hawq_master_address_port" in services["configurations"]["hawq-site"]["properties"]:
         putHawqSiteProperty('hawq_master_address_port', '')
-          
-          
+
+
   def getServiceConfigurationValidators(self):
     parentValidators = super(ADH13StackAdvisor, self).getServiceConfigurationValidators()
     childValidators = {
@@ -920,7 +918,7 @@ class ADH13StackAdvisor(ADH12StackAdvisor):
     self.validateIfRootDir (properties, validationItems, prop_name, display_name)
 
     return self.toConfigurationValidationProblems(validationItems, "hawq-site")
-  
-  
+
+
   def isComponentUsingCardinalityForLayout(self, componentName):
     return componentName in ['NFS_GATEWAY', 'PHOENIX_QUERY_SERVER', 'SPARK_THRIFTSERVER']
