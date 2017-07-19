@@ -31,12 +31,12 @@
   </os>
   <os family="redhat7">
     <repo>
-      <baseurl>https://storage.googleapis.com/arenadata-repo/ADH/1.4.0/centos7/adh</baseurl>
+      <baseurl>http://storage.googleapis.com/arenadata-repo/ADH/1.4.0/centos7/adh</baseurl>
       <repoid>ADH-1.4.0</repoid>
       <reponame>ADH-1.4.0</reponame>
     </repo>
     <repo>
-      <baseurl>https://storage.googleapis.com/arenadata-repo/ADH/1.4.0/centos7/adh-utils</baseurl>
+      <baseurl>http://storage.googleapis.com/arenadata-repo/ADH/1.4.0/centos7/adh-utils</baseurl>
       <repoid>ADH-UTILS-1.4.0</repoid>
       <reponame>ADH-UTILS-1.4.0</reponame>
     </repo>
