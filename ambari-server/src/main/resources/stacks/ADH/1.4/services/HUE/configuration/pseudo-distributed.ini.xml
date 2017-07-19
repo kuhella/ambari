@@ -265,7 +265,6 @@
   #       "description": "Redact passwords",
   #       "trigger": "password",
   #       "search": "password=\".*\"",
-  #       "replace": "password=\"???\""
   #     },
   #     {
   #       "description": "Redact social security numbers",
