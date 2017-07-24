@@ -20,7 +20,6 @@ limitations under the License.
 import collections
 import os
 
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from resource_management.libraries.resources.properties_file import PropertiesFile
 from resource_management.libraries.resources.template_config import TemplateConfig
 from resource_management.core.resources.system import Directory, Execute, File, Link
@@ -39,37 +38,7 @@ def kafka(upgrade_type=None):
     # This still has an issue of hostnames being alphabetically out-of-order for broker.id in HDP-2.2.
     # Starting in HDP 2.3, Kafka handles the generation of broker.id so Ambari doesn't have to.
 
-    effective_version = params.hdp_stack_version if upgrade_type is None else format_hdp_stack_version(params.version)
-    Logger.info(format("Effective stack version: {effective_version}"))
-
-    if effective_version is not None and effective_version != "" and compare_versions(effective_version, '2.2.0.0') >= 0 and compare_versions(effective_version, '2.3.0.0') < 0:
-      if len(params.kafka_hosts) > 0 and params.hostname in params.kafka_hosts:
-        brokerid = str(sorted(params.kafka_hosts).index(params.hostname))
-        kafka_server_config['broker.id'] = brokerid
-        Logger.info(format("Calculating broker.id as {brokerid}"))
-
-    # listeners and advertised.listeners are only added in 2.3.0.0 onwards.
-    if effective_version is not None and effective_version != "" and compare_versions(effective_version, '2.3.0.0') >= 0:
-      listeners = kafka_server_config['listeners'].replace("localhost", params.hostname)
-      Logger.info(format("Kafka listeners: {listeners}"))
-
-      if params.security_enabled and params.kafka_kerberos_enabled:
-        Logger.info("Kafka kerberos security is enabled.")
-        if "SASL" not in listeners:
-          listeners = listeners.replace("PLAINTEXT", "PLAINTEXTSASL")
-
-        kafka_server_config['listeners'] = listeners
-        kafka_server_config['advertised.listeners'] = listeners
-        Logger.info(format("Kafka advertised listeners: {listeners}"))
-      else:
-        kafka_server_config['listeners'] = listeners
-
-        if 'advertised.listeners' in kafka_server_config:
-          advertised_listeners = kafka_server_config['advertised.listeners'].replace("localhost", params.hostname)
-          kafka_server_config['advertised.listeners'] = advertised_listeners
-          Logger.info(format("Kafka advertised listeners: {advertised_listeners}"))
-    else:
-      kafka_server_config['host.name'] = params.hostname
+    kafka_server_config['host.name'] = params.hostname
 
     if params.has_metric_collector:
       kafka_server_config['kafka.timeline.metrics.host'] = params.metric_collector_host
@@ -82,7 +51,7 @@ def kafka(upgrade_type=None):
               cd_access='a',
               owner=params.kafka_user,
               group=params.user_group,
-              recursive=True)
+              create_parents=True)
     set_dir_ownership(kafka_data_dirs)
 
     PropertiesFile("server.properties",
@@ -114,7 +83,7 @@ def kafka(upgrade_type=None):
 
     # On some OS this folder could be not exists, so we will create it before pushing there files
     Directory(params.limits_conf_dir,
-              recursive=True,
+              create_parents=True,
               owner='root',
               group='root'
     )
@@ -150,7 +119,7 @@ def setup_symlink(kafka_managed_dir, kafka_ambari_managed_dir):
 
       Directory(kafka_managed_dir,
                 action="delete",
-                recursive=True)
+                create_parents=True)
 
     elif os.path.islink(kafka_managed_dir) and os.path.realpath(kafka_managed_dir) != kafka_ambari_managed_dir:
       Link(kafka_managed_dir,
@@ -169,7 +138,7 @@ def setup_symlink(kafka_managed_dir, kafka_ambari_managed_dir):
               cd_access='a',
               owner=params.kafka_user,
               group=params.user_group,
-              recursive=True)
+              create_parents=True)
     set_dir_ownership(kafka_managed_dir)
 
   if backup_folder_path:
@@ -182,7 +151,7 @@ def setup_symlink(kafka_managed_dir, kafka_ambari_managed_dir):
     # Clean up backed up folder
     Directory(backup_folder_path,
               action="delete",
-              recursive=True)
+              create_parents=True)
 
 
 # Uses agent temp dir to store backup files
@@ -194,7 +163,7 @@ def backup_dir_contents(dir_path, backup_folder_suffix):
             cd_access='a',
             owner=params.kafka_user,
             group=params.user_group,
-            recursive=True
+            create_parents=True
   )
   set_dir_ownership(backup_destination_path)
   # Safely copy top-level contents to backup folder
@@ -217,7 +186,7 @@ def ensure_base_directories():
             cd_access='a',
             owner=params.kafka_user,
             group=params.user_group,
-            recursive=True
+            create_parents=True
             )
   set_dir_ownership(base_dirs)
 
