@@ -9,13 +9,13 @@ def setup_hue():
   import status_params
   Logger.info("Configure Hue Service")
 #  create the pid and log dir
-#  Directory([params.hue_log_dir, params.hue_pid_dir],
-#        mode=0755,
-#        cd_access='a',
-#        owner=params.hue_user,
-#        group=params.hue_group,
-#        create_parents=True
-#  )
+  Directory([params.hue_log_dir, params.hue_pid_dir],
+        mode=0755,
+        cd_access='a',
+        owner=params.hue_user,
+        group=params.hue_group,
+        create_parents=True
+  )
   if not os.path.islink('/usr/lib/hue/logs/hue'):
     Execute("ln -s /var/log/hue/ /usr/lib/hue/logs")
   File([params.hue_log_file, params.hue_server_pid_file],
