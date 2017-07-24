@@ -67,7 +67,7 @@ class TezServiceCheckLinux(TezServiceCheck):
       source = format("{tmp_dir}/sample-tez-test"),
     )
 
-    copy_to_hdfs("tez", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
+    copy_to_hdfs("tez", params.user_group, params.hdfs_user, skip=params.host_sys_prepped)
 
     params.HdfsResource(None, action = "execute")
 
