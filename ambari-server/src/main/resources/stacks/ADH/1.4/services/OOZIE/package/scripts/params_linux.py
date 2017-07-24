@@ -21,8 +21,7 @@ from resource_management import *
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
-from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import get_port_from_url
@@ -48,11 +47,10 @@ stack_name = default("/hostLevelParams/stack_name", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
-hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
-hadoop_lib_home = hdp_select.get_hadoop_dir("lib")
+hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
+hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 
 oozie_lib_dir = "/var/lib/oozie"
 oozie_setup_sh = "/usr/lib/oozie/bin/oozie-setup.sh"
