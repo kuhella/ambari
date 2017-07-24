@@ -57,7 +57,7 @@ def oozie(is_server=False):
 
   Directory(params.oozie_tmp_dir,
             owner=params.oozie_user,
-            recursive = True,
+            create_parents = True,
   )
 
   if is_server:
@@ -96,7 +96,7 @@ def oozie(is_server=False):
     )
     params.HdfsResource(None, action="execute")
   Directory(params.conf_dir,
-             recursive = True,
+             create_parents = True,
              owner = params.oozie_user,
              group = params.user_group
   )
@@ -187,11 +187,11 @@ def oozie_server_specific():
     owner = params.oozie_user,
     group = params.user_group,
     mode = 0755,
-    recursive = True,
+    create_parents = True,
     cd_access="a",
   )
   Directory(params.oozie_libext_dir,
-            recursive=True,
+            create_parents = True,
   )
 
   ln_conf = ('ln', '-sfn', params.oozie_webapss_conf_target_dir, params.oozie_webapps_conf_dir) 
@@ -252,31 +252,6 @@ def oozie_server_specific():
        mode = 0644,
   )
 
-  if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2') >= 0:
-    # Create hive-site and tez-site configs for oozie
-    Directory(params.hive_conf_dir,
-        recursive = True,
-        owner = params.oozie_user,
-        group = params.user_group
-    )
-    if 'hive-site' in params.config['configurations']:
-      XmlConfig("hive-site.xml",
-        conf_dir=params.hive_conf_dir,
-        configurations=params.config['configurations']['hive-site'],
-        configuration_attributes=params.config['configuration_attributes']['hive-site'],
-        owner=params.oozie_user,
-        group=params.user_group,
-        mode=0644
-    )
-    if 'tez-site' in params.config['configurations']:
-      XmlConfig( "tez-site.xml",
-        conf_dir = params.hive_conf_dir,
-        configurations = params.config['configurations']['tez-site'],
-        configuration_attributes=params.config['configuration_attributes']['tez-site'],
-        owner = params.oozie_user,
-        group = params.user_group,
-        mode = 0664
-    )
   Execute(('chown', '-R', format("{oozie_user}:{user_group}"), params.oozie_server_dir), 
           sudo=True
   )
@@ -319,7 +294,7 @@ def download_database_library_if_needed(target_directory = None):
       Execute(format("yes | {sudo} cp {jars_path_in_archive} {oozie_libext_dir}"))
 
       Directory(params.jdbc_libs_dir,
-                recursive=True)
+                create_parents = True)
 
       Execute(format("yes | {sudo} cp {libs_path_in_archive} {jdbc_libs_dir}"))
 
