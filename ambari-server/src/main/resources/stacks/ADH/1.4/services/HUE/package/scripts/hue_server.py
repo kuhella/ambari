@@ -71,4 +71,6 @@ class HueServer(Script):
       Logger.info("echo Hue Metastore is stored in $HUE/desktop/desktop.db >> " + params.hue_log_file)
 
 if __name__ == "__main__":
+  reload(sys)
+  sys.setdefaultencoding('utf-8')
   HueServer().execute()
