@@ -81,6 +81,24 @@ class ServiceCheckWindows(ServiceCheck):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class ServiceCheckDefault(ServiceCheck):
+
+  def get_app_name(self, yarn_out):
+    m = re.search("appTrackingUrl=(.*),\s", yarn_out)
+    if m == None:
+        cmd = 'yarn application -list -appStates FINISHED |sort |tail -3 |head -1'
+        out = subprocess.check_output(cmd, shell=True)
+        s = out.split()
+        application_name = s[0]
+    else:
+        app_url = m.group(1)
+        splitted_app_url = str(app_url).split('/')
+        for item in splitted_app_url:
+            if "application" in item:  
+                application_name = item
+                break
+    return application_name
+
+
   def service_check(self, env):
     import params
     env.set_params(params)
@@ -101,14 +119,7 @@ class ServiceCheckDefault(ServiceCheck):
                                           user=params.smokeuser,
                                           )
 
-    m = re.search("appTrackingUrl=(.*),\s", out)
-    app_url = m.group(1)
-
-    splitted_app_url = str(app_url).split('/')
-
-    for item in splitted_app_url:
-      if "application" in item:
-        application_name = item
+    application_name = self.get_app_name(out)
 
     json_response_received = False
     for rm_webapp_address in params.rm_webapp_addresses_list:
