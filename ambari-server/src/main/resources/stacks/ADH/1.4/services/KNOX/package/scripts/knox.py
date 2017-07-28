@@ -81,7 +81,7 @@ def knox():
       Directory(directory,
                 owner = params.knox_user,
                 group = params.knox_group,
-                recursive = True,
+                create_parents = True,
                 cd_access = "a",
                 mode = 0755,
       )
@@ -159,7 +159,7 @@ def update_knox_logfolder_permissions():
   Directory(params.knox_logs_dir,
             owner = params.knox_user,
             group = params.knox_group,
-            recursive = True,
+            create_parents = True,
             cd_access = "a",
             mode = 0755,
             )
