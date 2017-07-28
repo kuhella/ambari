@@ -78,6 +78,12 @@ limitations under the License.
         <service>HDFS</service>
       </requiredServices>
 
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+
       <configuration-dependencies>
         <config-type>zeppelin-config</config-type>
         <config-type>zeppelin-env</config-type>
