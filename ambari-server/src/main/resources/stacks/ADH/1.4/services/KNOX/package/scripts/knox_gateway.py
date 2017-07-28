@@ -22,12 +22,9 @@ import tarfile
 
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import conf_select, tar_archive
-from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions import Direction
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, validate_security_config_properties, get_params_from_filesystem, \
@@ -112,35 +109,6 @@ class KnoxGatewayDefault(KnoxGateway):
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
-
-      absolute_backup_dir = None
-      if params.upgrade_direction and params.upgrade_direction == Direction.UPGRADE:
-        Logger.info("Backing up directories. Initial conf folder: %s" % os.path.realpath(params.knox_conf_dir))
-
-        # This will backup the contents of the conf directory into /tmp/knox-upgrade-backup/knox-conf-backup.tar
-        absolute_backup_dir = upgrade.backup_data()
-
-      # conf-select will change the symlink to the conf folder.
-      conf_select.select(params.stack_name, "knox", params.version)
-      hdp_select.select("knox-server", params.version)
-
-      # Extract the tar of the old conf folder into the new conf directory
-      if absolute_backup_dir is not None and params.upgrade_direction and params.upgrade_direction == Direction.UPGRADE:
-        conf_tar_source_path = os.path.join(absolute_backup_dir, upgrade.BACKUP_CONF_ARCHIVE)
-        if os.path.exists(conf_tar_source_path):
-          extract_dir = os.path.realpath(params.knox_conf_dir)
-          conf_tar_dest_path = os.path.join(extract_dir, upgrade.BACKUP_CONF_ARCHIVE)
-          Logger.info("Copying %s into %s file." % (upgrade.BACKUP_CONF_ARCHIVE, conf_tar_dest_path))
-          Execute(('cp', conf_tar_source_path, conf_tar_dest_path),
-                  sudo = True,
-          )
-
-          tar_archive.untar_archive(conf_tar_source_path, extract_dir)
-          
-          File(conf_tar_dest_path,
-               action = "delete",
-          )
 
   def start(self, env, upgrade_type=None):
     import params

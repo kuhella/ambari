@@ -27,7 +27,6 @@ from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions import tar_archive
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import Direction
-from resource_management.libraries.functions.version import compare_versions,format_hdp_stack_version
 
 
 BACKUP_TEMP_DIR = "knox-upgrade-backup"
@@ -80,11 +79,6 @@ def _get_directory_mappings_during_upgrade():
 
   # By default, use this for all stacks.
   knox_data_dir = '/var/lib/knox/data'
-
-  if params.stack_name and params.stack_name.upper() == "HDP" and \
-          compare_versions(format_hdp_stack_version(params.upgrade_from_version), "2.3.0.0") > 0:
-    # Use the version that is being upgraded from.
-    knox_data_dir = format('/usr/hdp/{upgrade_from_version}/knox/data')
 
   # the trailing "/" is important here so as to not include the "conf" folder itself
   directories = {knox_data_dir: BACKUP_DATA_ARCHIVE, params.knox_conf_dir + "/": BACKUP_CONF_ARCHIVE}
