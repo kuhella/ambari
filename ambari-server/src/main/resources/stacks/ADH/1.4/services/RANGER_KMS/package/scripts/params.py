@@ -31,6 +31,10 @@ version = default("/commandParams/version", None)
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 
+# ranger kms pid
+user_group = config['configurations']['cluster-env']['user_group']
+ranger_kms_pid_dir = default("/configurations/kms-env/ranger_kms_pid_dir", "/var/run/ranger_kms")
+ranger_kms_pid_file = format('{ranger_kms_pid_dir}/rangerkms.pid')
 
 kms_home = '/usr/lib/ranger-kms'
 kms_conf_dir = '/etc/ranger-kms/conf'
