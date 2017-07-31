@@ -85,6 +85,8 @@ Arenadata Hadoop (Универсальная платформа данных) - 
 - Hue: https://github.com/cloudera/hue/blob/master/docs/release-notes/release-notes-3.11.0.txt
 
 **Известные проблемы:**
-- Apache Oozie: В некоторых случаях возможно возникновение ошибки при проверке сервиса (Service Check) Oozie в Ambari. https://jira.arenadata.io/browse/ADH-76
+- Apache Atlas: Требует предварительной установки и конфигурировании копонентов HBase, Kafka, Solr, Zookeeper;
 
-- Apache Atlas: Некорректно осуществляется запуск сервиса при комманде Start All Services, требуется запуск сервиса после старта всех остальных процессов. https://jira.arenadata.io/browse/ADH-82
+- Apache Spark: Возможен некорректный запуск сервисов после перезагрузки сервера/хоста. В частности запуск Spark на порту 8080;
+
+- Apache HDFS: Возможна некорректная установка hadoop-client, в случае отсутствия YARN в списке сервисов;
