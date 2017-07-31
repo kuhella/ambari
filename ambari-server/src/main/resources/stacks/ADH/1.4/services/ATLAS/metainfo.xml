@@ -1,14 +1,12 @@
 <?xml version="1.0"?>
 <!--
-   Licensed to the Apache Software Foundation (ASF) under one or more
+        Licensed to the Apache Software Foundation (ASF) under one or more
    contributor license agreements.  See the NOTICE file distributed with
    this work for additional information regarding copyright ownership.
    The ASF licenses this file to You under the Apache License, Version 2.0
    (the "License"); you may not use this file except in compliance with
    the License.  You may obtain a copy of the License at
-
        http://www.apache.org/licenses/LICENSE-2.0
-
    Unless required by applicable law or agreed to in writing, software
    distributed under the License is distributed on an "AS IS" BASIS,
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,33 +19,27 @@
     <service>
       <name>ATLAS</name>
       <displayName>Atlas</displayName>
-      <comment>Atlas Metadata and Governance platform. &lt;b&gt; This service requires HBase, Zookeeper, Solr, Kafka installed! &lt;/b&gt;</comment>
-      <version>0.7.1.1.4</version>
+      <comment>Atlas Metadata and Governance platform</comment>
+      <version>0.7.0.3.0</version>
+      
       <components>
         <component>
           <name>ATLAS_SERVER</name>
           <displayName>Atlas Metadata Server</displayName>
           <category>MASTER</category>
-          <cardinality>1</cardinality>
-          <versionAdvertised>false</versionAdvertised>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <dependencies>
             <dependency>
-              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
-              <scope>cluster</scope>
-              <auto-deploy>
-                <enabled>true</enabled>
-              </auto-deploy>
-            </dependency>
-            <dependency>
               <name>SOLR/SOLR_SERVER</name>
-              <scope>cluster</scope>
+              <scope>host</scope>
               <auto-deploy>
                 <enabled>true</enabled>
               </auto-deploy>
             </dependency>
             <dependency>
-              <name>KAFKA/KAFKA_BROKER</name>
-              <scope>cluster</scope>
+              <name>HBASE/HBASE_CLIENT</name>
+              <scope>host</scope>
               <auto-deploy>
                 <enabled>true</enabled>
               </auto-deploy>
@@ -60,8 +52,8 @@
               </auto-deploy>
             </dependency>
             <dependency>
-              <name>HBASE/HBASE_CLIENT</name>
-              <scope>host</scope>
+              <name>KAFKA/KAFKA_BROKER</name>
+              <scope>cluster</scope>
               <auto-deploy>
                 <enabled>true</enabled>
               </auto-deploy>
@@ -84,8 +76,8 @@
           <name>ATLAS_CLIENT</name>
           <displayName>Atlas Metadata Client</displayName>
           <category>CLIENT</category>
-          <cardinality>0+</cardinality>
-          <versionAdvertised>false</versionAdvertised>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <dependencies>
           </dependencies>
           <commandScript>
@@ -117,9 +109,42 @@
         </component>
       </components>
 
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
+
+      <requiredServices>
+        <service>KAFKA</service>
+        <service>SOLR</service>
+        <service>HBASE</service>
+        <service>ZOOKEEPER</service>
+      </requiredServices>
+
+      <themes>
+        <theme>
+          <fileName>theme.json</fileName>
+          <default>true</default>
+        </theme>
+        <theme>
+          <fileName>theme_version_2.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
+
       <osSpecifics>
         <osSpecific>
-          <osFamily>any</osFamily>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
+          <packages>
+            <package>
+              <name>atlas-metadata</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
           <packages>
             <package>
               <name>atlas-metadata</name>
@@ -134,14 +159,12 @@
         <timeout>300</timeout>
       </commandScript>
 
-
       <configuration-dependencies>
         <config-type>application-properties</config-type>
         <config-type>atlas-env</config-type>
         <config-type>atlas-log4j</config-type>
         <config-type>core-site</config-type>
       </configuration-dependencies>
-
 
     </service>
   </services>
