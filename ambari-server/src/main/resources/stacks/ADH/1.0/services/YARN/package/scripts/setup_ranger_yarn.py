@@ -21,7 +21,7 @@ def setup_ranger_yarn():
 
   if params.has_ranger_admin:
 
-    from resource_management.libraries.functions.setup_ranger_plugin_xml import setup_ranger_plugin
+    from resource_management.libraries.functions.adh_setup_ranger_plugin_xml import setup_ranger_plugin
 
     if params.retryAble:
       Logger.info("YARN: Setup ranger: command retry enables thus retrying if ranger admin is down !")

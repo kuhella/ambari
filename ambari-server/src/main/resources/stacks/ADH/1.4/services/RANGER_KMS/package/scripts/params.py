@@ -84,7 +84,7 @@ if has_ranger_admin:
 java_share_dir = '/usr/share/java'
 
 if db_flavor == 'mysql':
-  jdbc_symlink_name = "mysql-jdbc-driver.jar"
+  jdbc_symlink_name = "mysql-connector-java.jar"
   jdbc_jar_name = "mysql-connector-java.jar"
   db_jdbc_url = format('jdbc:log4jdbc:mysql://{db_host}/{db_name}')
   db_jdbc_driver = "net.sf.log4jdbc.DriverSpy"
@@ -135,7 +135,7 @@ if db_flavor == 'sqla':
 
 if has_ranger_admin:
   if xa_audit_db_flavor == 'mysql':
-    jdbc_symlink = "mysql-jdbc-driver.jar"
+    jdbc_symlink = "mysql-connector-java.jar"
     jdbc_jar = "mysql-connector-java.jar"
     audit_jdbc_url = format('jdbc:mysql://{xa_db_host}/{xa_audit_db_name}')
     jdbc_driver = "com.mysql.jdbc.Driver"
