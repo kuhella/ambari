@@ -48,7 +48,7 @@ def setup_ranger_atlas(upgrade_type=None):
         )
         params.HdfsResource(None, action="execute")
 
-    adh_setup_ranger_plugin('atlas-server', 'atlas',None,
+    setup_ranger_plugin('atlas-server', 'atlas',None,
                         params.downloaded_custom_connector, params.driver_curl_source,
                         params.driver_curl_target, params.java64_home,
                         params.repo_name, params.atlas_ranger_plugin_repo,
