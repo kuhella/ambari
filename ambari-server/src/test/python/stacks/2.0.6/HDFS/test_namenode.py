@@ -1041,7 +1041,7 @@ class TestNamenode(RMFTestCase):
                               bin_dir = '/usr/bin')
     self.assertNoMoreResources()
 
-  def test_decommission_update_exclude_file_only(self):
+  def test_decommission_update_files_only(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                        classname = "NameNode",
                        command = "decommission",
@@ -1348,7 +1348,7 @@ class TestNamenode(RMFTestCase):
                        config_file = "nn_eu_standby.json",
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, None, ''), (0, None)],
+                       call_mocks = [(0, None), (0, None, ''), (0, None)] ,
                        mocks_dict=mocks_dict)
 
     calls = mocks_dict['call'].call_args_list
