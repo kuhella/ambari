@@ -92,7 +92,7 @@ regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, regionserver_xm
 
 
 phoenix_hosts = default('/clusterHostInfo/phoenix_query_server_hosts', [])
-phoenix_enabled = default('/configurations/hbase-env/phoenix_sql_enabled', False)
+phoenix_enabled = default('/configurations/hbase-env/phoenix_sql_enabled', True)
 has_phoenix = len(phoenix_hosts) > 0
 
 if not has_phoenix and not phoenix_enabled:
@@ -139,7 +139,7 @@ metrics_collection_period = default("/configurations/ams-site/timeline.metrics.s
 if 'slave_hosts' in config['clusterHostInfo']:
   rs_hosts = default('/clusterHostInfo/hbase_rs_hosts', '/clusterHostInfo/slave_hosts') #if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
 else:
-  rs_hosts = default('/clusterHostInfo/hbase_rs_hosts', '/clusterHostInfo/all_hosts') 
+  rs_hosts = default('/clusterHostInfo/hbase_rs_hosts', '/clusterHostInfo/all_hosts')
 
 smoke_test_user = config['configurations']['cluster-env']['smokeuser']
 smokeuser_principal =  config['configurations']['cluster-env']['smokeuser_principal_name']
@@ -173,7 +173,7 @@ if (('hbase-log4j' in config['configurations']) and ('content' in config['config
   log4j_props = config['configurations']['hbase-log4j']['content']
 else:
   log4j_props = None
-  
+
 hbase_env_sh_template = config['configurations']['hbase-env']['content']
 
 hbase_hdfs_root_dir = config['configurations']['hbase-site']['hbase.rootdir']
@@ -322,4 +322,3 @@ if security_enabled:
     hbase_coprocessor_master_classes = "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
     hbase_coprocessor_regionserver_classes = "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
     hbase_coprocessor_region_classes = "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
-

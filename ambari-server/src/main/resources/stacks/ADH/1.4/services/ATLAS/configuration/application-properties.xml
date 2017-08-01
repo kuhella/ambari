@@ -52,10 +52,26 @@
   <description/>
 </property>
 <property>
-  <name>atlas.authentication.method.ldap.type</name>
-  <value>none</value>
-  <description/>
-</property>
+    <name>atlas.authentication.method.ldap.type</name>
+    <display-name>LDAP Authentication Type</display-name>
+    <value>ldap</value>
+    <description>The LDAP type (ldap, ad, or none).</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>ldap</value>
+          <label>LDAP</label>
+        </entry>
+        <entry>
+          <value>ad</value>
+          <label>AD</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+ </property>
 <property>
   <name>atlas.authorizer.impl</name>
   <value>SIMPLE</value>
@@ -198,7 +214,7 @@
 </property>
 <property>
   <name>atlas.notification.embedded</name>
-  <value>true</value>
+  <value>false</value>
   <description/>
 </property>
 <property>
