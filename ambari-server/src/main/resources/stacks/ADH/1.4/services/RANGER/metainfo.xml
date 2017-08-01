@@ -53,6 +53,15 @@
           <category>MASTER</category>
           <cardinality>1+</cardinality>
           <versionAdvertised>true</versionAdvertised>
+          <dependencies>
+            <dependency>
+              <name>SOLR/SOLR_SERVER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
           <commandScript>
             <script>scripts/ranger_admin.py</script>
             <scriptType>PYTHON</scriptType>
@@ -74,6 +83,10 @@
         </component>
 
       </components>              
+
+      <requiredServices>
+        <service>SOLR</service>
+      </requiredServices>
 
       <configuration-dependencies>
         <config-type>admin-properties</config-type>

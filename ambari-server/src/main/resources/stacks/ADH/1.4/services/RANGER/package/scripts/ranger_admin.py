@@ -48,11 +48,6 @@ class RangerAdmin(Script):
       from setup_ranger_xml import setup_java_patch
       setup_java_patch()
     
-    #install another solr instance for ranger audits
-    Execute(format('./solr_for_audit_setup/setup.sh'), environment={'JAVA_HOME': params.java_home}, user=root)
-    
-    #install another solr instance for ranger audits
-    Execute(format(''), environment={'JAVA_HOME': params.java_home}, user=root)
     
     ranger_user = params.unix_user
     hadoop_group = 'hadoop'
@@ -66,7 +61,7 @@ class RangerAdmin(Script):
     Execute(format('{params.ranger_stop}'), environment={'JAVA_HOME': params.java_home}, user=params.unix_user)
     
     #start another solr instance for ranger audits
-    Execute(format('/usr/lib/solr/ranger_audit_server/scripts/stop_solr.sh'), environment={'JAVA_HOME': params.java_home}, user=root)
+    Execute(('bash', '/usr/lib/solr/ranger_audit_server/scripts/stop_solr.sh'), environment={'JAVA_HOME': params.java_home}, user='solr')
 
 
 
@@ -94,8 +89,12 @@ class RangerAdmin(Script):
     self.configure(env)
     ranger_service('ranger_admin')
 
-    #stop another solr instance for ranger audits
-    Execute(format('/usr/lib/solr/ranger_audit_server/scripts/start_solr.sh'), environment={'JAVA_HOME': params.java_home}, user=root)
+    #install another solr instance for ranger audits
+    service_packagedir = os.path.realpath(__file__).split('/scripts')[0]
+    Execute('find '+service_packagedir+' -iname "*.sh" | xargs chmod +x')
+    Execute(('cd', format('{service_packagedir}/scripts/solr_for_audit_setup'), '&&', format('./setup.sh')), environment={'JAVA_HOME': params.java_home}, sudo=True)
+    #start another solr instance for ranger audits
+    Execute(format('/usr/lib/solr/ranger_audit_server/scripts/start_solr.sh'), environment={'JAVA_HOME': params.java_home}, user='solr')
     
 
 
