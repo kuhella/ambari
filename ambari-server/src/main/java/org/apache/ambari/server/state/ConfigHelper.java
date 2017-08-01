@@ -31,7 +31,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.base.Objects;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -46,6 +45,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Objects;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Maps;
@@ -89,8 +89,10 @@ public class ConfigHelper {
   public static final String CLUSTER_ENV_RETRY_COMMANDS = "commands_to_retry";
   public static final String CLUSTER_ENV_RETRY_MAX_TIME_IN_SEC = "command_retry_max_time_in_sec";
   public static final String COMMAND_RETRY_MAX_TIME_IN_SEC_DEFAULT = "600";
+  public static final String CLUSTER_ENV_STACK_NAME_PROPERTY = "stack_name";
   public static final String CLUSTER_ENV_STACK_FEATURES_PROPERTY = "stack_features";
   public static final String CLUSTER_ENV_STACK_TOOLS_PROPERTY = "stack_tools";
+  public static final String CLUSTER_ENV_STACK_ROOT_PROPERTY = "stack_root";
 
   public static final String HTTP_ONLY = "HTTP_ONLY";
   public static final String HTTPS_ONLY = "HTTPS_ONLY";
@@ -216,6 +218,23 @@ public class ConfigHelper {
     }
 
     return resolved;
+  }
+
+
+  public Set<String> filterInvalidPropertyValues(Map<PropertyInfo, String> properties, String filteredListName) {
+    Set<String> resultSet = new HashSet<>();
+    for (Iterator<Entry<PropertyInfo, String>> iterator = properties.entrySet().iterator(); iterator.hasNext();) {
+      Entry<PropertyInfo, String> property = iterator.next();
+      PropertyInfo propertyInfo = property.getKey();
+      String propertyValue = property.getValue();
+      if (property == null || propertyValue == null || propertyValue.toLowerCase().equals("null") || propertyValue.isEmpty()) {
+        LOG.error(String.format("Excluding property %s from %s, because of invalid or empty value!", propertyInfo.getName(), filteredListName));
+        iterator.remove();
+      } else {
+        resultSet.add(propertyValue);
+      }
+    }
+    return resultSet;
   }
 
   /**
@@ -652,7 +671,7 @@ public class ConfigHelper {
     }
 
     for (Service service : cluster.getServices().values()) {
-      Set<PropertyInfo> serviceProperties = new HashSet<PropertyInfo>(servicesMap.get(service.getName()).getProperties());
+      Set<PropertyInfo> serviceProperties = new HashSet<>(servicesMap.get(service.getName()).getProperties());
       for (PropertyInfo serviceProperty : serviceProperties) {
         if (serviceProperty.getPropertyTypes().contains(propertyType)) {
           String stackPropertyConfigType = fileNameToConfigType(serviceProperty.getFilename());
@@ -679,7 +698,9 @@ public class ConfigHelper {
     for (PropertyInfo stackProperty : stackProperties) {
       if (stackProperty.getPropertyTypes().contains(propertyType)) {
         String stackPropertyConfigType = fileNameToConfigType(stackProperty.getFilename());
-        result.put(stackProperty, actualConfigs.get(stackPropertyConfigType).getProperties().get(stackProperty.getName()));
+        if (actualConfigs.containsKey(stackPropertyConfigType)) {
+          result.put(stackProperty, actualConfigs.get(stackPropertyConfigType).getProperties().get(stackProperty.getName()));
+        }
       }
     }
 
@@ -745,11 +766,34 @@ public class ConfigHelper {
     for (PropertyInfo stackProperty : stackProperties) {
       if (stackProperty.getPropertyTypes().contains(propertyType)) {
         String stackPropertyConfigType = fileNameToConfigType(stackProperty.getFilename());
-        result.add(actualConfigs.get(stackPropertyConfigType).getProperties().get(stackProperty.getName()));
+        if (actualConfigs.containsKey(stackPropertyConfigType)) {
+          result.add(actualConfigs.get(stackPropertyConfigType).getProperties().get(stackProperty.getName()));
+        }
       }
     }
 
     return result;
+  }
+
+  public void checkAllStageConfigsPresentInDesiredConfigs(Cluster cluster) throws AmbariException {
+    StackId stackId = cluster.getDesiredStackVersion();
+    Set<String> stackConfigTypes = ambariMetaInfo.getStack(stackId.getStackName(),
+            stackId.getStackVersion()).getConfigTypeAttributes().keySet();
+    Map<String, Config> actualConfigs = new HashMap<>();
+    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
+
+    for (Map.Entry<String, DesiredConfig> desiredConfigEntry : desiredConfigs.entrySet()) {
+      String configType = desiredConfigEntry.getKey();
+      DesiredConfig desiredConfig = desiredConfigEntry.getValue();
+      actualConfigs.put(configType, cluster.getConfig(configType, desiredConfig.getTag()));
+    }
+
+    for (String stackConfigType : stackConfigTypes) {
+      if (!actualConfigs.containsKey(stackConfigType)) {
+        LOG.error(String.format("Unable to find stack configuration %s in ambari configs!", stackConfigType));
+      }
+    }
+
   }
 
   /***
@@ -907,11 +951,14 @@ public class ConfigHelper {
     return properties;
   }
 
+  public Set<PropertyInfo> getStackProperties(StackId stackId) throws AmbariException {
+    StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
+    return ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
+  }
+
   public Set<PropertyInfo> getStackProperties(Cluster cluster) throws AmbariException {
     StackId stackId = cluster.getCurrentStackVersion();
-    StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
-
-    return ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
+    return getStackProperties(stackId);
   }
 
   /**
@@ -1125,6 +1172,38 @@ public class ConfigHelper {
     }
 
     return controller.createConfig(cluster, type, properties, tag, propertyAttributes);
+  }
+
+  /**
+   * Gets the default properties from the specified stack when a cluster is
+   * first installed.
+   *
+   * @param stack
+   *          the stack to pull stack-values from (not {@code null})
+   * @return a mapping of configuration type to map of key/value pairs for the
+   *         default configurations.
+   * @throws AmbariException
+   */
+  public Map<String, Map<String, String>> getDefaultStackProperties(StackId stack)
+      throws AmbariException {
+    Map<String, Map<String, String>> defaultPropertiesByType = new HashMap<>();
+
+    // populate the stack (non-service related) properties
+    Set<org.apache.ambari.server.state.PropertyInfo> stackConfigurationProperties = ambariMetaInfo.getStackProperties(
+        stack.getStackName(), stack.getStackVersion());
+
+    for (PropertyInfo stackDefaultProperty : stackConfigurationProperties) {
+      String type = ConfigHelper.fileNameToConfigType(stackDefaultProperty.getFilename());
+
+      if (!defaultPropertiesByType.containsKey(type)) {
+        defaultPropertiesByType.put(type, new HashMap<String, String>());
+      }
+
+      defaultPropertiesByType.get(type).put(stackDefaultProperty.getName(),
+          stackDefaultProperty.getValue());
+    }
+
+    return defaultPropertiesByType;
   }
 
   /**
