@@ -47,12 +47,22 @@ class RangerAdmin(Script):
     if params.xml_configurations_supported:
       from setup_ranger_xml import setup_java_patch
       setup_java_patch()
+    
+    
+    ranger_user = params.unix_user
+    hadoop_group = 'hadoop'
+    Execute(("chown", format("{ranger_user}") + ":" + format("{hadoop_group}"), '/etc/hadoop/conf/core-site.xml'),
+             sudo=True)
 
   def stop(self, env, upgrade_type=None):
     import params
 
     env.set_params(params)
     Execute(format('{params.ranger_stop}'), environment={'JAVA_HOME': params.java_home}, user=params.unix_user)
+    
+    #start another solr instance for ranger audits
+    Execute(('bash', '/usr/lib/solr/ranger_audit_server/scripts/stop_solr.sh'), environment={'JAVA_HOME': params.java_home}, user='solr')
+
 
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
@@ -78,6 +88,14 @@ class RangerAdmin(Script):
     env.set_params(params)
     self.configure(env)
     ranger_service('ranger_admin')
+
+    #install another solr instance for ranger audits
+    service_packagedir = os.path.realpath(__file__).split('/scripts')[0]
+    Execute('find '+service_packagedir+' -iname "*.sh" | xargs chmod +x')
+    Execute(('cd', format('{service_packagedir}/scripts/solr_for_audit_setup'), '&&', format('./setup.sh')), environment={'JAVA_HOME': params.java_home}, sudo=True)
+    #start another solr instance for ranger audits
+    Execute(format('/usr/lib/solr/ranger_audit_server/scripts/start_solr.sh'), environment={'JAVA_HOME': params.java_home}, user='solr')
+    
 
 
   def status(self, env):
