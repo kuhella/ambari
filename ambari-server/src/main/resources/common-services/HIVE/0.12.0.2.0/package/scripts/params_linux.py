@@ -45,6 +45,7 @@ from resource_management.libraries.functions.setup_atlas_hook import has_atlas_i
 from ambari_commons.ambari_metrics_helper import select_metric_collector_hosts_from_hostnames
 from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs, generate_ranger_service_config
 from resource_management.libraries.functions.get_architecture import get_architecture
+from resource_management.libraries.functions.version import get_major_version
 
 from resource_management.core.utils import PasswordString
 from resource_management.core.shell import checked_call
@@ -81,6 +82,7 @@ stack_version_formatted_major = status_params.stack_version_formatted_major
 
 # this is not available on INSTALL action because <stack-selector-tool> is not available
 stack_version_formatted = functions.get_stack_version('hive-server2')
+major_stack_version = get_major_version(stack_version_formatted_major)
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade.
 # It cannot be used during the initial Cluser Install because the version is not yet known.
@@ -399,7 +401,7 @@ hive_conf_dirs_list = [hive_client_conf_dir]
 ranger_hive_component = status_params.SERVER_ROLE_DIRECTORY_MAP['HIVE_SERVER']
 if status_params.role == "HIVE_METASTORE" and hive_metastore_hosts is not None and hostname in hive_metastore_hosts:
   hive_conf_dirs_list.append(hive_server_conf_dir)
-elif status_params.role == "HIVE_SERVER" and hive_server_hosts is not None and hostname in hive_server_host:
+elif status_params.role == "HIVE_SERVER" and hive_server_hosts is not None and hostname in hive_server_hosts:
   hive_conf_dirs_list.append(hive_server_conf_dir)
 elif status_params.role == "HIVE_SERVER_INTERACTIVE" and hive_server_interactive_hosts is not None and hostname in hive_server_interactive_hosts:
   hive_conf_dirs_list.append(status_params.hive_server_interactive_conf_dir)
@@ -506,6 +508,8 @@ hive_env_sh_template = config['configurations']['hive-env']['content']
 
 hive_hdfs_user_dir = format("/user/{hive_user}")
 hive_hdfs_user_mode = 0755
+#Parameter for custom warehouse directory permissions. Permissions are in octal format and need to be converted to decimal
+hive_apps_whs_mode = int(default('/configurations/hive-site/custom.hive.warehouse.mode', '0777'), 8)
 hive_apps_whs_dir = config['configurations']['hive-site']["hive.metastore.warehouse.dir"]
 whs_dir_protocol = urlparse(hive_apps_whs_dir).scheme
 hive_exec_scratchdir = config['configurations']['hive-site']["hive.exec.scratchdir"]
@@ -844,3 +848,7 @@ ranger_hive_metastore_lookup = default('/configurations/ranger-hive-plugin-prope
 
 if security_enabled:
   hive_metastore_principal_with_host = hive_metastore_principal.replace('_HOST', hostname.lower())
+
+# For ldap - hive_check
+hive_ldap_user= config['configurations']['hive-env'].get('alert_ldap_username','')
+hive_ldap_passwd=config['configurations']['hive-env'].get('alert_ldap_password','')

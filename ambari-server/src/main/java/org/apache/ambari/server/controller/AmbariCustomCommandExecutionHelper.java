@@ -27,7 +27,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CUSTOM_CO
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOST_SYS_PREPPED;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_HOME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_VERSION;
@@ -40,11 +39,11 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.ORACLE_JD
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_GROUPS;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
+import static org.apache.ambari.server.controller.internal.RequestResourceProvider.HAS_RESOURCE_FILTERS;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -90,6 +89,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.RepositoryVersionState;
@@ -139,7 +139,8 @@ public class AmbariCustomCommandExecutionHelper {
   public final static String DECOM_EXCLUDED_HOSTS = "excluded_hosts";
   public final static String DECOM_SLAVE_COMPONENT = "slave_type";
   public final static String HBASE_MARK_DRAINING_ONLY = "mark_draining_only";
-  public final static String UPDATE_EXCLUDE_FILE_ONLY = "update_exclude_file_only";
+  public final static String UPDATE_FILES_ONLY = "update_files_only";
+  public final static String MULTI_SERVICES_DECOM_REQUEST = "multi_services_decom_request";
 
   private final static String ALIGN_MAINTENANCE_STATE = "align_maintenance_state";
 
@@ -324,10 +325,6 @@ public class AmbariCustomCommandExecutionHelper {
     AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
     ServiceInfo serviceInfo = ambariMetaInfo.getService(
         stackId.getStackName(), stackId.getStackVersion(), serviceName);
-    StackInfo stackInfo = ambariMetaInfo.getStack
-       (stackId.getStackName(), stackId.getStackVersion());
-
-    ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
 
     CustomCommandDefinition customCommandDefinition = null;
     ComponentInfo ci = serviceInfo.getComponentByName(componentName);
@@ -425,7 +422,8 @@ public class AmbariCustomCommandExecutionHelper {
       String groupList = gson.toJson(groupSet);
       hostLevelParams.put(GROUP_LIST, groupList);
 
-      Set<String> notManagedHdfsPathSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs);
+      Map<PropertyInfo, String> notManagedHdfsPathMap = configHelper.getPropertiesWithPropertyType(stackId, PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs);
+      Set<String> notManagedHdfsPathSet = configHelper.filterInvalidPropertyValues(notManagedHdfsPathMap, NOT_MANAGED_HDFS_PATH_LIST);
       String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
       hostLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
 
@@ -471,12 +469,6 @@ public class AmbariCustomCommandExecutionHelper {
       }
 
       commandParams.put(COMMAND_TIMEOUT, "" + commandTimeout);
-      commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
-      commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
-
-      if (effectiveClusterVersion != null) {
-       commandParams.put(KeyNames.VERSION, effectiveClusterVersion.getRepositoryVersion().getVersion());
-      }
 
       Map<String, String> roleParams = execCmd.getRoleParams();
       if (roleParams == null) {
@@ -780,9 +772,6 @@ public class AmbariCustomCommandExecutionHelper {
     }
 
     commandParams.put(COMMAND_TIMEOUT, commandTimeout);
-    commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
-    commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
-
     execCmd.setCommandParams(commandParams);
 
     if (actionParameters != null) { // If defined
@@ -827,6 +816,10 @@ public class AmbariCustomCommandExecutionHelper {
     Set<String> includedHosts = getHostList(actionExecutionContext.getParameters(),
                                             DECOM_INCLUDED_HOSTS);
 
+    if (actionExecutionContext.getParameters().get(MULTI_SERVICES_DECOM_REQUEST) != null &&
+            actionExecutionContext.getParameters().get(MULTI_SERVICES_DECOM_REQUEST).equalsIgnoreCase("true")) {
+      includedHosts = getHostList(actionExecutionContext.getParameters(), masterCompType + "_" + DECOM_INCLUDED_HOSTS);
+    }
 
     Set<String> cloneSet = new HashSet<>(excludedHosts);
     cloneSet.retainAll(includedHosts);
@@ -880,9 +873,9 @@ public class AmbariCustomCommandExecutionHelper {
               @Override
               public boolean shouldHostBeRemoved(final String hostname)
               throws AmbariException {
-                //Get UPDATE_EXCLUDE_FILE_ONLY parameter as string
+                //Get UPDATE_FILES_ONLY parameter as string
                 String upd_excl_file_only_str = actionExecutionContext.getParameters()
-                .get(UPDATE_EXCLUDE_FILE_ONLY);
+                .get(UPDATE_FILES_ONLY);
 
                 String decom_incl_hosts_str = actionExecutionContext.getParameters()
                 .get(DECOM_INCLUDED_HOSTS);
@@ -956,15 +949,17 @@ public class AmbariCustomCommandExecutionHelper {
         listOfExcludedHosts.add(sch.getHostName());
         if (alignMtnState) {
           sch.setMaintenanceState(MaintenanceState.ON);
+          LOG.info("marking Maintenance=ON on " + sch.getHostName());
         }
-        LOG.info("Decommissioning " + slaveCompType + " and marking Maintenance=ON on " + sch.getHostName());
+        LOG.info("Decommissioning " + slaveCompType + " on " + sch.getHostName());
       }
       if (filteredIncludedHosts.contains(sch.getHostName())) {
         sch.setComponentAdminState(HostComponentAdminState.INSERVICE);
         if (alignMtnState) {
           sch.setMaintenanceState(MaintenanceState.OFF);
+          LOG.info("marking Maintenance=OFF on " + sch.getHostName());
         }
-        LOG.info("Recommissioning " + slaveCompType + " and marking Maintenance=OFF on " + sch.getHostName());
+        LOG.info("Recommissioning " + slaveCompType + " on " + sch.getHostName());
       }
     }
 
@@ -1018,7 +1013,7 @@ public class AmbariCustomCommandExecutionHelper {
       }
 
       if (!serviceName.equals(Service.Type.HBASE.name()) || hostName.equals(primaryCandidate)) {
-        commandParams.put(UPDATE_EXCLUDE_FILE_ONLY, "false");
+        commandParams.put(UPDATE_FILES_ONLY, "false");
         addCustomCommandAction(commandContext, commandFilter, stage, commandParams, commandDetail.toString());
       }
     }
@@ -1049,6 +1044,13 @@ public class AmbariCustomCommandExecutionHelper {
   public void validateAction(ExecuteActionRequest actionRequest) throws AmbariException {
 
     List<RequestResourceFilter> resourceFilters = actionRequest.getResourceFilters();
+
+    if (resourceFilters != null && resourceFilters.isEmpty() &&
+            actionRequest.getParameters().containsKey(HAS_RESOURCE_FILTERS) &&
+            actionRequest.getParameters().get(HAS_RESOURCE_FILTERS).equalsIgnoreCase("true")) {
+      LOG.warn("Couldn't find any resource that satisfies given resource filters");
+      return;
+    }
 
     if (resourceFilters == null || resourceFilters.isEmpty()) {
       throw new AmbariException("Command execution cannot proceed without a " +
@@ -1350,7 +1352,8 @@ public class AmbariCustomCommandExecutionHelper {
     hostLevelParams.put(AGENT_STACK_RETRY_COUNT, configs.getAgentStackRetryOnInstallCount());
 
     Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
-    Set<String> notManagedHdfsPathSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs);
+    Map<PropertyInfo, String> notManagedHdfsPathMap = configHelper.getPropertiesWithPropertyType(stackId, PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs);
+    Set<String> notManagedHdfsPathSet = configHelper.filterInvalidPropertyValues(notManagedHdfsPathMap, NOT_MANAGED_HDFS_PATH_LIST);
     String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
     hostLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
 

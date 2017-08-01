@@ -31,6 +31,7 @@ describe('App.UpgradeVersionBoxView', function () {
       initFilters: Em.K,
       controller: Em.Object.create({
         upgrade: Em.K,
+        getRepoVersionInstallId: Em.K,
         currentVersion: Em.Object.create()
       }),
       content: Em.Object.create(),
@@ -82,29 +83,29 @@ describe('App.UpgradeVersionBoxView', function () {
   describe("#installProgress", function () {
 
     beforeEach(function () {
-      this.mockDB = sinon.stub(App.db, 'get');
+      this.mockId = sinon.stub(view.get('controller'), 'getRepoVersionInstallId');
       this.mock = sinon.stub(App.router, 'get');
       App.set('testMode', false);
     });
     afterEach(function () {
-      this.mockDB.restore();
+      this.mockId.restore();
       this.mock.restore();
     });
 
     it("request id is not set", function () {
       this.mock.returns([]);
-      this.mockDB.returns(undefined);
+      this.mockId.returns(undefined);
       view.propertyDidChange('installProgress');
       expect(view.get('installProgress')).to.equal(0);
     });
     it("request absent", function () {
       this.mock.returns([]);
-      this.mockDB.returns([1]);
+      this.mockId.returns([1]);
       view.propertyDidChange('installProgress');
       expect(view.get('installProgress')).to.equal(0);
     });
     it("request present", function () {
-      this.mockDB.returns([1]);
+      this.mockId.returns([1]);
       this.mock.returns([Em.Object.create({progress: 100, id: 1})]);
       view.propertyDidChange('installProgress');
       expect(view.get('installProgress')).to.equal(100);
@@ -1134,6 +1135,49 @@ describe('App.UpgradeVersionBoxView', function () {
         view.set('controller.upgradeVersion', test.upgradeVersion);
         expect(view.isDisabledOnInstalled()).to.be.equal(test.expected);
       });
+    });
+  });
+
+  describe('#addRemoveIopSelectButton', function() {
+    beforeEach(function() {
+      this.mock = sinon.stub(App, 'get');
+    });
+    afterEach(function() {
+      this.mock.restore();
+    });
+
+    it('should add remove Iop Select button', function() {
+      this.mock.withArgs('currentStackName').returns('BigInsights');
+      this.mock.withArgs('upgradeIsRunning').returns(false);
+      var element = Em.Object.create({
+        buttons: []
+      });
+      view.addRemoveIopSelectButton(element, true);
+      expect(element.get('buttons')[0]).to.be.eql({
+        text: Em.I18n.t('admin.stackVersions.removeIopSelect'),
+        action: 'removeIopSelect',
+        isDisabled: true
+      });
+    });
+
+    it('should not add remove Iop Select button when upgrade is running', function() {
+      this.mock.withArgs('currentStackName').returns('BigInsights-1');
+      this.mock.withArgs('upgradeIsRunning').returns(true);
+      var element = Em.Object.create({
+        buttons: []
+      });
+      view.addRemoveIopSelectButton(element, true);
+      expect(element.get('buttons')).to.be.empty;
+    });
+
+    it('should not add remove Iop Select button when stack not BigInsights', function() {
+      this.mock.withArgs('currentStackName').returns('HDP');
+      this.mock.withArgs('upgradeIsRunning').returns(false);
+      var element = Em.Object.create({
+        buttons: []
+      });
+      view.addRemoveIopSelectButton(element, true);
+      expect(element.get('buttons')).to.be.empty;
     });
   });
 });

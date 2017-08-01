@@ -43,7 +43,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
   installProgress: function() {
     if (App.get('testMode')) return 100;
 
-    var installRequest, requestIds = App.db.get('repoVersionInstall', 'id');
+    var installRequest, requestIds = this.get('controller').getRepoVersionInstallId();
     if (requestIds) {
       installRequest = App.router.get('backgroundOperationsController.services').findProperty('id', requestIds[0]);
     }
@@ -117,7 +117,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
     },
     'INIT': {
       isButton: true,
-      text: Em.I18n.t('admin.stackVersions.version.installNow'),
+      text: Em.I18n.t('common.install'),
       action: 'installRepoVersionConfirmation'
     },
     'LOADING': {
@@ -153,6 +153,10 @@ App.UpgradeVersionBoxView = Em.View.extend({
     var statePropertiesMap = this.get('statePropertiesMap');
     var requestInProgressRepoId = this.get('controller.requestInProgressRepoId');
     var status = this.get('content.status');
+    var isVersionHigherThanCurrent = stringUtils.compareVersions(
+        this.get('content.repositoryVersion'),
+        Em.get(currentVersion, 'repository_version')
+      ) === 1;
     var element = Em.Object.create({
       status: status,
       isInstalling: function () {
@@ -169,10 +173,14 @@ App.UpgradeVersionBoxView = Em.View.extend({
     else if (status === 'INIT') {
       requestInProgressRepoId && requestInProgressRepoId == this.get('content.id') ? element.setProperties(statePropertiesMap['LOADING']) : element.setProperties(statePropertiesMap[status]);
       element.set('isDisabled', this.isDisabledOnInit());
+      if (this.addRemoveIopSelectButton(element, this.isDisabledOnInit())) {
+        element.set('isButtonGroup', true);
+        element.set('isButton', false);
+      }
     }
     else if ((status === 'INSTALLED' && !this.get('isUpgrading')) ||
              (['INSTALL_FAILED', 'OUT_OF_SYNC'].contains(status))) {
-      if (stringUtils.compareVersions(this.get('content.repositoryVersion'), Em.get(currentVersion, 'repository_version')) === 1) {
+      if (Em.get(currentVersion, 'stack_name') !== this.get('content.stackVersionType') || isVersionHigherThanCurrent) {
         var isDisabled = this.isDisabledOnInstalled();
         element.set('isButtonGroup', true);
         if (status === 'OUT_OF_SYNC') {
@@ -191,6 +199,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
             action: 'installRepoVersionConfirmation',
             isDisabled: isDisabled
           });
+          this.addRemoveIopSelectButton(element, isDisabled);
         }
         element.set('isDisabled', isDisabled);
       }
@@ -237,8 +246,27 @@ App.UpgradeVersionBoxView = Em.View.extend({
     'isUpgrading',
     'controller.requestInProgress',
     'controller.requestInProgressRepoId',
-    'parentView.repoVersions.@each.status'
+    'parentView.repoVersions.@each.status',
+    'App.currentStackName',
+    'App.upgradeIsRunning'
   ),
+
+  /**
+   * @param {Em.Object} element
+   * @param {boolean} isDisabled
+   * @returns {boolean}
+   */
+  addRemoveIopSelectButton: function(element, isDisabled) {
+    if (App.get('currentStackName') === 'BigInsights' && !App.get('upgradeIsRunning')) {
+      element.get('buttons').pushObject({
+        text: Em.I18n.t('admin.stackVersions.removeIopSelect'),
+        action: 'removeIopSelect',
+        isDisabled: isDisabled
+      });
+      return true;
+    }
+    return false;
+  },
 
   /**
    * check if actions of INIT stack version disabled
