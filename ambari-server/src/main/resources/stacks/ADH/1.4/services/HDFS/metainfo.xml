@@ -22,30 +22,6 @@
       <name>HDFS</name>
       <version>2.7.3.1.4</version>
 
-      <components>
-        <component>
-          <name>NFS_GATEWAY</name>
-          <displayName>NFSGateway</displayName>
-          <cardinality>0+</cardinality>
-          <versionAdvertised>true</versionAdvertised>
-          <category>SLAVE</category>
-          <commandScript>
-            <script>scripts/nfsgateway.py</script>
-            <scriptType>PYTHON</scriptType>
-            <timeout>1200</timeout>
-          </commandScript>
-          <dependencies>
-            <dependency>
-              <name>HDFS/HDFS_CLIENT</name>
-              <scope>host</scope>
-              <auto-deploy>
-                <enabled>true</enabled>
-              </auto-deploy>
-            </dependency>
-          </dependencies>
-        </component>
-      </components>
-
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>
@@ -112,18 +88,20 @@
 
       </osSpecifics>
 
-      <quickLinksConfigurations>
+      <themes>
+        <theme>
+          <fileName>theme.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
+
+       <quickLinksConfigurations>
         <quickLinksConfiguration>
           <fileName>quicklinks.json</fileName>
           <default>true</default>
         </quickLinksConfiguration>
       </quickLinksConfigurations>
-      <themes>
-          <theme>
-              <fileName>theme.json</fileName>
-              <default>true</default>
-          </theme>
-      </themes>
-    </service>
+
+     </service>
   </services>
 </metainfo>

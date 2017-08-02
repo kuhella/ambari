@@ -59,13 +59,18 @@
           </packages>
         </osSpecific>
       </osSpecifics>
-
       <themes>
         <theme>
           <fileName>theme.json</fileName>
           <default>true</default>
         </theme>
       </themes>
+    <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
     </service>
 
     <service>
@@ -90,7 +95,6 @@
           </packages>
         </osSpecific>
       </osSpecifics>
-      <configuration-dir>configuration-mapred</configuration-dir>
       <themes-dir>themes-mapred</themes-dir>
       <themes>
         <theme>
@@ -98,7 +102,13 @@
           <default>true</default>
         </theme>
       </themes>
-
+      <quickLinksConfigurations-dir>quicklinks-mapred</quickLinksConfigurations-dir>
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
     </service>
 
   </services>
