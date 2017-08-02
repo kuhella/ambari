@@ -49,7 +49,11 @@ class RangerUsersync(Script):
     
     self.configure(env)
     ranger_service('ranger_usersync')
-    
+    ranger_user = params.unix_user
+    hadoop_group = 'hadoop'
+    Execute(("chown", format("{ranger_user}") + ":" + format("{hadoop_group}"), '/etc/hadoop/conf/core-site.xml'),
+             sudo=True)
+ 
   def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
