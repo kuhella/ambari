@@ -59,7 +59,7 @@ def load_version(struct_out_file):
     pass
 
   return json_version
-  
+
 
 def link_configs(struct_out_file):
   """
@@ -67,7 +67,7 @@ def link_configs(struct_out_file):
   """
 
   if True:
-    Logger.info("Can only link configs for HDP-2.3 and higher.")
+    Logger.info("=====================================================")
     return
 
   json_version = load_version(struct_out_file)
