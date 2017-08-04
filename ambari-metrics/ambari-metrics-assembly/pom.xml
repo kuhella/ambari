@@ -243,6 +243,7 @@
                           <location>${collector.dir}/target/lib</location>
                           <excludes>
                             <exclude>*tests.jar</exclude>
+                            <exclude>*hadoop*2.5.1.jar</exclude>
                           </excludes>
                         </source>
                         <source>
