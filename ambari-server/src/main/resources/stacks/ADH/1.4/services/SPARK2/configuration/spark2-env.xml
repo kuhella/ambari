@@ -19,39 +19,69 @@
  * limitations under the License.
  */
 -->
-
-<configuration>
+<configuration supports_adding_forbidden="true">
   <property>
     <name>spark_user</name>
-    <display-name>Spark User</display-name>
+    <display-name>Spark2 User</display-name>
     <value>spark</value>
     <property-type>USER</property-type>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
-
   <property>
     <name>spark_group</name>
-    <display-name>Spark Group</display-name>
+    <display-name>Spark2 Group</display-name>
     <value>spark</value>
     <property-type>GROUP</property-type>
-    <description>spark group</description>
+    <description>spark2 group</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
-
   <property>
     <name>spark_log_dir</name>
-    <value>/var/log/spark</value>
+    <value>/var/log/spark2</value>
     <description>Spark Log Dir</description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
-
   <property>
     <name>spark_pid_dir</name>
-    <value>/var/run/spark/</value>
+    <value>/var/run/spark2</value>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
-
   <property>
-    <name>hadoop_bin_dir</name>
-    <value>/usr/lib/hadoop/bin</value>
+    <name>spark_daemon_memory</name>
+    <value>1024</value>
+    <description>Memory for Master, Worker and history server (default: 1G)</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
-
+  <property>
+    <name>hive_kerberos_keytab</name>
+    <value>{{hive_kerberos_keytab}}</value>
+    <description>hive keytab for spark thirft server</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive_kerberos_principal</name>
+    <value>{{hive_kerberos_principal}}</value>
+    <description>hive principal for spark thrift server</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
+    <on-ambari-upgrade add="true"/>
+  </property>
   <!-- spark-env.sh -->
   <property>
     <name>content</name>
@@ -66,25 +96,26 @@
 #SPARK_EXECUTOR_INSTANCES="2" #Number of workers to start (Default: 2)
 #SPARK_EXECUTOR_CORES="1" #Number of cores for the workers (Default: 1).
 #SPARK_EXECUTOR_MEMORY="1G" #Memory per Worker (e.g. 1000M, 2G) (Default: 1G)
-#SPARK_DRIVER_MEMORY="512 Mb" #Memory for Master (e.g. 1000M, 2G) (Default: 512 Mb)
+#SPARK_DRIVER_MEMORY="512M" #Memory for Master (e.g. 1000M, 2G) (Default: 512 Mb)
 #SPARK_YARN_APP_NAME="spark" #The name of your application (Default: Spark)
-#SPARK_YARN_QUEUE="~@~Xdefault~@~Y" #The hadoop queue to use for allocation requests (Default: @~Xdefault~@~Y)
+#SPARK_YARN_QUEUE="default" #The hadoop queue to use for allocation requests (Default: default)
 #SPARK_YARN_DIST_FILES="" #Comma separated list of files to be distributed with the job.
 #SPARK_YARN_DIST_ARCHIVES="" #Comma separated list of archives to be distributed with the job.
 
 # Generic options for the daemons used in the standalone deploy mode
 
 # Alternate conf dir. (Default: ${SPARK_HOME}/conf)
-export SPARK_CONF_DIR=/usr/lib/spark/conf
+export SPARK_CONF_DIR=${SPARK_CONF_DIR:-{{spark_home}}/conf}
 
 # Where log files are stored.(Default:${SPARK_HOME}/logs)
 #export SPARK_LOG_DIR=${SPARK_HOME:-{{spark_home}}}/logs
-export SPARK_LOG_DIR=/var/log/spark
+export SPARK_LOG_DIR={{spark_log_dir}}
 
 # Where the pid file is stored. (Default: /tmp)
-export SPARK_PID_DIR=/var/run/spark
+export SPARK_PID_DIR={{spark_pid_dir}}
 
-export HADOOP_BIN_DIR=/usr/lib/hadoop/bin
+#Memory for Master, Worker and history server (default: 1024MB)
+export SPARK_DAEMON_MEMORY={{spark_daemon_memory}}m
 
 # A string representing this instance of spark.(Default: $USER)
 SPARK_IDENT_STRING=$USER
@@ -93,28 +124,24 @@ SPARK_IDENT_STRING=$USER
 SPARK_NICENESS=0
 
 export HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}
-export HADOOP_CONF_DIR=/etc/hadoop/conf
+export HADOOP_CONF_DIR=${HADOOP_CONF_DIR:-{{hadoop_conf_dir}}}
 
 # The java implementation to use.
-export JAVA_HOME=$JAVA_HOME
-
-if [ -d "/etc/tez/conf/" ]; then
-  export TEZ_CONF_DIR=/etc/tez/conf
-else
-  export TEZ_CONF_DIR=
-fi
-
-export SPARK_MASTER_WEBUI_PORT=8082
+export JAVA_HOME={{java_home}}
 
 </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
-
   <property>
     <name>spark_thrift_cmd_opts</name>
     <description>additional spark thrift server commandline options</description>
-    <value></value>
+    <value/>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

@@ -18,11 +18,10 @@
  * limitations under the License.
  */
 -->
-
-<configuration supports_final="false">
+<configuration supports_final="false" supports_adding_forbidden="true">
   <property>
     <name>content</name>
-    <description>Spark-log4j-Properties</description>
+    <description>Spark2-log4j-Properties</description>
     <value>
 # Set everything to be logged to the console
 log4j.rootCategory=INFO, console
@@ -39,7 +38,9 @@ log4j.logger.org.apache.spark.repl.SparkILoop$SparkILoopInterpreter=INFO
 
     </value>
     <value-attributes>
+      <type>content</type>
       <show-property-name>false</show-property-name>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>
