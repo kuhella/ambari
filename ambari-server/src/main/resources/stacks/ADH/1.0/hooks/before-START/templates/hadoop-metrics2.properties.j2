@@ -72,17 +72,19 @@ resourcemanager.sink.ganglia.tagsForPrefix.yarn=Queue
 *.sink.timeline.period={{metrics_collection_period}}
 *.sink.timeline.sendInterval={{metrics_report_interval}}000
 *.sink.timeline.slave.host.name = {{hostname}}
+*.sink.timeline.protocol=http
+*.sink.timeline.port={{metric_collector_port}}
 
-datanode.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
-namenode.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
-resourcemanager.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
-nodemanager.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
-historyserver.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
-journalnode.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
-nimbus.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
-supervisor.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
-maptask.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
-reducetask.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
+datanode.sink.timeline.collector.hosts={{metric_collector_host}}
+namenode.sink.timeline.collector.hosts={{metric_collector_host}}
+resourcemanager.sink.timeline.collector.hosts={{metric_collector_host}}
+nodemanager.sink.timeline.collector.hosts={{metric_collector_host}}
+historyserver.sink.timeline.collector.hosts={{metric_collector_host}}
+journalnode.sink.timeline.collector.hosts={{metric_collector_host}}
+nimbus.sink.timeline.collector.hosts={{metric_collector_host}}
+supervisor.sink.timeline.collector.hosts={{metric_collector_host}}
+maptask.sink.timeline.collector.hosts={{metric_collector_host}}
+reducetask.sink.timeline.collector.hosts={{metric_collector_host}}
 
 resourcemanager.sink.timeline.tagsForPrefix.yarn=Queue
 
