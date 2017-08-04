@@ -26,16 +26,20 @@ from resource_management import *
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.core import shell
-from resource_management.libraries.functions.version import compare_versions
+from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.script.script import Script
+
 
 def setup_spark(env, type, upgrade_type = None, action = None):
   import params
-
+  config = Script.get_config()
   Directory([params.spark_pid_dir, params.spark_log_dir],
             owner=params.spark_user,
             group=params.user_group,
             mode=0775,
-            create_parents=True
+            create_parents = True
   )
   if type == 'server' and action == 'config':
     params.HdfsResource(params.spark_hdfs_user_dir,
@@ -44,13 +48,25 @@ def setup_spark(env, type, upgrade_type = None, action = None):
                        owner=params.spark_user,
                        mode=0775
     )
+    
     params.HdfsResource(None, action="execute")
+    
+    spark_history_dir = params.spark_history_dir
+    hadoop_user = config['configurations']['cluster-env']['user_group'] or 'hadoop'
+    params.HdfsResource(spark_history_dir,
+                        type="directory",
+                        action="create_on_execute",
+                        owner=params.spark_user,
+                        group=hadoop_user,
+                        mode=0775
+    )
 
   PropertiesFile(format("{spark_conf}/spark-defaults.conf"),
-    properties = params.config['configurations']['spark-defaults'],
+    properties = params.config['configurations']['spark2-defaults'],
     key_value_delimiter = " ",
     owner=params.spark_user,
     group=params.spark_group,
+    mode=0644
   )
 
   # create spark-env.sh in etc/conf dir
@@ -73,13 +89,8 @@ def setup_spark(env, type, upgrade_type = None, action = None):
   File(os.path.join(params.spark_conf, 'metrics.properties'),
        owner=params.spark_user,
        group=params.spark_group,
-       content=InlineTemplate(params.spark_metrics_properties)
-  )
-  
-  Directory(params.spark_logs_dir,
-       owner=params.spark_user,
-       group=params.spark_group,
-       mode=0755,   
+       content=InlineTemplate(params.spark_metrics_properties),
+       mode=0644
   )
 
   if params.is_hive_installed:
@@ -92,14 +103,18 @@ def setup_spark(env, type, upgrade_type = None, action = None):
 
   if params.has_spark_thriftserver:
     PropertiesFile(params.spark_thrift_server_conf_file,
-      properties = params.config['configurations']['spark-thrift-sparkconf'],
+      properties = params.config['configurations']['spark2-thrift-sparkconf'],
       owner = params.hive_user,
       group = params.user_group,
       key_value_delimiter = " ",
+      mode=0644
     )
 
-  effective_version = False
-  if params.spark_thrift_fairscheduler_content and effective_version:
+  effective_version = params.version if upgrade_type is not None else params.stack_version_formatted
+  if effective_version:
+    effective_version = format_stack_version(effective_version)
+
+  if params.spark_thrift_fairscheduler_content:
     # create spark-thrift-fairscheduler.xml
     File(os.path.join(params.spark_conf,"spark-thrift-fairscheduler.xml"),
       owner=params.spark_user,
