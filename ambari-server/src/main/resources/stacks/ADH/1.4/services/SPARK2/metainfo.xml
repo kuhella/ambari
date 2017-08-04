@@ -20,14 +20,14 @@
   <schemaVersion>2.0</schemaVersion>
   <services>
     <service>
-      <name>SPARK</name>
-      <displayName>Spark</displayName>
-      <comment>Apache Spark 2.0 is a fast and general engine for large-scale data processing.</comment>
-      <version>2.1.0</version>
+      <name>SPARK2</name>
+      <displayName>Spark2</displayName>
+      <comment>Apache Spark 2.0 is a fast and general engine for large-scale data processing. This service is &lt;b&gt;Technical Preview&lt;/b&gt;.</comment>
+      <version>2.1.1</version>
       <components>
         <component>
-          <name>SPARK_JOBHISTORYSERVER</name>
-          <displayName>Spark History Server</displayName>
+          <name>SPARK2_JOBHISTORYSERVER</name>
+          <displayName>Spark2 History Server</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <versionAdvertised>true</versionAdvertised>
@@ -61,14 +61,14 @@
           </commandScript>
           <logs>
             <log>
-              <logId>spark_jobhistory_server</logId>
+              <logId>spark2_jobhistory_server</logId>
               <primary>true</primary>
             </log>
           </logs>
         </component>
         <component>
-          <name>SPARK_THRIFTSERVER</name>
-          <displayName>Spark Thrift Server</displayName>
+          <name>SPARK2_THRIFTSERVER</name>
+          <displayName>Spark2 Thrift Server</displayName>
           <category>SLAVE</category>
           <cardinality>0+</cardinality>
           <versionAdvertised>true</versionAdvertised>
@@ -109,14 +109,14 @@
           </commandScript>
           <logs>
             <log>
-              <logId>spark_thriftserver</logId>
+              <logId>spark2_thriftserver</logId>
               <primary>true</primary>
             </log>
           </logs>
         </component>
         <component>
-          <name>SPARK_CLIENT</name>
-          <displayName>Spark Client</displayName>
+          <name>SPARK2_CLIENT</name>
+          <displayName>Spark2 Client</displayName>
           <category>CLIENT</category>
           <cardinality>1+</cardinality>
           <versionAdvertised>true</versionAdvertised>
@@ -152,34 +152,35 @@
             <configFile>
               <type>env</type>
               <fileName>spark-log4j.properties</fileName>
-              <dictionaryName>spark-log4j-properties</dictionaryName>
+              <dictionaryName>spark2-log4j-properties</dictionaryName>
             </configFile>
             <configFile>
               <type>env</type>
               <fileName>spark-env.sh</fileName>
-              <dictionaryName>spark-env</dictionaryName>
+              <dictionaryName>spark2-env</dictionaryName>
             </configFile>
             <configFile>
               <type>env</type>
               <fileName>spark-metrics.properties</fileName>
-              <dictionaryName>spark-metrics-properties</dictionaryName>
+              <dictionaryName>spark2-metrics-properties</dictionaryName>
             </configFile>
             <configFile>
               <type>properties</type>
               <fileName>spark-defaults.conf</fileName>
-              <dictionaryName>spark-defaults</dictionaryName>
+              <dictionaryName>spark2-defaults</dictionaryName>
             </configFile>
           </configFiles>
         </component>
       </components>
 
       <configuration-dependencies>
-        <config-type>spark-defaults</config-type>
-        <config-type>spark-env</config-type>
-        <config-type>spark-log4j-properties</config-type>
-        <config-type>spark-metrics-properties</config-type>
-        <config-type>spark-thrift-sparkconf</config-type>
-        <config-type>spark-hive-site-override</config-type>
+        <config-type>spark2-defaults</config-type>
+        <config-type>spark2-env</config-type>
+        <config-type>spark2-log4j-properties</config-type>
+        <config-type>spark2-metrics-properties</config-type>
+        <config-type>spark2-thrift-sparkconf</config-type>
+        <config-type>spark2-hive-site-override</config-type>
+        <config-type>spark2-thrift-fairscheduler</config-type>
       </configuration-dependencies>
 
       <commandScript>
@@ -222,7 +223,7 @@
             <package>
               <name>spark-python</name>
             </package>
-          </packages>
+	</packages>
         </osSpecific>
         <osSpecific>
           <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
