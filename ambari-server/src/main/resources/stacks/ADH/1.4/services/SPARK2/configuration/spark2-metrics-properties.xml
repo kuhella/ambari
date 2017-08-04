@@ -21,7 +21,7 @@
 <configuration supports_final="true">
   <property>
     <name>content</name>
-    <description>Spark-metrics-properties</description>
+    <description>Spark2-metrics-properties</description>
     <value>
 # syntax: [instance].sink|source.[name].[options]=[value]
 
@@ -157,7 +157,9 @@
 
     </value>
     <value-attributes>
+      <type>content</type>
       <show-property-name>false</show-property-name>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

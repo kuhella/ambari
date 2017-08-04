@@ -23,7 +23,9 @@ import os
 
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
+from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.core.logger import Logger
 from resource_management.core import shell
@@ -39,7 +41,7 @@ class SparkThriftServer(Script):
 
     self.install_packages(env)
 
-  def configure(self, env ,upgrade_type=None):
+  def configure(self, env, upgrade_type=None, config_dir=None):
     import params
     env.set_params(params)
     setup_spark(env, 'server', upgrade_type = upgrade_type, action = 'config')
@@ -61,12 +63,24 @@ class SparkThriftServer(Script):
     env.set_params(status_params)
     check_process_status(status_params.spark_thrift_server_pid_file)
 
-  def get_stack_to_component(self):
-     return {"HDP": "spark-thriftserver"}
+  def get_component_name(self):
+    return "spark2-thriftserver"
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
+
     env.set_params(params)
+    Logger.info("Executing Spark2 Thrift Server Stack Upgrade pre-restart")
+    conf_select.select(params.stack_name, "spark2", params.version)
+    stack_select.select("spark2-thriftserver", params.version)
+      
+  def get_log_folder(self):
+    import params
+    return params.spark_log_dir
+  
+  def get_user(self):
+    import params
+    return params.hive_user
 
 if __name__ == "__main__":
   SparkThriftServer().execute()
