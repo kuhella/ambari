@@ -112,4 +112,12 @@
     <description>The address of the Spark history server (i.e. host.com:18081). The address should not contain a scheme (http://). Defaults to not being set since the history server is an optional service. This address is given to the YARN ResourceManager when the Spark application finishes to link the application from the ResourceManager UI to the Spark history server UI.</description>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>spark.driver.extraClassPath</name>
+    <value>/usr/lib/hadoop-yarn/lib/*</value>
+    <description>
+    spark.driver.extraClassPath
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>
