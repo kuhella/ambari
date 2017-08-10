@@ -53,6 +53,18 @@ class Master(Script):
       Execute('echo spark2_version:' + str(params.spark2_version) + ' detected for spark2_home: '
               + params.spark2_home + ' >> ' + params.zeppelin_log_file, user=params.zeppelin_user)
 
+
+
+
+    #Copy files (or create symlinks to those) that jdbc(hive) needs to work properly, this is a BAD workaround.
+    src_file = '/usr/lib/hadoop/hadoop-common.jar' 
+    dst_file = params.zeppelin_dir + '/interpreter/jdbc/'
+    Execute(('ln', '-s', src_file, dst_file), sudo=True)
+
+    src_file = '/usr/lib/hive/lib/hive-jdbc-1.2.1-standalone.jar' 
+    dst_file = params.zeppelin_dir + '/interpreter/jdbc/'
+    Execute(('ln', '-s', src_file, dst_file), sudo=True)
+
   def create_zeppelin_dir(self, params):
     params.HdfsResource(format("/user/{zeppelin_user}"),
                         type="directory",
@@ -90,6 +102,7 @@ class Master(Script):
                         )
 
     params.HdfsResource(None, action="execute")
+
 
   def create_zeppelin_log_dir(self, env):
     import params
@@ -409,7 +422,7 @@ class Master(Script):
 
     self.set_interpreter_settings(config_data)
 
-  @retry(times=30, sleep_time=5, err_class=Fail)
+  @retry(times=30, sleep_time=15, err_class=Fail)
   def check_zeppelin_server(self):
     import params
     path = params.conf_dir + "/interpreter.json"
