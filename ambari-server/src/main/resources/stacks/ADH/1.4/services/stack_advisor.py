@@ -17,11 +17,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-class ADH14StackAdvisor(ADH13StackAdvisor):
 
-  def getServiceConfigurationRecommenderDict(self):
-    parentRecommendConfDict = super(ADH14StackAdvisor, self).getServiceConfigurationRecommenderDict()
-    childRecommendConfDict = {
-    }
-    parentRecommendConfDict.update(childRecommendConfDict)
-    return parentRecommendConfDict
+class ADH14StackAdvisor(ADH13StackAdvisor):
+ pass
