@@ -1025,7 +1025,7 @@ class ADH12StackAdvisor(ADH11StackAdvisor):
         self.putPropertyAttribute(configurations, "logsearch-service_logs-solrconfig")(key, 'visible', 'false')
       for key in services['configurations']['logsearch-log4j']['properties']:
         self.putPropertyAttribute(configurations, "logsearch-log4j")(key, 'visible', 'false')
-      
+
       putLogsearchProperty("logsearch.collection.service.logs.numshards", 2)
       putLogsearchProperty("logsearch.collection.audit.logs.numshards", 2)
     else:
@@ -1033,31 +1033,31 @@ class ADH12StackAdvisor(ADH11StackAdvisor):
       if infraSolrHosts is not None and len(infraSolrHosts) > 0 and "logsearch-properties" in services["configurations"]:
         replicationReccomendFloat = math.log(len(infraSolrHosts), 5)
         recommendedReplicationFactor = int(1 + math.floor(replicationReccomendFloat))
-        
+
         recommendedMinShards = len(infraSolrHosts)
         recommendedShards = 2 * len(infraSolrHosts)
         recommendedMaxShards = 3 * len(infraSolrHosts)
       else:
         recommendedReplicationFactor = 2
-        
+
         recommendedMinShards = 1
         recommendedShards = 1
         recommendedMaxShards = 100
-        
+
         putLogsearchCommonEnvProperty('logsearch_use_external_solr', 'true')
-        
+
       # recommend number of shard
       putLogsearchAttribute('logsearch.collection.service.logs.numshards', 'minimum', recommendedMinShards)
       putLogsearchAttribute('logsearch.collection.service.logs.numshards', 'maximum', recommendedMaxShards)
       putLogsearchProperty("logsearch.collection.service.logs.numshards", recommendedShards)
-      
+
       putLogsearchAttribute('logsearch.collection.audit.logs.numshards', 'minimum', recommendedMinShards)
       putLogsearchAttribute('logsearch.collection.audit.logs.numshards', 'maximum', recommendedMaxShards)
       putLogsearchProperty("logsearch.collection.audit.logs.numshards", recommendedShards)
       # recommend replication factor
       putLogsearchProperty("logsearch.collection.service.logs.replication.factor", recommendedReplicationFactor)
       putLogsearchProperty("logsearch.collection.audit.logs.replication.factor", recommendedReplicationFactor)
-      
+
     kerberos_authentication_enabled = self.isSecurityEnabled(services)
     if not kerberos_authentication_enabled:
        putLogsearchCommonEnvProperty('logsearch_external_solr_kerberos_enabled', 'false')
@@ -1100,7 +1100,7 @@ class ADH12StackAdvisor(ADH11StackAdvisor):
     if "referenceNodeManagerHost" in clusterData:
       nodemanagerMinRam = min(clusterData["referenceNodeManagerHost"]["total_mem"]/1024, nodemanagerMinRam)
     putMapredProperty('yarn.app.mapreduce.am.resource.mb', max(int(clusterData['ramPerContainer']),int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])))
-    putMapredProperty('yarn.app.mapreduce.am.command-opts', "-Xmx" + str(int(0.8 * int(configurations["mapred-site"]["properties"]["yarn.app.mapreduce.am.resource.mb"]))) + "m" + " -Dhdp.version=${hdp.version}")
+    putMapredProperty('yarn.app.mapreduce.am.command-opts', "-Xmx" + str(int(0.8 * int(configurations["mapred-site"]["properties"]["yarn.app.mapreduce.am.resource.mb"]))) + "m")
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     min_mapreduce_map_memory_mb = 0
     min_mapreduce_reduce_memory_mb = 0
