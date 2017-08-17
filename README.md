@@ -8,9 +8,9 @@ ADH 1.4.1 Release Notes
 
 **Состав и версии компонентов ADH 1.4.1:**
 - Apache Ambari 2.5.1
-- Apache HDFS	2.8.0
-- Apache YARN	2.8.0
-- Apache MapReduce	2.8.0
+- Apache HDFS	2.7.3
+- Apache YARN	2.7.3
+- Apache MapReduce	2.7.3
 - Apache Zookeeper	3.4.6
 - Apache Tez	0.7.1
 - Apache Hive	1.2.1
