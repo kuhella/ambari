@@ -83,15 +83,15 @@ ADH 1.4.1 Release Notes
 - Hue: https://github.com/cloudera/hue/blob/master/docs/release-notes/release-notes-3.11.0.txt
 
 **Известные проблемы:**
-*Apache Atlas:
+*Apache Atlas:*
 - Возможно появление предупреждения (Warning) о недоступности сервиса;
 - Возможно возникновение ошибки при старте сервиса на хосте с малым объемом памяти (Cannot allocate memory);
 
-*Apache Ozzie:
+*Apache Ozzie:*
 - Возможно возникновение ошибки при проверке сервиса (Service Check) из-за недостатка ресурсов, возникает как правило при установке множества сервисов на одном узле;
 
-*Apache Metrics:
+*Apache Metrics:*
 - Некоторые метрики могут отображаться некорретно;
 
-* Apache Giraph:
+*Apache Giraph:*
 - В некотрых случаях остановка сервиса может завершаться некрректно;
