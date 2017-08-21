@@ -53,12 +53,12 @@
   </property>
   <property require-input="false">
     <name>metadata_data_dir</name>
-    <value>/var/lib/atlas/data</value>
+    <value>/usr/lib/atlas-server/data</value>
     <description>Atlas data directory.</description>
   </property>
   <property require-input="false">
     <name>metadata_expanded_war_dir</name>
-    <value>/var/lib/atlas/server/webapp</value>
+    <value>/usr/lib/atlas-server/server/webapp</value>
     <description>Atlas expanded WAR directory.</description>
   </property>
   <property>
