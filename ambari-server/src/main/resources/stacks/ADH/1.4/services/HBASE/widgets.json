@@ -219,8 +219,8 @@
           "is_visible": true,
           "metrics": [
             {
-              "name": "regionserver.Server.percentFilesLocal",
-              "metric_path": "metrics/hbase/regionserver/Server/percentFilesLocal",
+              "name": "regionserver.Server.percentFilesLocal._sum",
+              "metric_path": "metrics/hbase/regionserver/Server/percentFilesLocal._sum",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             }
@@ -228,7 +228,7 @@
           "values": [
             {
               "name": "Files Local",
-              "value": "${regionserver.Server.percentFilesLocal}"
+              "value": "${regionserver.Server.percentFilesLocal._sum}"
             }
           ],
           "properties": {
