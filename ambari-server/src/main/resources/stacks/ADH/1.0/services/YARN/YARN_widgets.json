@@ -293,14 +293,14 @@
           "is_visible": true,
           "metrics": [
             {
-              "name": "pkts_in._avg",
-              "metric_path": "metrics/network/pkts_in._avg",
+              "name": "pkts_in._max",
+              "metric_path": "metrics/network/pkts_in._max",
               "service_name": "YARN",
               "component_name": "NODEMANAGER"
             },
             {
-              "name": "pkts_out._avg",
-              "metric_path": "metrics/network/pkts_out._avg",
+              "name": "pkts_out._max",
+              "metric_path": "metrics/network/pkts_out._max",
               "service_name": "YARN",
               "component_name": "NODEMANAGER"
             }
@@ -308,11 +308,11 @@
           "values": [
             {
               "name": "Packets In",
-              "value": "${pkts_in._avg}"
+              "value": "${pkts_in._max}"
             },
             {
               "name": "Packets Out",
-              "value": "${pkts_out._avg}"
+              "value": "${pkts_out._max}"
             }
           ],
           "properties": {
