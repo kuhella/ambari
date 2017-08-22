@@ -126,6 +126,14 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>spark.driver.extraClassPath</name>
+    <value>/usr/lib/hadoop-yarn/lib/*</value>
+    <description>
+    spark.driver.extraClassPath
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>spark.dynamicAllocation.enabled</name>
     <value>true</value>
     <description>
