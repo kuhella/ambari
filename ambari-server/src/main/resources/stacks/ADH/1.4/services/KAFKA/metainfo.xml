@@ -56,6 +56,9 @@
             <package>
               <name>kafka-server</name>
             </package>
+            <package>
+              <name>ranger-kafka-plugin</name>
+            </package>
           </packages>
         </osSpecific>
       </osSpecifics>
