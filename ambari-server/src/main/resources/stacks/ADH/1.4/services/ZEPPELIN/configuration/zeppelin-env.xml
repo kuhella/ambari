@@ -94,6 +94,7 @@ export ZEPPELIN_INTP_CLASSPATH_OVERRIDES="{{external_dependency_conf}}"
 # export SPARK_HOME                           # (required) When it is defined, load it instead of Zeppelin embedded Spark libraries
 #export SPARK_HOME={{spark_home}}
 # export SPARK_SUBMIT_OPTIONS                 # (optional) extra options to pass to spark submit. eg) "--driver-memory 512M --executor-memory 1G".
+export SPARK_SUBMIT_OPTIONS="--conf spark.driver.extraClassPath=/usr/lib/hadoop-yarn/lib/*"
 # export SPARK_APP_NAME                       # (optional) The name of spark application.
 
 ## Use embedded spark binaries ##
