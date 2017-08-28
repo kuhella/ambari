@@ -165,6 +165,13 @@
         <config-type>tez-site</config-type>
       </configuration-dependencies>
 
+      <themes>
+       <theme>
+         <fileName>theme.json</fileName>
+         <default>true</default>
+       </theme>
+     </themes>
+
       <quickLinksConfigurations>
         <quickLinksConfiguration>
           <fileName>quicklinks.json</fileName>
