@@ -57,6 +57,10 @@
               <name>ranger-hdfs-plugin</name>
               <skipUpgrade>true</skipUpgrade>
             </package>
+            <package>
+              <name>rpcbind</name>
+              <condition>should_install_rpcbind</condition>
+            </package>
           </packages>
         </osSpecific>
 
