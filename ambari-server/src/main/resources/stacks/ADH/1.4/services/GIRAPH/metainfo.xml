@@ -27,7 +27,7 @@
         <component>
           <name>GIRAPH_MASTER</name>
           <displayName>Giraph</displayName>
-          <category>MASTER</category>
+          <category>CLIENT</category>
           <cardinality>1</cardinality>
           <versionAdvertised>true</versionAdvertised>
           <commandScript>
