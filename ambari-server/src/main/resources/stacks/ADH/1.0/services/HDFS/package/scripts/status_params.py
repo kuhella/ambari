@@ -43,7 +43,7 @@ else:
   journalnode_pid_file = format("{hdp_pid_dir}/hadoop-{hdfs_user}-journalnode.pid")
   zkfc_pid_file = format("{hdp_pid_dir}/hadoop-{hdfs_user}-zkfc.pid")
 #  nfsgateway_pid_file = format("{hadoop_pid_dir_prefix}/root/hadoop_hdfs_nfs3.pid")
-  nfsgateway_pid_file = "/var/run/hadoop/root/hadoop-hdfs-nfs3.pid"
+  nfsgateway_pid_file = format("/var/run/hadoop/root/hadoop-hdfs-nfs3.pid")
 
   # Security related/required params
   hostname = config['hostname']
