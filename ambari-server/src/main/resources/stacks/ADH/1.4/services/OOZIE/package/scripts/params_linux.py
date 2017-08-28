@@ -160,7 +160,7 @@ elif jdbc_driver_name == "com.mysql.jdbc.Driver":
   jdbc_driver_jar = "mysql-connector-java.jar"
   jdbc_symlink_name = "mysql-jdbc-driver.jar"
 elif jdbc_driver_name == "org.postgresql.Driver":
-  jdbc_driver_jar = format("{oozie_home}/libserver/postgresql-9.0-801.jdbc4.jar")  #oozie using it's own postgres jdbc
+  jdbc_driver_jar = format("{oozie_home}/lib/postgresql-9.0-801.jdbc4.jar")  #oozie using it's own postgres jdbc
   jdbc_symlink_name = "postgres-jdbc-driver.jar"
 elif jdbc_driver_name == "oracle.jdbc.driver.OracleDriver":
   jdbc_driver_jar = "ojdbc.jar"
