@@ -56,7 +56,7 @@ version = default("/commandParams/version", None)
 current_version = default("/hostLevelParams/current_version", None)
 
 # When downgrading the 'version' and 'current_version' are both pointing to the downgrade-target version
-# downgrade_from_version provides the source-version the downgrade is happening from 
+# downgrade_from_version provides the source-version the downgrade is happening from
 downgrade_from_version = default("/commandParams/downgrade_from_version", None)
 
 # Upgrade direction
@@ -145,7 +145,7 @@ elif hive_jdbc_driver == "com.mysql.jdbc.Driver":
   hive_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mysql_jdbc_name", None)
 elif hive_jdbc_driver == "org.postgresql.Driver":
   jdbc_jar_name = "postgresql-jdbc.jar"
-  jdbc_symlink_name = "postgres-jdbc-driver.jar"
+  jdbc_symlink_name = "postgresql-jdbc.jar"
   hive_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_postgres_jdbc_name", None)
 elif hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":
   jdbc_jar_name = "ojdbc.jar"
@@ -333,7 +333,7 @@ if OSCheck.is_ubuntu_family():
   mysql_configname = '/etc/mysql/my.cnf'
 else:
   mysql_configname = '/etc/my.cnf'
-  
+
 mysql_user = 'mysql'
 
 # Hive security
@@ -483,9 +483,9 @@ if has_ranger_admin:
     ranger_jdbc_symlink_name = "sqlanywhere-jdbc-driver.tar.gz"
     audit_jdbc_url = format('jdbc:sqlanywhere:database={xa_audit_db_name};host={xa_db_host}')
     jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
-  
+
   ranger_downloaded_custom_connector = format("{tmp_dir}/{ranger_jdbc_jar_name}")
-  
+
   ranger_driver_curl_source = format("{jdk_location}/{ranger_jdbc_symlink_name}")
   ranger_driver_curl_target = format("{hive_lib}/{ranger_jdbc_jar_name}")
 
@@ -496,7 +496,7 @@ if has_ranger_admin:
     'jdbc.url': format("{hive_url}/default;principal={hive_principal}") if security_enabled else hive_url,
     'commonNameForCertificate': common_name_for_certificate
   }
-  
+
   hive_ranger_plugin_repo = {
     'isActive': 'true',
     'config': json.dumps(hive_ranger_plugin_config),
@@ -532,4 +532,3 @@ if has_ranger_admin:
     ranger_driver_curl_target = format("{hive_lib}/{ranger_jdbc_jar_name}")
     ranger_previous_jdbc_jar = format("{hive_lib}/{ranger_previous_jdbc_jar_name}")
     sql_connector_jar = ''
-
