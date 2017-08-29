@@ -206,11 +206,32 @@ policy_user = config['configurations']['ranger-knox-plugin-properties']['policy_
 #For curl command in ranger plugin to get db connector
 jdk_location = config['hostLevelParams']['jdk_location']
 java_share_dir = '/usr/share/java'
-if has_ranger_admin:
-  enable_ranger_knox = (config['configurations']['ranger-knox-plugin-properties']['ranger-knox-plugin-enabled'].lower() == 'yes')
+
+enable_ranger_knox = default("/configurations/ranger-knox-plugin-properties/ranger-knox-plugin-enabled", "No")
+enable_ranger_knox = True if enable_ranger_knox.lower() == 'yes' else False
+
+if enable_ranger_knox:
   xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password'])
   repo_config_password = unicode(config['configurations']['ranger-knox-plugin-properties']['REPOSITORY_CONFIG_PASSWORD'])
   xa_audit_db_flavor = (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
+
+
+  # ranger-env config
+  ranger_env = config['configurations']['ranger-env']
+
+  # create ranger-env config having external ranger credential properties
+  if not has_ranger_admin and enable_ranger_knox:
+    external_admin_username = default('/configurations/ranger-knox-plugin-properties/external_admin_username', 'admin')
+    external_admin_password = default('/configurations/ranger-knox-plugin-properties/external_admin_password', 'admin')
+    external_ranger_admin_username = default('/configurations/ranger-knox-plugin-properties/external_ranger_admin_username', 'admin')
+    external_ranger_admin_password = default('/configurations/ranger-knox-plugin-properties/external_ranger_admin_password', 'admin')
+    ranger_env = {}
+    ranger_env['admin_username'] = external_admin_username
+    ranger_env['admin_password'] = external_admin_password
+    ranger_env['ranger_admin_username'] = external_ranger_admin_username
+    ranger_env['ranger_admin_password'] = external_ranger_admin_password
+
+
 
   if xa_audit_db_flavor == 'mysql':
     jdbc_symlink_name = "mysql-jdbc-driver.jar"
