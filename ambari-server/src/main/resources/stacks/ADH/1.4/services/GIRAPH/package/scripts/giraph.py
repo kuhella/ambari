@@ -26,6 +26,7 @@ from resource_management import *
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.core.resources.service import Service
+from resource_management.core.exceptions import ClientComponentHasNoStatus
 
 class Giraph(Script):
   def install(self, env):
@@ -37,14 +38,8 @@ class Giraph(Script):
     import params
     env.set_params(params)
 
-  def stop(self, env):
-    return True
-
-  def start(self, env):
-    return True
-
   def status(self, env):
-    return True
+    raise ClientComponentHasNoStatus()
 
 if __name__ == "__main__":
   Giraph().execute()

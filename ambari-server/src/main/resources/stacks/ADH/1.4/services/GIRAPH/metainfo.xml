@@ -28,12 +28,12 @@
           <name>GIRAPH_MASTER</name>
           <displayName>Giraph</displayName>
           <category>CLIENT</category>
-          <cardinality>1</cardinality>
+          <cardinality>0+</cardinality>
           <versionAdvertised>true</versionAdvertised>
           <commandScript>
             <script>scripts/giraph.py</script>
             <scriptType>PYTHON</scriptType>
-            <timeout>60000</timeout>
+            <timeout>12000</timeout>
           </commandScript>
         </component>
       </components>
