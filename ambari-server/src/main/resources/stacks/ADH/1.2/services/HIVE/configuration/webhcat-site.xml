@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 
+<!--
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -25,25 +25,25 @@ limitations under the License.
 
   <property>
     <name>templeton.jar</name>
-    <value>/usr/hdp/${hdp.version}/hive/share/webhcat/svr/lib/hive-webhcat-*.jar</value>
+    <value>/usr/lib/hive/share/webhcat/svr/lib/hive-webhcat-*.jar</value>
     <description>The path to the Templeton jar file.</description>
   </property>
 
   <property>
     <name>templeton.libjars</name>
-    <value>/usr/hdp/${hdp.version}/zookeeper/zookeeper.jar</value>
+    <value>/usr/lib/zookeeper/zookeeper.jar</value>
     <description>Jars to add the the classpath.</description>
   </property>
 
   <property>
     <name>templeton.hadoop</name>
-    <value>/usr/hdp/${hdp.version}/hadoop/bin/hadoop</value>
+    <value>/usr/lib/hadoop/bin/hadoop</value>
     <description>The path to the Hadoop executable.</description>
   </property>
 
   <property>
     <name>templeton.pig.archive</name>
-    <value>hdfs:///hdp/apps/${hdp.version}/pig/pig.tar.gz</value>
+    <value>hdfs:///apps/pig/pig.tar.gz</value>
     <description>The path to the Pig archive in HDFS.</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
@@ -58,13 +58,13 @@ limitations under the License.
 
   <property>
     <name>templeton.hcat</name>
-    <value>/usr/hdp/${hdp.version}/hive/bin/hcat</value>
+    <value>/usr/lib/hive/bin/hcat</value>
     <description>The path to the hcatalog executable.</description>
   </property>
 
   <property>
     <name>templeton.hive.archive</name>
-    <value>hdfs:///hdp/apps/${hdp.version}/hive/hive.tar.gz</value>
+    <value>hdfs:///apps/hive/hive.tar.gz</value>
     <description>The path to the Hive archive.</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
@@ -91,7 +91,7 @@ limitations under the License.
 
   <property>
     <name>templeton.sqoop.archive</name>
-    <value>hdfs:///hdp/apps/${hdp.version}/sqoop/sqoop.tar.gz</value>
+    <value>hdfs:///apps/sqoop/sqoop.tar.gz</value>
     <description>The path to the Sqoop archive in HDFS.</description>
   </property>
 
@@ -111,14 +111,14 @@ limitations under the License.
 
   <property>
     <name>templeton.streaming.jar</name>
-    <value>hdfs:///hdp/apps/${hdp.version}/mapreduce/hadoop-streaming.jar</value>
+    <value>hdfs:///apps/mapreduce/hadoop-streaming.jar</value>
     <description>The hdfs path to the Hadoop streaming jar file.</description>
   </property>
 
    <property>
     <name>templeton.hive.extra.files</name>
-    <value>/etc/tez/conf/tez-site.xml,/usr/hdp/${hdp.version}/tez,/usr/hdp/${hdp.version}/tez/lib</value>
-    <description>The resources in this list will be localized to the node running LaunchMapper and added to HADOOP_CLASSPTH
+    <value>/etc/tez/conf/tez-site.xml,/usr/lib/tez,/usr/lib/tez/lib</value>
+    <description>The resources in this list will be localized to the node running LaunchMapper and added to HADOOP_CLASSPATH
       before launching 'hive' command.  If the path /foo/bar is a directory, the contents of the the entire dir will be localized
       and ./foo/* will be added to HADOOP_CLASSPATH.  Note that since classpath path processing does not recurse into subdirectories,
       the paths in this property may be overlapping.  In the example above, "./tez-site.xml:./tez-client/*:./lib/*" will be added to
