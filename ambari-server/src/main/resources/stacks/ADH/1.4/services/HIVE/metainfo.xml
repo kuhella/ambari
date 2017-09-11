@@ -45,6 +45,9 @@
               <name>hive-webhcat</name>
             </package>
             <package>
+              <name>hive-hbase</name>
+            </package>
+            <package>
               <name>ranger-hive-plugin</name>
               <skipUpgrade>true</skipUpgrade>
             </package>
