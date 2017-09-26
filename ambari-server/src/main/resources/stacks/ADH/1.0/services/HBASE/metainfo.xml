@@ -122,6 +122,9 @@
             <package>
               <name>hbase</name>
             </package>
+            <package>
+              <name>ranger-hbase-plugin</name>
+            </package>
           </packages>
         </osSpecific>
       </osSpecifics>

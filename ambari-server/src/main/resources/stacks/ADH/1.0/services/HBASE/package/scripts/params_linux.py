@@ -241,7 +241,8 @@ if has_ranger_admin:
   xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password'])
   repo_config_password = unicode(config['configurations']['ranger-hbase-plugin-properties']['REPOSITORY_CONFIG_PASSWORD'])
   xa_audit_db_flavor = (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
-
+  previous_jdbc_jar_name = None
+  previous_jdbc_jar = None
   if xa_audit_db_flavor == 'mysql':
     jdbc_symlink_name = "mysql-jdbc-driver.jar"
     jdbc_jar_name = "mysql-connector-java.jar"
@@ -273,7 +274,7 @@ if has_ranger_admin:
     jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
 
   downloaded_custom_connector = format("{exec_tmp_dir}/{jdbc_jar_name}")
-  driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
+  driver_curl_source = format("{jdk_location}/{jdbc_jar_name}")
   driver_curl_target = format("/usr/lib/{component_directory}/lib/{jdbc_jar_name}")
 
   hbase_ranger_plugin_config = {

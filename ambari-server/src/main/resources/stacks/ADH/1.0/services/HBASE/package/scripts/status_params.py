@@ -32,7 +32,11 @@ SERVER_ROLE_DIRECTORY_MAP = {
   'HBASE_CLIENT' : 'hbase-client'
 }
 
-component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "HBASE_CLIENT")
+# HDP-way to get component directory
+#component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "HBASE_CLIENT")
+
+# ADH-way to get component directory
+component_directory = 'hbase'
 
 config = Script.get_config()
 
