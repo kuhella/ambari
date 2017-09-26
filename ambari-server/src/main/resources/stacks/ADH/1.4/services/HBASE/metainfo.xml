@@ -46,6 +46,9 @@
             <package>
               <name>phoenix</name>
             </package>
+            <package>
+              <name>ranger-hbase-plugin</name>
+            </package>
           </packages>
         </osSpecific>
         <osSpecific>
