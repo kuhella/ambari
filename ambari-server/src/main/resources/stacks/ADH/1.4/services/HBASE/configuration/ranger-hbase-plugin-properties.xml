@@ -111,11 +111,6 @@
   </property>
   
   <property>
-    <name>POLICY_MGR_URL</name>
-    <deleted>true</deleted>   
-  </property> 
-  
-  <property>
     <name>SQL_CONNECTOR_JAR</name>
     <deleted>true</deleted>
   </property> 
@@ -143,11 +138,6 @@
   <property>
     <name>XAAUDIT.DB.HOSTNAME</name>
     <deleted>true</deleted>    
-  </property>
-  
-  <property>
-    <name>REPOSITORY_NAME</name>
-    <deleted>true</deleted>   
   </property>
   
 </configuration>
