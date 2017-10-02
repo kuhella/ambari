@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<metainfo>
+    <schemaVersion>2.0</schemaVersion>
+    <services>
+        <service>
+            <name>FLINK</name>
+            <displayName>Flink</displayName>
+            <comment>Apache Flink is a streaming dataflow engine that provides data distribution, communication, and fault tolerance for distributed computations over data streams.</comment>
+            <version>1.3.2.1.5</version>
+        </service>
+    </services>
+</metainfo>
