@@ -65,7 +65,9 @@ TARBALL_MAP = {
 }
 
 TARBALL_ADH_MAP = {
-    "tez": ("/usr/lib/tez/share/tez.tar.gz", "/apps/tez/tez.tar.gz")
+    "tez": ("/usr/lib/tez/share/tez.tar.gz", "/apps/tez/tez.tar.gz"),
+    "spark2": ("/tmp/spark2/spark2-{0}-yarn-archive.tar.gz".format('ADH'),
+               "/apps/spark2/jars/spark2-{0}-yarn-archive.tar.gz".format('ADH'))
 }
 
 def get_sysprep_skip_copy_tarballs_hdfs():
