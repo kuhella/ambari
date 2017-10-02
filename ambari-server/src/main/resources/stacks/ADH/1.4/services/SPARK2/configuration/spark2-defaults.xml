@@ -20,6 +20,20 @@
 -->
 <configuration supports_final="true">
   <property>
+    <name>spark.yarn.archive</name>
+    <value>hdfs:///apps/spark2/jars</value>
+    <description>
+      spark.yarn.archive
+    </description>
+  </property>
+  <property>
+    <name>spark.yarn.jars</name>
+    <value>hdfs:///apps/spark2/jars</value>
+    <description>
+      spark.yarn.jars
+    </description>
+  </property>
+  <property>
     <name>spark.yarn.queue</name>
     <value>default</value>
     <description>
