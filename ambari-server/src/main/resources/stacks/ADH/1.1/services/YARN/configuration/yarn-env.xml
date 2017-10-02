@@ -22,6 +22,27 @@
 
 <configuration>
   <property>
+    <name>yarn_cgroups_enabled</name>
+    <value>false</value>
+    <description>You can use CGroups to isolate CPU-heavy processes in a Hadoop cluster.</description>
+    <display-name>CPU Isolation</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Enabled</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Disabled</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>apptimelineserver_heapsize</name>
     <value>1024</value>
     <display-name>AppTimelineServer Java heap size</display-name>

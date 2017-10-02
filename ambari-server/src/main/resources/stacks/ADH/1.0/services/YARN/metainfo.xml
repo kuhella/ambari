@@ -259,6 +259,7 @@
         <config-type>ranger-yarn-audit</config-type>
         <config-type>ranger-yarn-policymgr-ssl</config-type>
         <config-type>ranger-yarn-security</config-type>
+        <config-type>capacity-scheduler</config-type>
       </configuration-dependencies>
       <restartRequiredAfterRackChange>true</restartRequiredAfterRackChange>
       <widgetsFileName>MAPREDUCE2_widgets.json</widgetsFileName>
