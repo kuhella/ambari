@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- /** * Licensed to the Apache Software Foundation (ASF) under one * or 
-	more contributor license agreements. See the NOTICE file * distributed with 
+     	more contributor license agreements. See the NOTICE file * distributed with 
 	this work for additional information * regarding copyright ownership. The 
 	ASF licenses this file * to you under the Apache License, Version 2.0 (the 
 	* "License"); you may not use this file except in compliance * with the License. 
@@ -17,6 +17,7 @@
     <display-name>Policy user for HDFS</display-name>
     <description>This user must be system user and also present at Ranger
 			admin portal</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hadoop.rpc.protection</name>
@@ -26,6 +27,7 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>common.name.for.certificate</name>
@@ -34,6 +36,7 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>ranger-hdfs-plugin-enabled</name>
@@ -50,6 +53,7 @@
       <type>boolean</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>REPOSITORY_CONFIG_USERNAME</name>
@@ -57,6 +61,7 @@
     <display-name>Ranger repository config user</display-name>
     <description>Used for repository creation on ranger admin
 		</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>REPOSITORY_CONFIG_PASSWORD</name>
@@ -68,169 +73,82 @@
     <value-attributes>
       <type>password</type>
     </value-attributes>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>XAAUDIT.DB.IS_ENABLED</name>
-    <value>true</value>
-    <display-name>Audit to DB</display-name>
-    <description/>
+    <name>hadoop.rpc.protection</name>
+    <value>authentication</value>
+    <description>Used for repository creation on ranger admin</description>
     <value-attributes>
-      <type>boolean</type>
+      <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <depends-on>
-      <property>
-        <type>ranger-env</type>
-        <name>xasecure.audit.destination.db</name>
-      </property>
-    </depends-on>
+    <on-ambari-upgrade add="false" />
   </property>
   <property>
-    <name>XAAUDIT.HDFS.IS_ENABLED</name>
-    <value>false</value>
-    <display-name>Audit to HDFS</display-name>
-    <description/>
+    <name>external_admin_username</name>
+    <value></value>
+    <display-name>External Ranger admin username</display-name>
+    <description>Add ranger default admin username if want to communicate to external ranger</description>
     <value-attributes>
-      <type>boolean</type>
+      <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <depends-on>
-      <property>
-        <type>ranger-env</type>
-        <name>xasecure.audit.destination.hdfs</name>
-      </property>
-    </depends-on>
+    <on-ambari-upgrade add="false"/>
   </property>
+
   <property>
-    <name>XAAUDIT.HDFS.DESTINATION_DIRECTORY</name>
-    <value>hdfs://localhost:8020/ranger/audit/%app-type%/%time:yyyyMMdd%</value>
-    <description/>
-    <depends-on>
-      <property>
-        <type>ranger-env</type>
-        <name>xasecure.audit.destination.hdfs.dir</name>
-      </property>
-    </depends-on>
-  </property>
-  <property>
-    <name>XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY</name>
-    <value>__REPLACE__LOG_DIR/hadoop/%app-type%/audit</value>
-    <description/>
-  </property>
-  <property>
-    <name>XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY</name>
-    <value>__REPLACE__LOG_DIR/hadoop/%app-type%/audit/archive</value>
-    <description/>
-  </property>
-  <property>
-    <name>XAAUDIT.HDFS.DESTINTATION_FILE</name>
-    <value>%hostname%-audit.log</value>
-    <description/>
-  </property>
-  <property>
-    <name>XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS</name>
-    <value>900</value>
-    <description/>
-  </property>
-  <property>
-    <name>XAAUDIT.HDFS.DESTINTATION_ROLLOVER_INTERVAL_SECONDS</name>
-    <value>86400</value>
-    <description/>
-  </property>
-  <property>
-    <name>XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS</name>
-    <value>60</value>
-    <description/>
-  </property>
-  <property>
-    <name>XAAUDIT.HDFS.LOCAL_BUFFER_FILE</name>
-    <value>%time:yyyyMMdd-HHmm.ss%.log</value>
-    <description/>
-  </property>
-  <property>
-    <name>XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS</name>
-    <value>60</value>
-    <description/>
-  </property>
-  <property>
-    <name>XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS</name>
-    <value>600</value>
-    <description/>
-  </property>
-  <property>
-    <name>XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT</name>
-    <value>10</value>
-    <description/>
+    <name>external_admin_password</name>
+    <value></value>
+    <display-name>External Ranger admin password</display-name>
+    <property-type>PASSWORD</property-type>
+    <description>Add ranger default admin password if want to communicate to external ranger</description>
     <value-attributes>
       <type>password</type>
+      <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <on-ambari-upgrade add="false"/>
   </property>
+
   <property>
-    <name>SSL_KEYSTORE_FILE_PATH</name>
-    <value>/etc/hadoop/conf/ranger-plugin-keystore.jks</value>
-    <description/>
+    <name>external_ranger_admin_username</name>
+    <value></value>
+    <display-name>External Ranger Ambari admin username</display-name>
+    <description>Add ranger default ambari admin username if want to communicate to external ranger</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
   </property>
+
   <property>
-    <name>SSL_KEYSTORE_PASSWORD</name>
-    <value>myKeyFilePassword</value>
+    <name>external_ranger_admin_password</name>
+    <value></value>
+    <display-name>External Ranger Ambari admin password</display-name>
     <property-type>PASSWORD</property-type>
-    <description/>
+    <description>Add ranger default ambari admin password if want to communicate to external ranger</description>
     <value-attributes>
       <type>password</type>
+      <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>SSL_TRUSTSTORE_FILE_PATH</name>
-    <value>/etc/hadoop/conf/ranger-plugin-truststore.jks</value>
-    <description/>
+    <name>REPOSITORY_CONFIG_USERNAME</name>
+    <value>hadoop</value>
+    <display-name>Ranger repository config user</display-name>
+    <description>Used for repository creation on ranger admin
+    </description>
+    <depends-on>
+      <property>
+        <type>ranger-hdfs-plugin-properties</type>
+        <name>ranger-hdfs-plugin-enabled</name>
+      </property>
+      <property>
+        <type>hadoop-env</type>
+        <name>hdfs_user</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
   </property>
-  <property>
-    <name>SSL_TRUSTSTORE_PASSWORD</name>
-    <value>changeit</value>
-    <property-type>PASSWORD</property-type>
-    <description/>
-  </property>
-  <property>
-    <name>POLICY_MGR_URL</name>
-    <value>{{policymgr_mgr_url}}</value>
-    <description>Policy Manager url</description>
-  </property>
-  <property>
-    <name>SQL_CONNECTOR_JAR</name>
-    <value>{{sql_connector_jar}}</value>
-    <description>Location of DB client library (please check the location
-			of the jar file)</description>
-  </property>
-  <property>
-    <name>XAAUDIT.DB.FLAVOUR</name>
-    <value>{{xa_audit_db_flavor}}</value>
-    <description>The database type to be used (mysql/oracle)</description>
-  </property>
-  <property>
-    <name>XAAUDIT.DB.DATABASE_NAME</name>
-    <value>{{xa_audit_db_name}}</value>
-    <description>Audit database name</description>
-  </property>
-  <property>
-    <name>XAAUDIT.DB.USER_NAME</name>
-    <value>{{xa_audit_db_user}}</value>
-    <description>Audit database user</description>
-  </property>
-  <property>
-    <name>XAAUDIT.DB.PASSWORD</name>
-    <value>{{xa_audit_db_password}}</value>
-    <property-type>PASSWORD</property-type>
-    <description>Audit database password</description>
-    <value-attributes>
-      <type>password</type>
-    </value-attributes>
-  </property>
-  <property>
-    <name>XAAUDIT.DB.HOSTNAME</name>
-    <value>{{xa_db_host}}</value>
-    <description>Audit database hostname</description>
-  </property>
-  <property>
-    <name>REPOSITORY_NAME</name>
-    <value>{{repo_name}}</value>
-    <description>Ranger repository name</description>
-  </property>
+
 </configuration>
+
