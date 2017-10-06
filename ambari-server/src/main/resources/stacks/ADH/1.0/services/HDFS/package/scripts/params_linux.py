@@ -51,7 +51,7 @@ tmp_dir = Script.get_tmp_dir()
 
 architecture = get_architecture()
 
-stack_name = 'ADH'
+stack_name = status_params.stack_name
 stack_root = Script.get_stack_root()
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 stack_version_unformatted = config['hostLevelParams']['stack_version']
