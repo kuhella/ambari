@@ -99,8 +99,8 @@ def setup_ranger_admin(upgrade_type=None):
     only_if=format("ls {ranger_home}/ews/webapp/WEB-INF/classes/conf"),
     sudo=True)
 
-  Execute(('ln','-sf', format('{ranger_home}/conf'), format('{ranger_conf}/conf')),
-    not_if=format("ls {ranger_conf}/conf"),
+  Execute(('ln','-sf', format('{ranger_home}/conf'), format('{ranger_conf}')),
+    not_if=format("ls {ranger_conf}"),
     only_if=format("ls {ranger_home}/conf"),
     sudo=True)
 
