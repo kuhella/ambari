@@ -69,11 +69,8 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
 
   if policymgr_mgr_url.endswith('/'):
     policymgr_mgr_url = policymgr_mgr_url.rstrip('/')
-
-  if stack_version_override is None:
-    stack_version = get_stack_version(component_select_name)
-  else:
-    stack_version = stack_version_override
+  
+  stack_version = stack_version_override
 
   component_conf_dir = conf_dict
 
@@ -199,13 +196,13 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
 def setup_ranger_plugin_jar_symblink(stack_version, service_name, component_list):
 
   stack_root = Script.get_stack_root()
-  jar_files = os.listdir(format('{stack_root}/{stack_version}/ranger-{service_name}-plugin/lib'))
+  jar_files = os.listdir(format('{stack_root}/ranger-{service_name}-plugin/lib'))
 
   for jar_file in jar_files:
     for component in component_list:
-      Execute(('ln','-sf',format('{stack_root}/{stack_version}/ranger-{service_name}-plugin/lib/{jar_file}'),format('{stack_root}/current/{component}/lib/{jar_file}')),
+      Execute(('ln','-sf',format('{stack_root}/ranger-{service_name}-plugin/lib/{jar_file}'),format('{stack_root}/current/{component}/lib/{jar_file}')),
       not_if=format('ls {stack_root}/current/{component}/lib/{jar_file}'),
-      only_if=format('ls {stack_root}/{stack_version}/ranger-{service_name}-plugin/lib/{jar_file}'),
+      only_if=format('ls {stack_root}/ranger-{service_name}-plugin/lib/{jar_file}'),
       sudo=True)
 
 def setup_ranger_plugin_keystore(service_name, audit_db_is_enabled, stack_version, credential_file, xa_audit_db_password,
@@ -217,12 +214,12 @@ def setup_ranger_plugin_keystore(service_name, audit_db_is_enabled, stack_versio
   if cred_lib_path_override is not None:
     cred_lib_path = cred_lib_path_override
   else:
-    cred_lib_path = format('{stack_root}/{stack_version}/ranger-{service_name}-plugin/install/lib/*')
+    cred_lib_path = format('{stack_root}/ranger-{service_name}-plugin/install/lib/*')
 
   if cred_setup_prefix_override is not None:
     cred_setup_prefix = cred_setup_prefix_override
   else:
-    cred_setup_prefix = (format('{stack_root}/{stack_version}/ranger-{service_name}-plugin/ranger_credential_helper.py'), '-l', cred_lib_path)
+    cred_setup_prefix = (format('{stack_root}/ranger-{service_name}-plugin/ranger_credential_helper.py'), '-l', cred_lib_path)
 
   if audit_db_is_enabled:
     cred_setup = cred_setup_prefix + ('-f', credential_file, '-k', 'auditDBCred', '-v', PasswordString(xa_audit_db_password), '-c', '1')
