@@ -20,14 +20,16 @@ limitations under the License.
 import os
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.version import compare_versions
+
 
 def setup_ranger_hdfs(upgrade_type=None):
   import params
 
-  if params.has_ranger_admin:
+  if params.enable_ranger_hdfs:
 
     stack_version = None
 

@@ -68,6 +68,9 @@ def setup_ranger_admin(upgrade_type=None):
     create_parents = True
   )
 
+  Execute(('rm','-rf', format('{ranger_conf}')), # Because at this step ranger_conf is already created.
+    sudo=True)
+
   copy_jdbc_connector()
 
   File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
@@ -94,6 +97,11 @@ def setup_ranger_admin(upgrade_type=None):
   Execute(('ln','-sf', format('{ranger_home}/ews/webapp/WEB-INF/classes/conf'), format('{ranger_home}/conf')),
     not_if=format("ls {ranger_home}/conf"),
     only_if=format("ls {ranger_home}/ews/webapp/WEB-INF/classes/conf"),
+    sudo=True)
+
+  Execute(('ln','-sf', format('{ranger_home}/conf'), format('{ranger_conf}/conf')),
+    not_if=format("ls {ranger_conf}/conf"),
+    only_if=format("ls {ranger_home}/conf"),
     sudo=True)
 
   if upgrade_type is not None:
@@ -435,6 +443,16 @@ def setup_usersync(upgrade_type=None):
     cd_access = "a",
     create_parents=True
   )
+  
+  Directory(params.ranger_ugsync_conf,
+    mode=0755,
+    create_parents=True
+  )
+
+  Execute(('ln','-sf', format('{ranger_ugsync_conf}'), format('{usersync_home}/conf')),
+    not_if=format("ls {usersync_home}/conf"),
+    only_if=format("ls {ranger_ugsync_conf}"),
+    sudo=True)
 
   if params.stack_supports_pid:
     File(format('{ranger_ugsync_conf}/ranger-usersync-env-piddir.sh'),
