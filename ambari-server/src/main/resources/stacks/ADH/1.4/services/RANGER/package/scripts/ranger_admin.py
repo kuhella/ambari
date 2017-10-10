@@ -74,6 +74,9 @@ class RangerAdmin(Script):
         action = "delete"
       )
 
+    # Stop another solr instance for ranger audits
+    Execute(('bash', '/usr/lib/solr/ranger_audit_server/scripts/stop_solr.sh'), environment={'JAVA_HOME': params.java_home}, user='solr')
+
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
@@ -96,9 +99,17 @@ class RangerAdmin(Script):
     # setup db only if in case HDP version is > 2.6
     self.configure(env, upgrade_type=upgrade_type, setup_db=params.stack_supports_ranger_setup_db_on_start)
 
-    if params.stack_supports_infra_client and params.audit_solr_enabled and params.is_solrCloud_enabled:
-      solr_cloud_util.setup_solr_client(params.config, custom_log4j = params.custom_log4j)
-      setup_ranger_audit_solr()
+    #if params.stack_supports_infra_client and params.audit_solr_enabled and params.is_solrCloud_enabled:
+    #  solr_cloud_util.setup_solr_client(params.config, custom_log4j = params.custom_log4j)
+    #  setup_ranger_audit_solr()
+    
+    # Install another solr instance for ranger audits in old style, without InfraSolr
+    service_packagedir = os.path.realpath(__file__).split('/scripts')[0]
+    Execute('find '+service_packagedir+' -iname "*.sh" | xargs chmod +x')
+    Execute('cd '+format('{service_packagedir}/scripts/solr_for_audit_setup ')+'&& '+'bash '+'./setup.sh', environment={'JAVA_HOME': params.java_home})
+    #start another solr instance for ranger audits
+    Execute(format('/usr/lib/solr/ranger_audit_server/scripts/start_solr.sh'), environment={'JAVA_HOME': params.java_home}, user='solr')
+
 
     update_password_configs()
     ranger_service('ranger_admin')
