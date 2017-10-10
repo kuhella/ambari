@@ -194,8 +194,8 @@ Em.I18n.translations = {
   'common.cluster':'Cluster',
   'common.repositories':'Repositories',
   'common.stack.versions':'Stack Versions',
-  /*'common.versions':'Versions',
-  'common.upgrade.history':'Upgrade History',*/
+  'common.versions':'Versions',
+  'common.upgrade.history':'Upgrade History',
   'common.serviceAccounts': 'Service Accounts',
   'common.add': 'Add',
   'common.edit': 'Edit',
