@@ -20,14 +20,16 @@ limitations under the License.
 import os
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.version import compare_versions
+
 
 def setup_ranger_hdfs(upgrade_type=None):
   import params
 
-  if params.has_ranger_admin:
+  if params.enable_ranger_hdfs:
 
     stack_version = None
 
@@ -92,32 +94,27 @@ def setup_ranger_hdfs(upgrade_type=None):
   else:
     Logger.info('Ranger Hdfs plugin is not enabled')
 
-
-
-def create_ranger_audit_hdfs_directories(check):
+def create_ranger_audit_hdfs_directories():
   import params
 
-  if params.has_ranger_admin:
-    if params.xml_configurations_supported and params.enable_ranger_hdfs and params.xa_audit_hdfs_is_enabled:
-      params.HdfsResource("/ranger/audit",
-                         type="directory",
-                         action="create_on_execute",
-                         owner=params.hdfs_user,
-                         group=params.hdfs_user,
-                         mode=0755,
-                         recursive_chmod=True,
-                         only_if=check
-      )
-      params.HdfsResource("/ranger/audit/hdfs",
-                         type="directory",
-                         action="create_on_execute",
-                         owner=params.hdfs_user,
-                         group=params.hdfs_user,
-                         mode=0700,
-                         recursive_chmod=True,
-                         only_if=check
-      )
-      params.HdfsResource(None, action="execute", only_if=check)
+  if params.enable_ranger_hdfs and params.xml_configurations_supported and params.xa_audit_hdfs_is_enabled:
+    params.HdfsResource("/ranger/audit",
+                       type="directory",
+                       action="create_on_execute",
+                       owner=params.hdfs_user,
+                       group=params.hdfs_user,
+                       mode=0755,
+                       recursive_chmod=True,
+    )
+    params.HdfsResource("/ranger/audit/hdfs",
+                       type="directory",
+                       action="create_on_execute",
+                       owner=params.hdfs_user,
+                       group=params.hdfs_user,
+                       mode=0700,
+                       recursive_chmod=True,
+    )
+    params.HdfsResource(None, action="execute")
   else:
-    Logger.info('Ranger admin not installed')
+    Logger.info('Ranger Hdfs plugin is not enabled')
 

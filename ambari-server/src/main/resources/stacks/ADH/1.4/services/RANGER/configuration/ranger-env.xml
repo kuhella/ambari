@@ -86,16 +86,10 @@
     <description>This is the password for default admin user that is used for creating ambari user in Ranger Admin</description>
   </property>
   
-  <property>
-    <name>oracle_home</name>
-    <value>-</value>
-    <property-type>TEXT</property-type>
-    <description>Oracle Home needs to be set to path where oracle is installed, this will help install Ranger Admin when used with Oracle as database.</description>
-  </property>
 
   <property>
     <name>xml_configurations_supported</name>
-    <value>false</value>
+    <value>true</value>
     <description></description>
   </property>
 
@@ -216,30 +210,8 @@
   </property>
 
   <property>
-    <name>bind_anonymous</name>
-    <display-name>Bind Anonymous</display-name>
-    <value>false</value>
-    <value-attributes>
-      <type>value-list</type>
-      <overridable>false</overridable>
-      <entries>
-        <entry>
-          <value>true</value>
-          <label>Yes</label>
-        </entry>
-        <entry>
-          <value>false</value>
-          <label>No</label>
-        </entry>
-      </entries>
-      <selection-cardinality>1</selection-cardinality>
-      <empty-value-valid>true</empty-value-valid>
-    </value-attributes>
-  </property>
-
-  <property>
     <name>xasecure.audit.destination.hdfs</name>
-    <value>false</value>
+    <value>true</value>
     <display-name>Audit to HDFS</display-name>
     <description>Enable Audit to HDFS for all ranger supported services. This property is overridable at service level</description>
     <value-attributes>
@@ -261,7 +233,7 @@
 
   <property>
     <name>xasecure.audit.destination.hdfs.dir</name>
-    <value>hdfs://localhost:8020/ranger/audit/%app-type%/%time:yyyyMMdd%</value>
+    <value>hdfs://localhost:8020/ranger/audit/</value>
     <display-name>Destination HDFS Directory</display-name>
     <description>HDFS folder to write audit to, make sure all service user has required permissions. This property is overridable at service level</description>
     <depends-on>
@@ -273,10 +245,99 @@
   </property>
 
   <property>
-    <name>xasecure.audit.destination.db</name>
+    <name>create_db_dbuser</name>
     <value>true</value>
-    <display-name>Audit to DB</display-name>
-    <description>Enable Audit to DB for all ranger supported services. This property is overridable at service level</description>
+    <display-name>Setup Database and Database User</display-name>
+    <description>If set to Yes, Ambari will create and setup Ranger Database and Database User. This will require to specify Database Admin user and password</description>
+    <value-attributes>
+      <type>value-list</type>
+      <overridable>false</overridable>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Yes</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>No</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>ranger_privelege_user_jdbc_url</name>
+    <display-name>JDBC connect string for root user</display-name>
+    <description>JDBC connect string - auto populated based on other values. This is to be used by root user</description>
+    <value>jdbc:mysql://localhost</value>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>admin-properties</type>
+        <name>DB_FLAVOR</name>
+      </property>
+      <property>
+        <type>admin-properties</type>
+        <name>db_host</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>ranger-yarn-plugin-enabled</name>
+    <value>No</value>
+    <display-name>YARN Ranger Plugin</display-name>
+    <description>Enable YARN Ranger plugin</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>Yes</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>No</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>ranger-kafka-plugin-enabled</name>
+    <value>No</value>
+    <display-name>Kafka Ranger Plugin</display-name>
+    <description>Enable Kafka Ranger plugin</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>Yes</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>No</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>xasecure.audit.destination.solr</name>
+    <value>true</value>
+    <display-name>Audit to Solr</display-name>
+    <description>Enable Audit to Solr for all ranger supported services. This property is overridable at service level</description>
     <value-attributes>
       <overridable>false</overridable>
       <type>value-list</type>
@@ -292,6 +353,143 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>is_solrCloud_enabled</name>
+    <display-name>SolrCloud</display-name>
+    <description>SolrCloud uses zookeeper for distributed search and indexing</description>
+    <value>false</value>
+    <value-attributes>
+      <type>value-list</type>
+      <overridable>false</overridable>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>ranger_solr_config_set</name>
+    <value>ranger_audits</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>ranger_solr_collection_name</name>
+    <value>ranger_audits</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>ranger_solr_shards</name>
+    <value>1</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>ranger_solr_replication_factor</name>
+    <value>1</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>ranger-atlas-plugin-enabled</name>
+    <value>No</value>
+    <display-name>Atlas Ranger Plugin</display-name>
+    <description>Enable Atlas Ranger plugin</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>Yes</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>No</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>is_external_solrCloud_enabled</name>
+    <display-name>External SolrCloud</display-name>
+    <value>false</value>
+    <description>Using Externally managed solr cloud ?</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>is_external_solrCloud_kerberos</name>
+    <display-name>External SolrCloud kerberos</display-name>
+    <value>false</value>
+    <description>Is Externally managed solr cloud kerberos ?</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>ranger-nifi-plugin-enabled</name>
+    <value>No</value>
+    <display-name>NIFI Ranger Plugin</display-name>
+    <description>Enable NIFI Ranger plugin</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>Yes</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>No</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 </configuration>

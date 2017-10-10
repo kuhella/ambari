@@ -28,7 +28,7 @@ def snamenode(action=None, format=False):
     import params
     for fs_checkpoint_dir in params.fs_checkpoint_dirs:
       Directory(fs_checkpoint_dir,
-                create_parents=True,
+                create_parents = True,
                 cd_access="a",
                 mode=0755,
                 owner=params.hdfs_user,
@@ -37,6 +37,12 @@ def snamenode(action=None, format=False):
          content=Template("exclude_hosts_list.j2"),
          owner=params.hdfs_user,
          group=params.user_group)
+    if params.hdfs_include_file:
+      File(params.include_file_path,
+         content=Template("include_hosts_list.j2"),
+         owner=params.hdfs_user,
+         group=params.user_group)
+      pass
   elif action == "start" or action == "stop":
     import params
     service(
@@ -61,4 +67,5 @@ def snamenode(action=None, format=False):
   elif action == "status":
     import status_params
     check_windows_service_status(status_params.snamenode_win_service_name)
+
 

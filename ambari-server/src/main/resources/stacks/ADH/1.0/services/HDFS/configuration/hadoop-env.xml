@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 <!--
-/**
+     /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,8 +19,7 @@
  * limitations under the License.
  */
 -->
-
-<configuration>
+<configuration supports_adding_forbidden="true">
   <property>
     <name>hdfs_log_dir_prefix</name>
     <value>/var/log/hadoop</value>
@@ -29,8 +28,8 @@
     <value-attributes>
       <type>directory</type>
       <overridable>false</overridable>
-      <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hadoop_pid_dir_prefix</name>
@@ -42,6 +41,7 @@
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hadoop_root_logger</name>
@@ -51,6 +51,7 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hadoop_heapsize</name>
@@ -62,6 +63,7 @@
       <unit>MB</unit>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>namenode_heapsize</name>
@@ -82,6 +84,7 @@
         <name>dfs.datanode.data.dir</name>
       </property>
     </depends-on>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>namenode_opt_newsize</name>
@@ -102,6 +105,7 @@
       <increment-step>256</increment-step>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>namenode_opt_maxnewsize</name>
@@ -122,6 +126,7 @@
       <increment-step>256</increment-step>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>namenode_opt_permsize</name>
@@ -136,6 +141,7 @@
       <increment-step>128</increment-step>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>namenode_opt_maxpermsize</name>
@@ -150,6 +156,7 @@
       <increment-step>128</increment-step>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>dtnode_heapsize</name>
@@ -163,6 +170,7 @@
       <unit>MB</unit>
       <increment-step>128</increment-step>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>proxyuser_group</name>
@@ -170,6 +178,11 @@
     <value>users</value>
     <property-type>GROUP</property-type>
     <description>Proxy user group.</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hdfs_user</name>
@@ -177,32 +190,58 @@
     <value>hdfs</value>
     <property-type>USER</property-type>
     <description>User to run HDFS as</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hdfs_tmp_dir</name>
+    <value>/tmp</value>
+    <description>HDFS tmp Dir</description>
+    <display-name>HDFS tmp Dir</display-name>
+    <property-type>NOT_MANAGED_HDFS_PATH</property-type>
+    <value-attributes>
+      <read-only>true</read-only>
+      <overridable>false</overridable>
+      <visible>false</visible>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hdfs_user_nofile_limit</name>
     <value>128000</value>
     <description>Max open files limit setting for HDFS user.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
-
   <property>
     <name>hdfs_user_nproc_limit</name>
     <value>65536</value>
     <description>Max number of processes limit setting for HDFS user.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
-
+  <property>
+    <name>namenode_backup_dir</name>
+    <description>Local directory for storing backup copy of NameNode images during upgrade</description>
+    <value>/tmp/upgrades</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
   <property>
     <name>hdfs_user_keytab</name>
     <description>HDFS keytab path</description>
+    <on-ambari-upgrade add="true"/>
   </property>
-
   <property>
     <name>hdfs_principal_name</name>
     <description>HDFS principal name</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
+    <on-ambari-upgrade add="true"/>
   </property>
-
   <!-- hadoop-env.sh -->
   <property>
     <name>content</name>
+    <display-name>hadoop-env template</display-name>
     <description>This is the jinja template for hadoop-env.sh file</description>
     <value>
 # Set Hadoop-specific environment variables here.
@@ -223,8 +262,8 @@ export HADOOP_HOME=${HADOOP_HOME:-/usr/lib/hadoop}
 #TODO: if env var set that can cause problems
 export HADOOP_CONF_DIR=${HADOOP_CONF_DIR:-{{hadoop_conf_dir}}}
 
-{# this is different for HDP1 #}
-# Path to jsvc required by secure HDP 2.0 datanode
+
+# Path to jsvc required by secure datanode
 export JSVC_HOME={{jsvc_path}}
 
 
@@ -246,14 +285,14 @@ export HADOOP_OPTS="-Djava.net.preferIPv4Stack=true ${HADOOP_OPTS}"
 # Command specific options appended to HADOOP_OPTS when specified
 
 {% if java_version &lt; 8 %}
-export HADOOP_NAMENODE_OPTS="-server -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ErrorFile={{hdfs_log_dir_prefix}}/$USER/hs_err_pid%p.log -XX:NewSize={{namenode_opt_newsize}} -XX:MaxNewSize={{namenode_opt_maxnewsize}} -XX:PermSize={{namenode_opt_permsize}} -XX:MaxPermSize={{namenode_opt_maxpermsize}} -Xloggc:{{hdfs_log_dir_prefix}}/$USER/gc.log-`date +'%Y%m%d%H%M'` -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xms{{namenode_heapsize}} -Xmx{{namenode_heapsize}} -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT -Dorg.mortbay.jetty.Request.maxFormContentSize=-1  ${HADOOP_NAMENODE_OPTS}"
-export HADOOP_SECONDARYNAMENODE_OPTS="-server -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ErrorFile={{hdfs_log_dir_prefix}}/$USER/hs_err_pid%p.log -XX:NewSize={{namenode_opt_newsize}} -XX:MaxNewSize={{namenode_opt_maxnewsize}} -XX:PermSize={{namenode_opt_permsize}} -XX:MaxPermSize={{namenode_opt_maxpermsize}} -Xloggc:{{hdfs_log_dir_prefix}}/$USER/gc.log-`date +'%Y%m%d%H%M'` -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps ${HADOOP_NAMENODE_INIT_HEAPSIZE} -Xmx{{namenode_heapsize}} -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT ${HADOOP_SECONDARYNAMENODE_OPTS}"
+export HADOOP_NAMENODE_OPTS="-server -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ErrorFile={{hdfs_log_dir_prefix}}/$USER/hs_err_pid%p.log -XX:NewSize={{namenode_opt_newsize}} -XX:MaxNewSize={{namenode_opt_maxnewsize}} -XX:PermSize={{namenode_opt_permsize}} -XX:MaxPermSize={{namenode_opt_maxpermsize}} -Xloggc:{{hdfs_log_dir_prefix}}/$USER/gc.log-`date +'%Y%m%d%H%M'` -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly -Xms{{namenode_heapsize}} -Xmx{{namenode_heapsize}} -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT -Dorg.mortbay.jetty.Request.maxFormContentSize=-1  ${HADOOP_NAMENODE_OPTS}"
+export HADOOP_SECONDARYNAMENODE_OPTS="-server -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ErrorFile={{hdfs_log_dir_prefix}}/$USER/hs_err_pid%p.log -XX:NewSize={{namenode_opt_newsize}} -XX:MaxNewSize={{namenode_opt_maxnewsize}} -XX:PermSize={{namenode_opt_permsize}} -XX:MaxPermSize={{namenode_opt_maxpermsize}} -Xloggc:{{hdfs_log_dir_prefix}}/$USER/gc.log-`date +'%Y%m%d%H%M'` -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly ${HADOOP_NAMENODE_INIT_HEAPSIZE} -Xmx{{namenode_heapsize}} -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT ${HADOOP_SECONDARYNAMENODE_OPTS}"
 
 # The following applies to multiple commands (fs, dfs, fsck, distcp etc)
 export HADOOP_CLIENT_OPTS="-Xmx${HADOOP_HEAPSIZE}m -XX:MaxPermSize=512m $HADOOP_CLIENT_OPTS"
 {% else %}
-export HADOOP_NAMENODE_OPTS="-server -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ErrorFile={{hdfs_log_dir_prefix}}/$USER/hs_err_pid%p.log -XX:NewSize={{namenode_opt_newsize}} -XX:MaxNewSize={{namenode_opt_maxnewsize}} -Xloggc:{{hdfs_log_dir_prefix}}/$USER/gc.log-`date +'%Y%m%d%H%M'` -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xms{{namenode_heapsize}} -Xmx{{namenode_heapsize}} -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT -Dorg.mortbay.jetty.Request.maxFormContentSize=-1 ${HADOOP_NAMENODE_OPTS}"
-export HADOOP_SECONDARYNAMENODE_OPTS="-server -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ErrorFile={{hdfs_log_dir_prefix}}/$USER/hs_err_pid%p.log -XX:NewSize={{namenode_opt_newsize}} -XX:MaxNewSize={{namenode_opt_maxnewsize}} -Xloggc:{{hdfs_log_dir_prefix}}/$USER/gc.log-`date +'%Y%m%d%H%M'` -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps ${HADOOP_NAMENODE_INIT_HEAPSIZE} -Xmx{{namenode_heapsize}} -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT ${HADOOP_SECONDARYNAMENODE_OPTS}"
+export HADOOP_NAMENODE_OPTS="-server -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ErrorFile={{hdfs_log_dir_prefix}}/$USER/hs_err_pid%p.log -XX:NewSize={{namenode_opt_newsize}} -XX:MaxNewSize={{namenode_opt_maxnewsize}} -Xloggc:{{hdfs_log_dir_prefix}}/$USER/gc.log-`date +'%Y%m%d%H%M'` -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly -Xms{{namenode_heapsize}} -Xmx{{namenode_heapsize}} -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT -Dorg.mortbay.jetty.Request.maxFormContentSize=-1 ${HADOOP_NAMENODE_OPTS}"
+export HADOOP_SECONDARYNAMENODE_OPTS="-server -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ErrorFile={{hdfs_log_dir_prefix}}/$USER/hs_err_pid%p.log -XX:NewSize={{namenode_opt_newsize}} -XX:MaxNewSize={{namenode_opt_maxnewsize}} -Xloggc:{{hdfs_log_dir_prefix}}/$USER/gc.log-`date +'%Y%m%d%H%M'` -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly ${HADOOP_NAMENODE_INIT_HEAPSIZE} -Xmx{{namenode_heapsize}} -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT ${HADOOP_SECONDARYNAMENODE_OPTS}"
 
 # The following applies to multiple commands (fs, dfs, fsck, distcp etc)
 export HADOOP_CLIENT_OPTS="-Xmx${HADOOP_HEAPSIZE}m $HADOOP_CLIENT_OPTS"
@@ -261,7 +300,7 @@ export HADOOP_CLIENT_OPTS="-Xmx${HADOOP_HEAPSIZE}m $HADOOP_CLIENT_OPTS"
 HADOOP_JOBTRACKER_OPTS="-server -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ErrorFile={{hdfs_log_dir_prefix}}/$USER/hs_err_pid%p.log -XX:NewSize={{jtnode_opt_newsize}} -XX:MaxNewSize={{jtnode_opt_maxnewsize}} -Xloggc:{{hdfs_log_dir_prefix}}/$USER/gc.log-`date +'%Y%m%d%H%M'` -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xmx{{jtnode_heapsize}} -Dhadoop.security.logger=INFO,DRFAS -Dmapred.audit.logger=INFO,MRAUDIT -Dhadoop.mapreduce.jobsummary.logger=INFO,JSA ${HADOOP_JOBTRACKER_OPTS}"
 
 HADOOP_TASKTRACKER_OPTS="-server -Xmx{{ttnode_heapsize}} -Dhadoop.security.logger=ERROR,console -Dmapred.audit.logger=ERROR,console ${HADOOP_TASKTRACKER_OPTS}"
-HADOOP_DATANODE_OPTS="-Xmx{{dtnode_heapsize}} -Dhadoop.security.logger=ERROR,DRFAS ${HADOOP_DATANODE_OPTS}"
+HADOOP_DATANODE_OPTS="-XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly -XX:ConcGCThreads=4 -XX:+UseConcMarkSweepGC -Xmx{{dtnode_heapsize}} -Dhadoop.security.logger=ERROR,DRFAS ${HADOOP_DATANODE_OPTS}"
 HADOOP_BALANCER_OPTS="-server -Xmx{{hadoop_heapsize}}m ${HADOOP_BALANCER_OPTS}"
 
 # On secure datanodes, user to run the datanode as after dropping privileges
@@ -297,7 +336,7 @@ export HADOOP_SECURE_DN_PID_DIR={{hadoop_pid_dir_prefix}}/$HADOOP_SECURE_DN_USER
 # History server pid
 export HADOOP_MAPRED_PID_DIR={{mapred_pid_dir_prefix}}/$USER
 
-YARN_RESOURCEMANAGER_OPTS="-Dyarn.server.resourcemanager.appsummary.logger=INFO,RMSUMMARY"
+YARN_RESOURCEMANAGER_OPTS="-Dyarn.server.resourcemanager.appsummary.logger=INFO,RMSUMMARY -Drm.audit.logger=INFO,RMAUDIT"
 
 # A string representing this instance of hadoop. $USER by default.
 export HADOOP_IDENT_STRING=$USER
@@ -309,7 +348,7 @@ export HADOOP_IDENT_STRING=$USER
 # Add database libraries
 JAVA_JDBC_LIBS=""
 if [ -d "/usr/share/java" ]; then
-  for jarFile in `ls /usr/share/java | grep -E "(mysql|ojdbc|postgresql|sqljdbc)" 2>/dev/null`
+  for jarFile in `ls /usr/share/java | grep -E "(mysql|ojdbc|postgresql|sqljdbc)" 2&gt;/dev/null`
   do
     JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile
   done
@@ -325,24 +364,24 @@ if [ -d "/usr/lib/tez" ]; then
   export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:/usr/lib/tez/*:/usr/lib/tez/lib/*:/etc/tez/conf
 fi
 
-if [ -d "/usr/lib/phoenix" ]; then
-  export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:/usr/lib/phoenix/*:/usr/lib/phoenix/lib/*
-fi
-
 # Setting path to hdfs command line
 export HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir}}
 
 #Mostly required for hadoop 2.0
-export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/lib/hadoop/lib/native/Linux-amd64-64
+export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:{{hadoop_lib_home}}/native/Linux-{{architecture}}-64
 
 {% if is_datanode_max_locked_memory_set %}
 # Fix temporary bug, when ulimit from conf files is not picked up, without full relogin. 
 # Makes sense to fix only when runing DN as root 
-if [ "$command" == "datanode" ] &#038;&#038; [ "$EUID" -eq 0 ] &#038;&#038; [ -n "$HADOOP_SECURE_DN_USER" ]; then
+if [ "$command" == "datanode" ] &amp;&amp; [ "$EUID" -eq 0 ] &amp;&amp; [ -n "$HADOOP_SECURE_DN_USER" ]; then
   ulimit -l {{datanode_max_locked_memory}}
 fi
 {% endif %}
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
-  
 </configuration>
+
