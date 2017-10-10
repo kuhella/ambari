@@ -11,10 +11,12 @@
         "source": {
           "type": "WEB",
           "uri": {
-              "http": "{{admin-properties/policymgr_external_url}}",
-              "https": "{{admin-properties/policymgr_external_url}}",
-              "https_property": "{{ranger-site/http.enabled}}",
-              "https_property_value": "false",
+              "http": "{{admin-properties/policymgr_external_url}}/login.jsp",
+              "https": "{{admin-properties/policymgr_external_url}}/login.jsp",
+              "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+              "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
+              "https_property": "{{ranger-admin-site/ranger.service.https.attrib.ssl.enabled}}",
+              "https_property_value": "true",
               "connection_timeout": 5.0
             },
           "reporting": {
@@ -52,7 +54,7 @@
         "scope": "HOST",
         "source": {
           "type": "PORT",
-          "uri": "{{admin-properties/authServicePort}}",
+          "uri": "{{ranger-ugsync-site/ranger.usersync.port}}",
           "default_port": 5151,
           "reporting": {
             "ok": {

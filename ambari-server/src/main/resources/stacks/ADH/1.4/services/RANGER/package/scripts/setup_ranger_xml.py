@@ -67,6 +67,14 @@ def setup_ranger_admin(upgrade_type=None):
     group = params.unix_group,
     create_parents = True
   )
+  
+  cconf_dir = format('{ranger_home}/ews/webapp/WEB-INF/classes/conf')
+  Directory(cconf_dir,
+    owner = params.unix_user,
+    group = params.unix_group,
+    not_if=format('ls {cconf_dir}'),
+    create_parents = True
+  )
 
   Execute(('rm','-rf', format('{ranger_conf}')), # Because at this step ranger_conf is already created.
     sudo=True)
