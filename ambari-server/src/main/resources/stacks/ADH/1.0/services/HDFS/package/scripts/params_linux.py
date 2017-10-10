@@ -76,9 +76,14 @@ command_timeout = default("/commandParams/command_timeout", 900)
 # get the correct version to use for checking stack features
 version_for_stack_feature_checks = get_stack_feature_version(config)
 
-stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
-stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
-stack_supports_zk_security = check_stack_feature(StackFeature.SECURE_ZOOKEEPER, version_for_stack_feature_checks)
+#stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
+#stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
+#stack_supports_zk_security = check_stack_feature(StackFeature.SECURE_ZOOKEEPER, version_for_stack_feature_checks)
+# Koctbi/\b
+stack_supports_ranger_kerberos = True 
+stack_supports_ranger_audit_db = True
+stack_supports_zk_security = True
+
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 hdfs_user = status_params.hdfs_user
@@ -508,6 +513,11 @@ if enable_ranger_hdfs:
     previous_jdbc_jar = format("{hadoop_lib_home}/{previous_jdbc_jar_name}") if stack_supports_ranger_audit_db else None
     sql_connector_jar = ''
 
+  fuck = open('/tmp/log','a')
+  print >> fuck, security_enabled
+  print >> fuck, dn_principal_name
+  print >> fuck, 'enable_ranger_hdfs='+ str(enable_ranger_hdfs)
+
   hdfs_ranger_plugin_config = {
     'username': repo_config_username,
     'password': repo_config_password,
@@ -551,8 +561,6 @@ if enable_ranger_hdfs:
     }
 
   xa_audit_db_is_enabled = False
-  if xml_configurations_supported and stack_supports_ranger_audit_db:
-    xa_audit_db_is_enabled = config['configurations']['ranger-hdfs-audit']['xasecure.audit.destination.db']
 
   xa_audit_hdfs_is_enabled = config['configurations']['ranger-hdfs-audit']['xasecure.audit.destination.hdfs'] if xml_configurations_supported else False
   ssl_keystore_password = config['configurations']['ranger-hdfs-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password'] if xml_configurations_supported else None

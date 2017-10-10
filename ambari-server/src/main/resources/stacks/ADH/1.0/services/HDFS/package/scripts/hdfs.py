@@ -33,7 +33,7 @@ def hdfs(name=None):
   
   # On some OS this folder could be not exists, so we will create it before pushing there files
   Directory(params.limits_conf_dir,
-            create_parents=True,
+            create_parents = True,
             owner='root',
             group='root'
   )
@@ -46,6 +46,23 @@ def hdfs(name=None):
   )
 
   if params.security_enabled:
+    File(os.path.join(params.hadoop_conf_dir, 'hdfs_dn_jaas.conf'),
+         owner=params.hdfs_user,
+         group=params.user_group,
+         content=Template("hdfs_dn_jaas.conf.j2")
+    )
+    File(os.path.join(params.hadoop_conf_dir, 'hdfs_nn_jaas.conf'),
+         owner=params.hdfs_user,
+         group=params.user_group,
+         content=Template("hdfs_nn_jaas.conf.j2")
+    )
+    if params.dfs_ha_enabled:
+      File(os.path.join(params.hadoop_conf_dir, 'hdfs_jn_jaas.conf'),
+           owner=params.hdfs_user,
+           group=params.user_group,
+           content=Template("hdfs_jn_jaas.conf.j2")
+      )
+
     tc_mode = 0644
     tc_owner = "root"
   else:
@@ -71,7 +88,7 @@ def hdfs(name=None):
     )
 
     Directory(params.hadoop_conf_secure_dir,
-              create_parents=True,
+              create_parents = True,
               owner='root',
               group=params.user_group,
               cd_access='a',
@@ -117,12 +134,14 @@ def hdfs(name=None):
   )
   
   if params.lzo_enabled and len(params.lzo_packages) > 0:
-      Package(params.lzo_packages)
+      Package(params.lzo_packages,
+              retry_on_repo_unavailability=params.agent_stack_retry_on_unavailability,
+              retry_count=params.agent_stack_retry_count)
       
 def install_snappy():
   import params
   Directory([params.so_target_dir_x86, params.so_target_dir_x64],
-            create_parents=True,
+            create_parents = True,
   )    
   Link(params.so_target_x86,
        to=params.so_src_x86,
@@ -139,13 +158,21 @@ def hdfs(component=None):
     Directory(directories,
               owner=params.hdfs_user,
               mode="(OI)(CI)F",
-              create_parents=True
+              create_parents = True
     )
     File(params.exclude_file_path,
          content=Template("exclude_hosts_list.j2"),
          owner=params.hdfs_user,
          mode="f",
          )
+
+    if params.hdfs_include_file:
+      File(params.include_file_path,
+         content=Template("include_hosts_list.j2"),
+         owner=params.hdfs_user,
+         mode="f",
+         )
+      pass
   if params.service_map.has_key(component):
     service_name = params.service_map[component]
     ServiceConfig(service_name,
@@ -169,3 +196,4 @@ def hdfs(component=None):
             mode="f",
             configuration_attributes=params.config['configuration_attributes']['hdfs-site']
   )
+
