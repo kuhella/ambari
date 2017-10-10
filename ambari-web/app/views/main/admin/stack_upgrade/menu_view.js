@@ -29,8 +29,7 @@ App.MainAdminStackMenuView = Em.CollectionView.extend({
         name: 'services',
         label: Em.I18n.t('common.stack'),
         routing: 'services'
-      })
-      /*,
+      }),
       Em.Object.create({
         name: 'versions',
         label: Em.I18n.t('common.versions'),
@@ -42,7 +41,7 @@ App.MainAdminStackMenuView = Em.CollectionView.extend({
         label: Em.I18n.t('common.upgrade.history'),
         routing: 'upgradeHistory',
         hidden: !App.get('stackVersionsAvailable')
-      }) */
+      })
     ]
   }.property('App.stackVersionsAvailable'),
 
