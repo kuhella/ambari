@@ -25,7 +25,9 @@ from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.format import format
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-
+from zookeeper import zookeeper
+from resource_management.core.exceptions import ClientComponentHasNoStatus
+from resource_management.libraries.functions import stack_select
 from zookeeper import zookeeper
 
 class ZookeeperClient(Script):
@@ -53,6 +55,9 @@ class ZookeeperClient(Script):
 class ZookeeperClientLinux(ZookeeperClient):
   def get_stack_to_component(self):
     return {"HDP": "zookeeper-client"}
+
+  def get_component_name(self):
+    return "zookeeper-client"
 
   def install(self, env):
     self.install_packages(env)

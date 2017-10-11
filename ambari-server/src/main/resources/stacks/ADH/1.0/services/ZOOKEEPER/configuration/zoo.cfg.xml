@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 <!--
-/**
+     /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,11 +19,10 @@
  * limitations under the License.
  */
 -->
-
 <configuration>
   <property>
     <name>tickTime</name>
-    <value>2000</value>
+    <value>3000</value>
     <display-name>Length of single Tick</display-name>
     <description>The length of a single tick in milliseconds, which is the basic time unit used by ZooKeeper</description>
     <value-attributes>
@@ -31,6 +30,7 @@
       <overridable>false</overridable>
       <unit>ms</unit>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>initLimit</name>
@@ -41,6 +41,7 @@
       <type>int</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>syncLimit</name>
@@ -51,6 +52,7 @@
       <type>int</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>clientPort</name>
@@ -61,6 +63,7 @@
       <type>int</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>dataDir</name>
@@ -70,6 +73,7 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>autopurge.snapRetainCount</name>
@@ -77,11 +81,14 @@
     <description>ZooKeeper purge feature retains the autopurge.snapRetainCount
       most recent snapshots and the corresponding transaction
       logs in the dataDir and dataLogDir respectively and deletes the rest. </description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>autopurge.purgeInterval</name>
     <value>24</value>
     <description>The time interval in hours for which the purge task has to be triggered.
       Set to a positive integer (1 and above) to enable the auto purging.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>
+

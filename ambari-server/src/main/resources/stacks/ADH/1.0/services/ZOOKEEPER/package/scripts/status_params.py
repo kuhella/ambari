@@ -48,3 +48,4 @@ else:
   zk_user =  config['configurations']['zookeeper-env']['zk_user']
 
   config_dir = "/etc/zookeeper/conf"
+stack_name = default("/hostLevelParams/stack_name", None)
