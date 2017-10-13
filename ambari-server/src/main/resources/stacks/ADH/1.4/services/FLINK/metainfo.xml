@@ -42,6 +42,13 @@
       	</configuration-dependencies>
 
             <restartRequiredAfterChange>false</restartRequiredAfterChange>
+
+        <quickLinksConfigurations>
+          <quickLinksConfiguration>
+            <fileName>quicklinks.json</fileName>
+            <default>true</default>
+          </quickLinksConfiguration>
+        </quickLinksConfigurations>
         </service>
     </services>
 </metainfo>
