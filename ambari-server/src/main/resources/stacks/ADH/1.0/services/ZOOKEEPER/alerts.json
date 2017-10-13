@@ -1,4 +1,5 @@
-OKEEPER": {
+{
+  "ZOOKEEPER": {
     "service": [
       {
         "name": "zookeeper_server_process_percent",
