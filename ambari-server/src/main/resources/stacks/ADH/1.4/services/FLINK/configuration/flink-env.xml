@@ -5,37 +5,37 @@
 
   <property>
     <name>flink_log_dir</name>
-    <value>/usr/lib/flink/log</value>    
+    <value>/usr/lib/flink/log</value>
     <description>Flink Log dir</description>
-  </property> 
+  </property>
 
  <property>
     <name>flink_pid_dir</name>
     <value>/var/run/flink</value>
     <description>Dir containing process ID file</description>
   </property>
-  
+
  <property>
     <name>flink_home_dir</name>
     <value>/home/flink</value>
     <description>Flink home dir</description>
   </property>
-  
+
   <property>
     <name>flink_user</name>
     <value>flink</value>
     <property-type>USER</property-type>
     <description>User flink daemon runs as</description>
-  </property> 
-        
+  </property>
+
   <property>
     <name>flink_group</name>
     <value>flink</value>
     <property-type>GROUP</property-type>
     <description>flink group</description>
-  </property> 
-          
-            
+  </property>
+
+
   <property>
     <name>content</name>
     <value>
@@ -105,7 +105,7 @@ parallelism.default: 1
 # The port under which the web-based runtime monitor listens.
 # A value of -1 deactivates the web server.
 
-jobmanager.web.port: 9992
+jobmanager.web.port: 8081
 
 # Flag to specify whether job submission is enabled from the web-based
 # runtime monitor. Uncomment to disable.
@@ -194,7 +194,7 @@ env.pid.dir: /var/run/flink
 
   </value>
   <description>Template for flink-conf.yaml</description>
-  
+
   </property>
 
 </configuration>

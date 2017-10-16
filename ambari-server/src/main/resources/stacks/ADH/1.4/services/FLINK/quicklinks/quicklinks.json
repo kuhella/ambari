@@ -23,9 +23,9 @@
         "url":"%@://%@:%@/",
         "port":{
           "http_property": "flink.server.port",
-          "http_default_port": "9992",
+          "http_default_port": "8081",
           "https_property": "flink.server.port",
-          "https_default_port": "9992",
+          "https_default_port": "8081",
           "regex": "^(\\d+)$",
           "site": "flink-site"
         }
