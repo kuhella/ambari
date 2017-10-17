@@ -19,7 +19,8 @@ Ambari Agent
 
 """
 import random
-import sys
+
+from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING
 
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import get_unique_id_and_date
@@ -60,6 +61,9 @@ class ZookeeperServer(Script):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class ZookeeperServerLinux(ZookeeperServer):
 
+  def get_component_name(self):
+    return "zookeeper-server"
+
   def get_stack_to_component(self):
     return {"HDP": "zookeeper-server"}
 
@@ -72,8 +76,10 @@ class ZookeeperServerLinux(ZookeeperServer):
     import params
     env.set_params(params)
 
+
   def post_upgrade_restart(self, env, upgrade_type=None):
-    if upgrade_type == "nonrolling":
+    # during an express upgrade, there is no quorum, so don't try to perform the check
+    if upgrade_type == UPGRADE_TYPE_NON_ROLLING:
       return
 
     Logger.info("Executing Stack Upgrade post-restart")
@@ -102,57 +108,14 @@ class ZookeeperServerLinux(ZookeeperServer):
     import status_params
     env.set_params(status_params)
     check_process_status(status_params.zk_pid_file)
-
-  def security_status(self, env):
-    import status_params
-    env.set_params(status_params)
-
-    if status_params.security_enabled:
-      # Expect the following files to be available in status_params.config_dir:
-      #   zookeeper_jaas.conf
-      #   zookeeper_client_jaas.conf
-      try:
-        props_value_check = None
-        props_empty_check = ['Server/keyTab', 'Server/principal']
-        props_read_check = ['Server/keyTab']
-        zk_env_expectations = build_expectations('zookeeper_jaas', props_value_check, props_empty_check,
-                                                 props_read_check)
-
-        zk_expectations = {}
-        zk_expectations.update(zk_env_expectations)
-
-        security_params = get_params_from_filesystem(status_params.config_dir,
-                                                   {'zookeeper_jaas.conf': FILE_TYPE_JAAS_CONF})
-
-        result_issues = validate_security_config_properties(security_params, zk_expectations)
-        if not result_issues:  # If all validations passed successfully
-          # Double check the dict before calling execute
-          if ( 'zookeeper_jaas' not in security_params
-               or 'Server' not in security_params['zookeeper_jaas']
-               or 'keyTab' not in security_params['zookeeper_jaas']['Server']
-               or 'principal' not in security_params['zookeeper_jaas']['Server']):
-            self.put_structured_out({"securityState": "ERROR"})
-            self.put_structured_out({"securityIssuesFound": "Keytab file or principal are not set property."})
-            return
-
-          cached_kinit_executor(status_params.kinit_path_local,
-                                status_params.zk_user,
-                                security_params['zookeeper_jaas']['Server']['keyTab'],
-                                security_params['zookeeper_jaas']['Server']['principal'],
-                                status_params.hostname,
-                                status_params.tmp_dir)
-          self.put_structured_out({"securityState": "SECURED_KERBEROS"})
-        else:
-          issues = []
-          for cf in result_issues:
-            issues.append("Configuration file %s did not pass the validation. Reason: %s" % (cf, result_issues[cf]))
-          self.put_structured_out({"securityIssuesFound": ". ".join(issues)})
-          self.put_structured_out({"securityState": "UNSECURED"})
-      except Exception as e:
-        self.put_structured_out({"securityState": "ERROR"})
-        self.put_structured_out({"securityStateErrorInfo": str(e)})
-    else:
-      self.put_structured_out({"securityState": "UNSECURED"})
+      
+  def get_log_folder(self):
+    import params
+    return params.zk_log_dir
+  
+  def get_user(self):
+    import params
+    return params.zk_user
 
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)

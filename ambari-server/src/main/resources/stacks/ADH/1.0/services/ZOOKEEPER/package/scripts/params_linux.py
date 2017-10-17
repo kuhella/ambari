@@ -55,7 +55,11 @@ zk_log_dir = config['configurations']['zookeeper-env']['zk_log_dir']
 zk_data_dir = config['configurations']['zoo.cfg']['dataDir']
 zk_pid_dir = status_params.zk_pid_dir
 zk_pid_file = status_params.zk_pid_file
-zk_server_heapsize = "-Xmx1024m"
+zk_server_heapsize_value = str(default('configurations/zookeeper-env/zk_server_heapsize', "1024"))
+zk_server_heapsize_value = zk_server_heapsize_value.strip()
+if len(zk_server_heapsize_value) > 0 and zk_server_heapsize_value[-1].isdigit():
+  zk_server_heapsize_value = zk_server_heapsize_value + "m"
+zk_server_heapsize = format("-Xmx{zk_server_heapsize_value}")
 
 client_port = default('/configurations/zoo.cfg/clientPort', None)
 
@@ -83,6 +87,10 @@ smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 smokeuser_principal = config['configurations']['cluster-env']['smokeuser_principal_name']
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+
+# Zookeeper log4j settings
+zookeeper_log_max_backup_size = default('configurations/zookeeper-log4j/zookeeper_log_max_backup_size',10)
+zookeeper_log_number_of_backup_files = default('configurations/zookeeper-log4j/zookeeper_log_number_of_backup_files',10)
 
 #log4j.properties
 if ('zookeeper-log4j' in config['configurations']) and ('content' in config['configurations']['zookeeper-log4j']):
