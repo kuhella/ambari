@@ -12,6 +12,9 @@ target
 /ambari-web/node_modules/
 /ambari-web/node/
 *.pyc
+*.pyo
+archive.zip
+.hash
 *.py~
 *.iml
 .hg
