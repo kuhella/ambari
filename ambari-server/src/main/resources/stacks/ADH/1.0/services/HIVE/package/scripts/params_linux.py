@@ -29,6 +29,7 @@ from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.is_empty import is_empty
+from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster
 from resource_management.libraries.functions.copy_tarball import STACK_VERSION_PATTERN
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
@@ -361,23 +362,30 @@ hive_site_config = dict(config['configurations']['hive-site'])
 ############# Atlas related params #####################
 ########################################################
 
-atlas_hosts = default('/clusterHostInfo/atlas_server_hosts', [])
-has_atlas = len(atlas_hosts) > 0
-classpath_addition = ""
-atlas_plugin_package = "atlas-metadata*-hive-plugin"
-atlas_ubuntu_plugin_package = "atlas-metadata.*-hive-plugin"
+#atlas_hosts = default('/clusterHostInfo/atlas_server_hosts', [])
+#has_atlas = len(atlas_hosts) > 0
+#classpath_addition = ""
+#atlas_plugin_package = "atlas-metadata*-hive-plugin"
+#atlas_ubuntu_plugin_package = "atlas-metadata.*-hive-plugin"
+#
+#if not has_atlas:
+#  hive_exclude_packages.append(atlas_plugin_package)
+#  hive_exclude_packages.append(atlas_ubuntu_plugin_package)
+#else:
+#  # client.properties
+#  atlas_client_props = {}
+#  auth_enabled = config['configurations']['application-properties'].get(
+#    'atlas.http.authentication.enabled', False)
+#  atlas_client_props['atlas.http.authentication.enabled'] = auth_enabled
+#  if auth_enabled:
+#    atlas_client_props['atlas.http.authentication.type'] = config['configurations']['application-properties'].get('atlas.http.authentication.type', 'simple')
+#
 
-if not has_atlas:
-  hive_exclude_packages.append(atlas_plugin_package)
-  hive_exclude_packages.append(atlas_ubuntu_plugin_package)
-else:
-  # client.properties
-  atlas_client_props = {}
-  auth_enabled = config['configurations']['application-properties'].get(
-    'atlas.http.authentication.enabled', False)
-  atlas_client_props['atlas.http.authentication.enabled'] = auth_enabled
-  if auth_enabled:
-    atlas_client_props['atlas.http.authentication.type'] = config['configurations']['application-properties'].get('atlas.http.authentication.type', 'simple')
+#region Atlas Hooks
+hive_atlas_application_properties = default('/configurations/hive-atlas-application.properties', {})
+enable_atlas_hook = default('/configurations/hive-env/hive.atlas.hook', False)
+atlas_hook_filename = default('/configurations/atlas-env/metadata_conf_file', 'atlas-application.properties')
+#endregion
 
 ########################################################
 ########### WebHCat related params #####################
