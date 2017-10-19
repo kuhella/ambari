@@ -22,13 +22,12 @@ def setup_solr_cloud():
                 )
         )
         return
-    fuck = open('/tmp/log.txt', 'a')
-    print >> fuck, 'params.solr_config_user='+ str(params.solr_config_user)
-    print >> fuck, 'command='+ str(format('{zk_client_prefix} -cmd makepath {solr_cloud_zk_directory}'))
+
     Execute(
             format(
                     '{zk_client_prefix} -cmd makepath {solr_cloud_zk_directory}'
             ),
             environment={'JAVA_HOME': params.java64_home},
+            ignore_failures=True,
             user=params.solr_config_user
     )
