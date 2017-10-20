@@ -276,8 +276,14 @@ class ADH13StackAdvisor(ADH12StackAdvisor):
     elif 'hive-env' in services['configurations'] and 'hive.atlas.hook' in services['configurations']['hive-env']['properties']:
       enable_atlas_hook = services['configurations']['hive-env']['properties']['hive.atlas.hook'] == "true"
 
-    # Remove the atlas hook since it leads to error 
-    hive_hooks = [x for x in hive_hooks if x != atlas_hook_class]
+    if enable_atlas_hook:
+      # Append atlas hook if not already present.
+      is_atlas_hook_in_config = atlas_hook_class in hive_hooks
+      if not is_atlas_hook_in_config:
+        hive_hooks.append(atlas_hook_class)
+    else:
+      # Remove the atlas hook since Atlas service is not present.
+      hive_hooks = [x for x in hive_hooks if x != atlas_hook_class]
 
     # Convert hive_hooks back to a csv, unless there are 0 elements, which should be " "
     hooks_value = " " if len(hive_hooks) == 0 else ",".join(hive_hooks)
