@@ -43,8 +43,6 @@ def hcat():
 def hcat():
   import params
 
-  from setup_atlas_hive import setup_atlas_hive
-
   Directory(params.hive_conf_dir,
             create_parents=True,
             owner=params.hcat_user,

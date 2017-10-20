@@ -69,6 +69,9 @@ hive_bin = '/usr/lib/hive/bin'
 hive_lib = '/usr/lib/hive/lib/'
 hive_var_lib = '/var/lib/hive'
 
+# Needed since this is an Atlas Hook service.
+cluster_name = config['clusterName']
+
 # These tar folders were used in HDP 2.1
 hadoop_streaming_jars = '/usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar'
 pig_tar_file = '/usr/share/HDP-webhcat/pig.tar.gz'
