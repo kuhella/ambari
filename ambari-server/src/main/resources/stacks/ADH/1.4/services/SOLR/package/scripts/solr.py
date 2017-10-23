@@ -21,7 +21,15 @@ class Solr(Script):
     def configure(self, env):
         import params
         env.set_params(params)
+
+        cmd = ('chmod','-R','755',format('{cloud_scripts}/zkcli.sh'))
+        Execute(cmd, sudo = True)
+
         setup_solr()
+
+        src_file = '/etc/zookeeper/conf.dist/zoo.cfg'
+        dst_file = format('{solr_config_data_dir}')
+        Execute(('cp', '-f', src_file, dst_file), sudo=True)
 
         if params.solr_cloud_mode:
             setup_solr_cloud()
@@ -48,7 +56,14 @@ class Solr(Script):
         env.set_params(params)
         self.configure(env)
 
-        if not solr_port_validation():
+        src_file = '/etc/zookeeper/conf.dist/zoo.cfg'
+        dst_file = format('{solr_config_data_dir}')
+        Execute(('cp', '-f', src_file, dst_file), sudo=True)
+
+        cmd = ('chmod','-R','755',format('{cloud_scripts}/zkcli.sh'))
+        Execute(cmd, sudo = True)
+
+	if not solr_port_validation():
             exit(1)
 
         if not solr_status_validation():

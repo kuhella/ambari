@@ -38,11 +38,10 @@ from resource_management.core.shell import as_sudo
 from resource_management.core.shell import quote_bash_args
 from resource_management.core.logger import Logger
 from resource_management.core import utils
-
+from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
-
-from setup_atlas_hive import setup_atlas_hive
+from ambari_commons.constants import SERVICE
 
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
@@ -217,8 +216,11 @@ def hive(name=None):
             group=params.user_group,
             mode=0644)
 
-  setup_atlas_hive()
-  
+   # Generate atlas-application.properties.xml file
+  if params.enable_atlas_hook:
+    atlas_hook_filepath = os.path.join(params.hive_config_dir, params.atlas_hook_filename)
+    setup_atlas_hook(SERVICE.HIVE, params.hive_atlas_application_properties, atlas_hook_filepath, params.hive_user, params.user_group)
+ 
   if params.hive_specific_configs_supported and name == 'hiveserver2':
     XmlConfig("hiveserver2-site.xml",
               conf_dir=params.hive_server_conf_dir,

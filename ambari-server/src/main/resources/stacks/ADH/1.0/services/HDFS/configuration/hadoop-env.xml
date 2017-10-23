@@ -368,6 +368,10 @@ if [ -d "/usr/lib/phoenix" ]; then
 export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:/usr/lib/phoenix/*:/usr/lib/phoenix/lib/*
 fi
 
+if [ -d "/usr/lib/atlas-server" ] &amp;&amp; [ -d "/usr/lib/hive" ] || [ -d "/usr/lib/hive2" ]; then
+export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:/usr/lib/atlas-server/hook/hive/*:/usr/lib/atlas-server/hook/hive/atlas-hive-plugin-impl/*
+fi
+
 # Setting path to hdfs command line
 export HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir}}
 
