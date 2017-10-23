@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-   Licensed to the Apache Software Foundation (ASF) under one or more
+        Licensed to the Apache Software Foundation (ASF) under one or more
    contributor license agreements.  See the NOTICE file distributed with
    this work for additional information regarding copyright ownership.
    The ASF licenses this file to You under the Apache License, Version 2.0
@@ -21,11 +21,95 @@
     <service>
       <name>HIVE</name>
       <version>1.2.1.1.5</version>
-    </service>
-      <configuration-dependencies>
-        <config-type>application-properties</config-type>
-        <config-type>hive-atlas-application.properties</config-type>
-      </configuration-dependencies>
 
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any</osFamily>
+          <packages>
+            <package>
+              <name>mysql-connector-java</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+            <package>
+              <name>atlas-metadata</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat7,redhat6,suse11</osFamily>
+          <packages>
+            <package>
+              <name>hive</name>
+            </package>
+            <package>
+              <name>hive-hcatalog</name>
+            </package>
+            <package>
+              <name>hive-webhcat</name>
+            </package>
+            <package>
+              <name>hive-hbase</name>
+            </package>
+            <package>
+              <name>ranger-hive-plugin</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat6,suse11</osFamily>
+          <packages>
+            <package>
+              <name>mysql</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat7</osFamily>
+          <packages>
+            <package>
+              <name>mariadb-server</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
+          <packages>
+            <package>
+              <name>hive</name>
+            </package>
+            <package>
+              <name>hive-hcatalog</name>
+            </package>
+            <package>
+              <name>hive-webhcat</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat6,debian7,ubuntu12,ubuntu14</osFamily>
+          <packages>
+            <package>
+              <name>mysql-server</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>suse11</osFamily>
+          <packages>
+            <package>
+              <name>mysql-client</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+
+    </service>
   </services>
 </metainfo>
+
