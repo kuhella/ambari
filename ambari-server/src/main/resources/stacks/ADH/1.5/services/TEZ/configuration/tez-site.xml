@@ -26,6 +26,11 @@
   </property>
 
   <property>
+    <name>tez.lib.uris.classpath</name>
+    <deleted>true</deleted>
+  </property>
+
+  <property>
     <name>tez.am.log.level</name>
     <value>INFO</value>
     <description>Root Logging level passed to the Tez app master</description>
