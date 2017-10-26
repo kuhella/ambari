@@ -97,8 +97,9 @@ hive_server_conf_dir = status_params.hive_server_conf_dir
 
 hcat_conf_dir = '/etc/hive-hcatalog/conf'
 config_dir = '/etc/hive-webhcat/conf'
-hcat_lib = '/usr/lib/hive-hcatalog/share/hcatalog'
-webhcat_bin_dir = '/usr/lib/hive-hcatalog/sbin'
+#hcat_lib = '/usr/lib/hive/hcatalog/share/hcatalog'
+hcat_lib = '/usr/lib/hive/lib'
+webhcat_bin_dir = '/usr/lib/hive/hcatalog/sbin'
 
 # Starting from HDP2.3 drop should be executed with purge suffix
 purge_tables = "false"
