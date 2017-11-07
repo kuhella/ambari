@@ -21,7 +21,7 @@
 <configuration supports_final="true">
   <property>
     <name>spark.yarn.archive</name>
-    <value>hdfs:///apps/spark2/jars</value>
+    <value>hdfs:///apps/spark2/jars/spark2-ADH-yarn-archive.tar.gz</value>
     <description>
       spark.yarn.archive
     </description>
