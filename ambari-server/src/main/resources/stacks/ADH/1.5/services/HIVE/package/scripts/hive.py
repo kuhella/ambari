@@ -40,6 +40,7 @@ from resource_management.core.logger import Logger
 from resource_management.core import utils
 from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from resource_management.libraries.functions.security_commons import update_credential_provider_path
 from ambari_commons import OSConst
 from ambari_commons.constants import SERVICE
 
@@ -205,8 +206,17 @@ def hive(name=None):
 
   # We should change configurations for client as well as for server.
   # The reason is that stale-configs are service-level, not component.
+  Logger.info("Directories to fill with configs: %s" % str(params.hive_conf_dirs_list))
   for conf_dir in params.hive_conf_dirs_list:
     fill_conf_dir(conf_dir)
+
+  params.hive_site_config = update_credential_provider_path(params.hive_site_config,
+                                                     'hive-site',
+                                                     os.path.join(params.hive_conf_dir, 'hive-site.jceks'),
+                                                     params.hive_user,
+                                                     params.user_group
+                                                     )
+
 
   XmlConfig("hive-site.xml",
             conf_dir=params.hive_config_dir,
@@ -221,7 +231,7 @@ def hive(name=None):
     atlas_hook_filepath = os.path.join(params.hive_config_dir, params.atlas_hook_filename)
     setup_atlas_hook(SERVICE.HIVE, params.hive_atlas_application_properties, atlas_hook_filepath, params.hive_user, params.user_group)
  
-  if params.hive_specific_configs_supported and name == 'hiveserver2':
+  if name == 'hiveserver2':
     XmlConfig("hiveserver2-site.xml",
               conf_dir=params.hive_server_conf_dir,
               configurations=params.config['configurations']['hiveserver2-site'],
@@ -229,7 +239,17 @@ def hive(name=None):
               owner=params.hive_user,
               group=params.user_group,
               mode=0644)
-  
+ 
+  if params.hive_metastore_site_supported and name == 'metastore':
+    XmlConfig("hivemetastore-site.xml",
+              conf_dir=params.hive_server_conf_dir,
+              configurations=params.config['configurations']['hivemetastore-site'],
+              configuration_attributes=params.config['configuration_attributes']['hivemetastore-site'],
+              owner=params.hive_user,
+              group=params.user_group,
+              mode=0644)
+
+ 
   File(format("{hive_config_dir}/hive-env.sh"),
        owner=params.hive_user,
        group=params.user_group,
@@ -250,8 +270,11 @@ def hive(name=None):
        content=Template("hive.conf.j2")
        )
 
-  if (name == 'metastore' or name == 'hiveserver2') and not os.path.exists(params.target):
-    jdbc_connector()
+  if name == 'metastore' or name == 'hiveserver2':
+    if params.hive_jdbc_target is not None and not os.path.exists(params.hive_jdbc_target):
+      jdbc_connector(params.hive_jdbc_target, params.hive_previous_jdbc_jar)
+    if params.hive2_jdbc_target is not None and not os.path.exists(params.hive2_jdbc_target):
+      jdbc_connector(params.hive2_jdbc_target, params.hive2_previous_jdbc_jar)
 
   File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
        content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),
@@ -262,6 +285,12 @@ def hive(name=None):
     File(params.start_metastore_path,
          mode=0755,
          content=StaticFile('startMetastore.sh')
+    )
+    File(os.path.join(params.hive_server_conf_dir, "hadoop-metrics2-hivemetastore.properties"),
+         owner=params.hive_user,
+         group=params.user_group,
+         mode=0600,
+         content=Template("hadoop-metrics2-hivemetastore.properties.j2")
     )
     if params.init_metastore_schema:
       create_schema_cmd = format("export HIVE_CONF_DIR={hive_server_conf_dir} ; "
@@ -371,19 +400,30 @@ def crt_file(name):
        group=params.user_group
   )
 
-def jdbc_connector():
+def jdbc_connector(target, hive_previous_jdbc_jar):
+  """
+  Shared by Hive Batch, Hive Metastore, and Hive Interactive
+  :param target: Target of jdbc jar name, which could be for any of the components above.
+  """
   import params
+
+  if not params.jdbc_jar_name:
+    return
 
   if params.hive_jdbc_driver in params.hive_jdbc_drivers_list and params.hive_use_existing_db:
     environment = {
       "no_proxy": format("{ambari_server_hostname}")
     }
 
+    if hive_previous_jdbc_jar and os.path.isfile(hive_previous_jdbc_jar):
+      File(hive_previous_jdbc_jar, action='delete')
+
     # TODO: should be removed after ranger_hive_plugin will not provide jdbc
-    Execute(('rm', '-f', params.prepackaged_ojdbc_symlink),
-            path=["/bin", "/usr/bin/"],
-            sudo = True)
-    
+    if params.prepackaged_jdbc_name != params.jdbc_jar_name:
+      Execute(('rm', '-f', params.prepackaged_ojdbc_symlink),
+              path=["/bin", "/usr/bin/"],
+              sudo = True)
+
     File(params.downloaded_custom_connector,
          content = DownloadSource(params.driver_curl_source))
 
@@ -396,26 +436,28 @@ def jdbc_connector():
       Execute(format("yes | {sudo} cp {jars_path_in_archive} {hive_lib}"))
 
       Directory(params.jdbc_libs_dir,
-                create_parents=True)
+                create_parents = True)
 
       Execute(format("yes | {sudo} cp {libs_path_in_archive} {jdbc_libs_dir}"))
 
       Execute(format("{sudo} chown -R {hive_user}:{user_group} {hive_lib}/*"))
 
     else:
-      Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.target),
-            #creates=params.target, TODO: uncomment after ranger_hive_plugin will not provide jdbc
+      Execute(('cp', '--remove-destination', params.downloaded_custom_connector, target),
+            #creates=target, TODO: uncomment after ranger_hive_plugin will not provide jdbc
             path=["/bin", "/usr/bin/"],
             sudo = True)
 
   else:
     #for default hive db (Mysql)
-    Execute(('cp', '--remove-destination', format('/usr/share/java/{jdbc_jar_name}'), params.target),
-            #creates=params.target, TODO: uncomment after ranger_hive_plugin will not provide jdbc
+    Execute(('cp', '--remove-destination', format('/usr/share/java/{jdbc_jar_name}'), target),
+            #creates=target, TODO: uncomment after ranger_hive_plugin will not provide jdbc
             path=["/bin", "/usr/bin/"],
             sudo=True
     )
-    
-  File(params.target,
+  pass
+
+  File(target,
        mode = 0644,
   )
+          
