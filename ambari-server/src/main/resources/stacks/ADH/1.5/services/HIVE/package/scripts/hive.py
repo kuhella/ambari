@@ -105,7 +105,7 @@ def hive(name=None):
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def hive(name=None):
   import params
-  hive_client_conf_path = format("{stack_root}/current/{component_directory}/conf")
+  hive_client_conf_path = format("/etc/hive/conf")
   # Permissions 644 for conf dir (client) files, and 600 for conf.server
   mode_identified = 0644 if params.hive_config_dir == hive_client_conf_path else 0600
   if name == 'hiveserver2':
@@ -228,8 +228,6 @@ def hive(name=None):
   if params.enable_atlas_hook:
     atlas_hook_filepath = os.path.join(params.hive_config_dir, params.atlas_hook_filename)
     setup_atlas_hook(SERVICE.HIVE, params.hive_atlas_application_properties, atlas_hook_filepath, params.hive_user, params.user_group)
-    from ra import ra
-    ra.log('haap='+str(params.hive_atlas_application_properties))
 
   if name == 'hiveserver2':
     XmlConfig("hiveserver2-site.xml",
@@ -369,8 +367,8 @@ def fill_conf_dir(component_conf_dir):
   import params
   hive_client_conf_path = os.path.realpath(format("{stack_root}/current/{component_directory}/conf"))
   component_conf_dir = os.path.realpath(component_conf_dir)
-  mode_identified_for_file = 0644 if component_conf_dir == hive_client_conf_path else 0600
-  mode_identified_for_dir = 0755 if component_conf_dir == hive_client_conf_path else 0700
+  mode_identified_for_file = 0644
+  mode_identified_for_dir = 0755
 
   Directory(component_conf_dir,
             owner=params.hive_user,
