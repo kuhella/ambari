@@ -61,6 +61,8 @@ limits_conf_dir = status_params.limits_conf_dir
 hbase_user_nofile_limit = default("/configurations/hbase-env/hbase_user_nofile_limit", "32000")
 hbase_user_nproc_limit = default("/configurations/hbase-env/hbase_user_nproc_limit", "16000")
 
+thrift_daemon_script = '/usr/lib/hbase/bin/hbase-daemon.sh'
+
 # no symlink for phoenix-server at this point
 phx_daemon_script = '/usr/lib/phoenix/bin/queryserver.py'
 
