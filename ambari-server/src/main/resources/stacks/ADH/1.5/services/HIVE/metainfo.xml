@@ -21,7 +21,7 @@
     <service>
       <name>HIVE</name>
       <version>2.3.0.1.5</version>
-      <displayName>Hive 2</displayName>
+      <displayName>Hive</displayName>
       <comment>Data warehouse system for ad-hoc queries &amp; analysis of large datasets and table &amp; storage management service</comment>
 
 
@@ -29,7 +29,7 @@
 
         <component>
             <name>HIVE_METASTORE</name>
-            <displayName>Hive 2 Metastore</displayName>
+            <displayName>Hive Metastore</displayName>
             <category>MASTER</category>
             <cardinality>1+</cardinality>
             <clientsToUpdateConfigs></clientsToUpdateConfigs>
@@ -51,7 +51,7 @@
 
         <component>
           <name>HIVE_SERVER</name>
-          <displayName>Hive2Server2</displayName>
+          <displayName>HiveServer2</displayName>
           <category>MASTER</category>
           <cardinality>1+</cardinality>
           <versionAdvertised>true</versionAdvertised>
@@ -322,4 +322,3 @@
     </service>
   </services>
 </metainfo>
-
