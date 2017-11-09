@@ -109,16 +109,6 @@ def hive(name=None):
   # Permissions 644 for conf dir (client) files, and 600 for conf.server
   mode_identified = 0644 if params.hive_config_dir == hive_client_conf_path else 0600
   if name == 'hiveserver2':
-    # copy tarball to HDFS feature not supported
-    if not (params.stack_version_formatted_major and check_stack_feature(StackFeature.COPY_TARBALL_TO_HDFS, params.stack_version_formatted_major)):
-      params.HdfsResource(params.webhcat_apps_dir,
-                            type="directory",
-                            action="create_on_execute",
-                            owner=params.webhcat_user,
-                            mode=0755
-                          )
-    
-    # Create webhcat dirs.
     if params.hcat_hdfs_user_dir != params.webhcat_hdfs_user_dir:
       params.HdfsResource(params.hcat_hdfs_user_dir,
                            type="directory",
@@ -137,9 +127,8 @@ def hive(name=None):
     # ****** Begin Copy Tarballs ******
     # *********************************
     #  if copy tarball to HDFS feature  supported copy mapreduce.tar.gz and tez.tar.gz to HDFS
-    if params.stack_version_formatted_major and check_stack_feature(StackFeature.COPY_TARBALL_TO_HDFS, params.stack_version_formatted_major):
-      copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
-      copy_to_hdfs("tez", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
+    copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
+    copy_to_hdfs("tez", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
 
     # Always copy pig.tar.gz and hive.tar.gz using the appropriate mode.
     # This can use a different source and dest location to account
