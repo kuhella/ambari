@@ -31,10 +31,10 @@ def hbase_thrift_server(action = 'start'): # 'start', 'stop', 'status'
     else:
       env = {'JAVA_HOME': format("{java64_home}"), 'HBASE_CONF_DIR': format("{hbase_conf_dir}")}
       if action == 'start':
-        Execute(format("{thrift_daemon_script} {action} thrift -p 9010 --infoport 9020"),
+        Execute(format("{thrift_daemon_script} {action} thrift -p 9090 --infoport 9080"),
                 user=format("{hbase_user}"),
                 environment=env)
-  
+
       elif action == 'stop':
         Execute(format("{thrift_daemon_script} {action} thrift"),
                 timeout = 30,
