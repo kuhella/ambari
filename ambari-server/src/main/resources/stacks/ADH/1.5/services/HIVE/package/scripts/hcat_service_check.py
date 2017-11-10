@@ -54,7 +54,7 @@ def hcat_service_check():
 
     exec_path = params.execute_path
     if params.version and params.stack_name:
-      upgrade_hive_bin = format("/usr/hdp/{version}/hive/bin") 
+      upgrade_hive_bin = format("/usr/lib/hive/bin") 
       exec_path =  os.environ['PATH'] + os.pathsep + params.hadoop_bin_dir + os.pathsep + upgrade_hive_bin
 
     Execute(prepare_cmd,

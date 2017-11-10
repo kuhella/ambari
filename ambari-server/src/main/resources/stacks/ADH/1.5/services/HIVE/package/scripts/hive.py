@@ -25,7 +25,8 @@ from urlparse import urlparse
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
-from resource_management.libraries.functions.version import compare_versions
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.core.resources.service import ServiceConfig
 from resource_management.core.resources.system import File, Execute, Directory
 from resource_management.core.source import StaticFile, Template, DownloadSource, InlineTemplate
@@ -39,10 +40,11 @@ from resource_management.core.shell import quote_bash_args
 from resource_management.core.logger import Logger
 from resource_management.core import utils
 from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook
-from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-from ambari_commons import OSConst
+from resource_management.libraries.functions.security_commons import update_credential_provider_path
 from ambari_commons.constants import SERVICE
 
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ambari_commons import OSConst
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def hive(name=None):
@@ -103,17 +105,10 @@ def hive(name=None):
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def hive(name=None):
   import params
-
+  hive_client_conf_path = format("/etc/hive/conf")
+  # Permissions 644 for conf dir (client) files, and 600 for conf.server
+  mode_identified = 0644 if params.hive_config_dir == hive_client_conf_path else 0600
   if name == 'hiveserver2':
-    # HDP 2.1.* or lower
-    params.HdfsResource(params.webhcat_apps_dir,
-                            type="directory",
-                            action="create_on_execute",
-                            owner=params.webhcat_user,
-                            mode=0755
-                          )
-    
-    # Create webhcat dirs.
     if params.hcat_hdfs_user_dir != params.webhcat_hdfs_user_dir:
       params.HdfsResource(params.hcat_hdfs_user_dir,
                            type="directory",
@@ -129,26 +124,28 @@ def hive(name=None):
                          mode=params.webhcat_hdfs_user_mode
     )
 
-    # HDP 2.2 or higher, copy mapreduce.tar.gz to HDFS
-#    copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
-#    copy_to_hdfs("tez", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
+    # ****** Begin Copy Tarballs ******
+    # *********************************
+    #  if copy tarball to HDFS feature  supported copy mapreduce.tar.gz and tez.tar.gz to HDFS
+    copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
+    copy_to_hdfs("tez", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
 
     # Always copy pig.tar.gz and hive.tar.gz using the appropriate mode.
-    # This can use a different source and dest location to account for both HDP 2.1 and 2.2
+    # This can use a different source and dest location to account
     copy_to_hdfs("pig",
                  params.user_group,
                  params.hdfs_user,
                  file_mode=params.tarballs_mode,
                  custom_source_file=params.pig_tar_source,
                  custom_dest_file=params.pig_tar_dest_file,
-                 skip=params.host_sys_prepped)
+                 skip=params.sysprep_skip_copy_tarballs_hdfs)
     copy_to_hdfs("hive",
                  params.user_group,
                  params.hdfs_user,
                  file_mode=params.tarballs_mode,
                  custom_source_file=params.hive_tar_source,
                  custom_dest_file=params.hive_tar_dest_file,
-                 skip=params.host_sys_prepped)
+                 skip=params.sysprep_skip_copy_tarballs_hdfs)
 
     wildcard_tarballs = ["sqoop", "hadoop_streaming"]
     for tarball_name in wildcard_tarballs:
@@ -169,17 +166,21 @@ def hive(name=None):
                      file_mode=params.tarballs_mode,
                      custom_source_file=source_file,
                      custom_dest_file=dest_file,
-                     skip=params.host_sys_prepped)
+                     skip=params.sysprep_skip_copy_tarballs_hdfs)
     # ******* End Copy Tarballs *******
     # *********************************
-
-    # Create Hive Metastore Warehouse Dir
-    params.HdfsResource(params.hive_apps_whs_dir,
-                         type="directory",
-                          action="create_on_execute",
-                          owner=params.hive_user,
-                          mode=0777
-    )
+    
+    # if warehouse directory is in DFS
+    if not params.whs_dir_protocol or params.whs_dir_protocol == urlparse(params.default_fs).scheme:
+      # Create Hive Metastore Warehouse Dir
+      params.HdfsResource(params.hive_apps_whs_dir,
+                           type="directory",
+                            action="create_on_execute",
+                            owner=params.hive_user,
+                            mode=0777
+      )
+    else:
+      Logger.info(format("Not creating warehouse directory '{hive_apps_whs_dir}', as the location is not in DFS."))
 
     # Create Hive User Dir
     params.HdfsResource(params.hive_hdfs_user_dir,
@@ -205,40 +206,57 @@ def hive(name=None):
 
   # We should change configurations for client as well as for server.
   # The reason is that stale-configs are service-level, not component.
+  Logger.info("Directories to fill with configs: %s" % str(params.hive_conf_dirs_list))
   for conf_dir in params.hive_conf_dirs_list:
     fill_conf_dir(conf_dir)
 
+  params.hive_site_config = update_credential_provider_path(params.hive_site_config,
+                                                     'hive-site',
+                                                     os.path.join(params.hive_conf_dir, 'hive-site.jceks'),
+                                                     params.hive_user,
+                                                     params.user_group
+                                                     )
   XmlConfig("hive-site.xml",
             conf_dir=params.hive_config_dir,
             configurations=params.hive_site_config,
             configuration_attributes=params.config['configuration_attributes']['hive-site'],
             owner=params.hive_user,
             group=params.user_group,
-            mode=0644)
+            mode=mode_identified)
 
-   # Generate atlas-application.properties.xml file
+  # Generate atlas-application.properties.xml file
   if params.enable_atlas_hook:
     atlas_hook_filepath = os.path.join(params.hive_config_dir, params.atlas_hook_filename)
     setup_atlas_hook(SERVICE.HIVE, params.hive_atlas_application_properties, atlas_hook_filepath, params.hive_user, params.user_group)
- 
-  if params.hive_specific_configs_supported and name == 'hiveserver2':
+
+  if name == 'hiveserver2':
     XmlConfig("hiveserver2-site.xml",
               conf_dir=params.hive_server_conf_dir,
               configurations=params.config['configurations']['hiveserver2-site'],
               configuration_attributes=params.config['configuration_attributes']['hiveserver2-site'],
               owner=params.hive_user,
               group=params.user_group,
-              mode=0644)
-  
+              mode=0600)
+
+  if params.hive_metastore_site_supported and name == 'metastore':
+    XmlConfig("hivemetastore-site.xml",
+              conf_dir=params.hive_server_conf_dir,
+              configurations=params.config['configurations']['hivemetastore-site'],
+              configuration_attributes=params.config['configuration_attributes']['hivemetastore-site'],
+              owner=params.hive_user,
+              group=params.user_group,
+              mode=0600)
+
   File(format("{hive_config_dir}/hive-env.sh"),
        owner=params.hive_user,
        group=params.user_group,
+       mode=mode_identified,
        content=InlineTemplate(params.hive_env_sh_template)
   )
 
   # On some OS this folder could be not exists, so we will create it before pushing there files
   Directory(params.limits_conf_dir,
-            create_parents=True,
+            create_parents = True,
             owner='root',
             group='root'
             )
@@ -249,9 +267,19 @@ def hive(name=None):
        mode=0644,
        content=Template("hive.conf.j2")
        )
+  if params.security_enabled:
+    File(os.path.join(params.hive_config_dir, 'zkmigrator_jaas.conf'),
+         owner=params.hive_user,
+         group=params.user_group,
+         content=Template("zkmigrator_jaas.conf.j2")
+         )
 
-  if (name == 'metastore' or name == 'hiveserver2') and not os.path.exists(params.target):
-    jdbc_connector()
+
+  if name == 'metastore' or name == 'hiveserver2':
+    if params.hive_jdbc_target is not None and not os.path.exists(params.hive_jdbc_target):
+      jdbc_connector(params.hive_jdbc_target, params.hive_previous_jdbc_jar)
+    if params.hive2_jdbc_target is not None and not os.path.exists(params.hive2_jdbc_target):
+      jdbc_connector(params.hive2_jdbc_target, params.hive2_previous_jdbc_jar)
 
   File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
        content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),
@@ -259,54 +287,94 @@ def hive(name=None):
   )
 
   if name == 'metastore':
+    File(os.path.join(params.hive_server_conf_dir, "hadoop-metrics2-hivemetastore.properties"),
+         owner=params.hive_user,
+         group=params.user_group,
+         mode=0600,
+         content=Template("hadoop-metrics2-hivemetastore.properties.j2")
+    )
+
     File(params.start_metastore_path,
          mode=0755,
          content=StaticFile('startMetastore.sh')
     )
-    if params.init_metastore_schema:
-      create_schema_cmd = format("export HIVE_CONF_DIR={hive_server_conf_dir} ; "
-                                 "{hive_bin}/schematool -initSchema "
-                                 "-dbType {hive_metastore_db_type} "
-                                 "-userName {hive_metastore_user_name} "
-                                 "-passWord {hive_metastore_user_passwd!p}")
-
-      check_schema_created_cmd = as_user(format("export HIVE_CONF_DIR={hive_server_conf_dir} ; "
-                                        "{hive_bin}/schematool -info "
-                                        "-dbType {hive_metastore_db_type} "
-                                        "-userName {hive_metastore_user_name} "
-                                        "-passWord {hive_metastore_user_passwd!p}"), params.hive_user)
-
-      # HACK: in cases with quoted passwords and as_user (which does the quoting as well) !p won't work for hiding passwords.
-      # Fixing it with the hack below:
-      quoted_hive_metastore_user_passwd = quote_bash_args(quote_bash_args(params.hive_metastore_user_passwd))
-      if quoted_hive_metastore_user_passwd[0] == "'" and quoted_hive_metastore_user_passwd[-1] == "'" \
-          or quoted_hive_metastore_user_passwd[0] == '"' and quoted_hive_metastore_user_passwd[-1] == '"':
-        quoted_hive_metastore_user_passwd = quoted_hive_metastore_user_passwd[1:-1]
-      Logger.sensitive_strings[repr(check_schema_created_cmd)] = repr(check_schema_created_cmd.replace(
-          format("-passWord {quoted_hive_metastore_user_passwd}"), "-passWord " + utils.PASSWORDS_HIDE_STRING))
-
-      Execute(create_schema_cmd,
-              not_if = check_schema_created_cmd,
-              user = params.hive_user
-      )
   elif name == 'hiveserver2':
     File(params.start_hiveserver2_path,
          mode=0755,
          content=Template(format('{start_hiveserver2_script}'))
     )
 
-  if name != "client":
-    crt_directory(params.hive_pid_dir)
-    crt_directory(params.hive_log_dir)
-    crt_directory(params.hive_var_lib)
+    File(os.path.join(params.hive_server_conf_dir, "hadoop-metrics2-hiveserver2.properties"),
+         owner=params.hive_user,
+         group=params.user_group,
+         mode=0600,
+         content=Template("hadoop-metrics2-hiveserver2.properties.j2")
+    )
 
+  if name != "client":
+    Directory(params.hive_pid_dir,
+              create_parents = True,
+              cd_access='a',
+              owner=params.hive_user,
+              group=params.user_group,
+              mode=0755)
+    Directory(params.hive_log_dir,
+              create_parents = True,
+              cd_access='a',
+              owner=params.hive_user,
+              group=params.user_group,
+              mode=0755)
+    Directory(params.hive_var_lib,
+              create_parents = True,
+              cd_access='a',
+              owner=params.hive_user,
+              group=params.user_group,
+              mode=0755)
+
+def create_metastore_schema():
+  import params
+
+  create_schema_cmd = format("export HIVE_CONF_DIR={hive_server_conf_dir} ; "
+                             "{hive_schematool_bin}/schematool -initSchema "
+                             "-dbType {hive_metastore_db_type} "
+                             "-userName {hive_metastore_user_name} "
+                             "-passWord {hive_metastore_user_passwd!p} -verbose")
+
+  check_schema_created_cmd = as_user(format("export HIVE_CONF_DIR={hive_server_conf_dir} ; "
+                                    "{hive_schematool_bin}/schematool -info "
+                                    "-dbType {hive_metastore_db_type} "
+                                    "-userName {hive_metastore_user_name} "
+                                    "-passWord {hive_metastore_user_passwd!p} -verbose"), params.hive_user)
+
+  # HACK: in cases with quoted passwords and as_user (which does the quoting as well) !p won't work for hiding passwords.
+  # Fixing it with the hack below:
+  quoted_hive_metastore_user_passwd = quote_bash_args(quote_bash_args(params.hive_metastore_user_passwd))
+  if quoted_hive_metastore_user_passwd[0] == "'" and quoted_hive_metastore_user_passwd[-1] == "'" \
+      or quoted_hive_metastore_user_passwd[0] == '"' and quoted_hive_metastore_user_passwd[-1] == '"':
+    quoted_hive_metastore_user_passwd = quoted_hive_metastore_user_passwd[1:-1]
+  Logger.sensitive_strings[repr(check_schema_created_cmd)] = repr(check_schema_created_cmd.replace(
+      format("-passWord {quoted_hive_metastore_user_passwd}"), "-passWord " + utils.PASSWORDS_HIDE_STRING))
+
+  Execute(create_schema_cmd,
+          not_if = check_schema_created_cmd,
+          user = params.hive_user
+  )
+
+"""
+Writes configuration files required by Hive.
+"""
 def fill_conf_dir(component_conf_dir):
   import params
-  
+  hive_client_conf_path = os.path.realpath(format("{stack_root}/current/{component_directory}/conf"))
+  component_conf_dir = os.path.realpath(component_conf_dir)
+  mode_identified_for_file = 0644
+  mode_identified_for_dir = 0755
+
   Directory(component_conf_dir,
             owner=params.hive_user,
             group=params.user_group,
-            create_parents=True
+            create_parents = True,
+            mode=mode_identified_for_dir
   )
 
   XmlConfig("mapred-site.xml",
@@ -315,74 +383,81 @@ def fill_conf_dir(component_conf_dir):
             configuration_attributes=params.config['configuration_attributes']['mapred-site'],
             owner=params.hive_user,
             group=params.user_group,
-            mode=0644)
+            mode=mode_identified_for_file)
 
 
-  crt_file(format("{component_conf_dir}/hive-default.xml.template"))
-  crt_file(format("{component_conf_dir}/hive-env.sh.template"))
-
-  log4j_exec_filename = 'hive-exec-log4j.properties'
-  if (params.log4j_exec_props != None):
-    File(format("{component_conf_dir}/{log4j_exec_filename}"),
-         mode=0644,
-         group=params.user_group,
-         owner=params.hive_user,
-         content=params.log4j_exec_props
-    )
-  elif (os.path.exists("{component_conf_dir}/{log4j_exec_filename}.template")):
-    File(format("{component_conf_dir}/{log4j_exec_filename}"),
-         mode=0644,
-         group=params.user_group,
-         owner=params.hive_user,
-         content=StaticFile(format("{component_conf_dir}/{log4j_exec_filename}.template"))
-    )
-
-  log4j_filename = 'hive-log4j.properties'
-  if (params.log4j_props != None):
-    File(format("{component_conf_dir}/{log4j_filename}"),
-         mode=0644,
-         group=params.user_group,
-         owner=params.hive_user,
-         content=params.log4j_props
-    )
-  elif (os.path.exists("{component_conf_dir}/{log4j_filename}.template")):
-    File(format("{component_conf_dir}/{log4j_filename}"),
-         mode=0644,
-         group=params.user_group,
-         owner=params.hive_user,
-         content=StaticFile(format("{component_conf_dir}/{log4j_filename}.template"))
-    )
-
-def crt_directory(name):
-  import params
-
-  Directory(name,
-            create_parents=True,
-            cd_access='a',
-            owner=params.hive_user,
-            group=params.user_group,
-            mode=0755)
-
-def crt_file(name):
-  import params
-
-  File(name,
+  File(format("{component_conf_dir}/hive-default.xml.template"),
        owner=params.hive_user,
-       group=params.user_group
+       group=params.user_group,
+       mode=mode_identified_for_file
   )
 
-def jdbc_connector():
+  File(format("{component_conf_dir}/hive-env.sh.template"),
+       owner=params.hive_user,
+       group=params.user_group,
+       mode=mode_identified_for_file
+  )
+
+  # Create hive-log4j.properties and hive-exec-log4j.properties
+  # in /etc/hive/conf and not in /etc/hive2/conf
+  if params.log4j_version == '1':
+    log4j_exec_filename = 'hive-exec-log4j.properties'
+    if (params.log4j_exec_props != None):
+      File(format("{component_conf_dir}/{log4j_exec_filename}"),
+           mode=mode_identified_for_file,
+           group=params.user_group,
+           owner=params.hive_user,
+           content=InlineTemplate(params.log4j_exec_props)
+      )
+    elif (os.path.exists("{component_conf_dir}/{log4j_exec_filename}.template")):
+      File(format("{component_conf_dir}/{log4j_exec_filename}"),
+           mode=mode_identified_for_file,
+           group=params.user_group,
+           owner=params.hive_user,
+           content=StaticFile(format("{component_conf_dir}/{log4j_exec_filename}.template"))
+      )
+
+    log4j_filename = 'hive-log4j.properties'
+    if (params.log4j_props != None):
+      File(format("{component_conf_dir}/{log4j_filename}"),
+           mode=mode_identified_for_file,
+           group=params.user_group,
+           owner=params.hive_user,
+           content=InlineTemplate(params.log4j_props)
+      )
+    elif (os.path.exists("{component_conf_dir}/{log4j_filename}.template")):
+      File(format("{component_conf_dir}/{log4j_filename}"),
+           mode=mode_identified_for_file,
+           group=params.user_group,
+           owner=params.hive_user,
+           content=StaticFile(format("{component_conf_dir}/{log4j_filename}.template"))
+      )
+    pass # if params.log4j_version == '1'
+
+
+def jdbc_connector(target, hive_previous_jdbc_jar):
+  """
+  Shared by Hive Batch, Hive Metastore, and Hive Interactive
+  :param target: Target of jdbc jar name, which could be for any of the components above.
+  """
   import params
+
+  if not params.jdbc_jar_name:
+    return
 
   if params.hive_jdbc_driver in params.hive_jdbc_drivers_list and params.hive_use_existing_db:
     environment = {
       "no_proxy": format("{ambari_server_hostname}")
     }
 
+    if hive_previous_jdbc_jar and os.path.isfile(hive_previous_jdbc_jar):
+      File(hive_previous_jdbc_jar, action='delete')
+
     # TODO: should be removed after ranger_hive_plugin will not provide jdbc
-    Execute(('rm', '-f', params.prepackaged_ojdbc_symlink),
-            path=["/bin", "/usr/bin/"],
-            sudo = True)
+    if params.prepackaged_jdbc_name != params.jdbc_jar_name:
+      Execute(('rm', '-f', params.prepackaged_ojdbc_symlink),
+              path=["/bin", "/usr/bin/"],
+              sudo = True)
     
     File(params.downloaded_custom_connector,
          content = DownloadSource(params.driver_curl_source))
@@ -396,26 +471,28 @@ def jdbc_connector():
       Execute(format("yes | {sudo} cp {jars_path_in_archive} {hive_lib}"))
 
       Directory(params.jdbc_libs_dir,
-                create_parents=True)
+                create_parents = True)
 
       Execute(format("yes | {sudo} cp {libs_path_in_archive} {jdbc_libs_dir}"))
 
       Execute(format("{sudo} chown -R {hive_user}:{user_group} {hive_lib}/*"))
 
     else:
-      Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.target),
-            #creates=params.target, TODO: uncomment after ranger_hive_plugin will not provide jdbc
+      Execute(('cp', '--remove-destination', params.downloaded_custom_connector, target),
+            #creates=target, TODO: uncomment after ranger_hive_plugin will not provide jdbc
             path=["/bin", "/usr/bin/"],
             sudo = True)
 
   else:
     #for default hive db (Mysql)
-    Execute(('cp', '--remove-destination', format('/usr/share/java/{jdbc_jar_name}'), params.target),
-            #creates=params.target, TODO: uncomment after ranger_hive_plugin will not provide jdbc
+    Execute(('cp', '--remove-destination', format('/usr/share/java/{jdbc_jar_name}'), target),
+            #creates=target, TODO: uncomment after ranger_hive_plugin will not provide jdbc
             path=["/bin", "/usr/bin/"],
             sudo=True
     )
-    
-  File(params.target,
+  pass
+
+  File(target,
        mode = 0644,
   )
+

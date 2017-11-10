@@ -22,7 +22,6 @@
 export tablename=$1
 
 export purge_cmd=""
-export HIVE_CONF_DIR=/etc/hive/conf
 if [ "$3" == "true" ]; then
 	export purge_cmd="purge"
 fi
@@ -30,13 +29,13 @@ fi
 case "$2" in
 
 prepare)
-  /usr/lib/hive/hcatalog/bin/hcat -e "show tables"
-  /usr/lib/hive/hcatalog/bin/hcat -e "drop table IF EXISTS ${tablename} ${purge_cmd}"
-  /usr/lib/hive/hcatalog/bin/hcat -e "create table ${tablename} ( id INT, name string ) stored as rcfile ;"
+  hcat -e "show tables"
+  hcat -e "drop table IF EXISTS ${tablename} ${purge_cmd}"
+  hcat -e "create table ${tablename} ( id INT, name string ) stored as rcfile ;"
 ;;
 
 cleanup)
-  /usr/lib/hive/hcatalog/bin/hcat -e "drop table IF EXISTS ${tablename} ${purge_cmd}"
+  hcat -e "drop table IF EXISTS ${tablename} ${purge_cmd}"
 ;;
 
 esac
