@@ -22,7 +22,7 @@
       <name>KAFKA</name>
       <displayName>Kafka</displayName>
       <comment>A high-throughput distributed messaging system</comment>
-      <version>0.11.0.1.5</version>
+      <version>1.0.0.1.5</version>
     </service>
   </services>
 </metainfo>
