@@ -21,8 +21,7 @@ from resource_management.core.logger import Logger
 
 def setup_ranger_hive(upgrade_type = None):
   import params
-
-  if params.has_ranger_admin:
+  if params.enable_ranger_hive:
 
     stack_version = None
 
@@ -33,7 +32,6 @@ def setup_ranger_hive(upgrade_type = None):
       Logger.info("Hive: Setup ranger: command retry enables thus retrying if ranger admin is down !")
     else:
       Logger.info("Hive: Setup ranger: command retry not enabled thus skipping if ranger admin is down !")
-
     if params.xml_configurations_supported and params.xa_audit_hdfs_is_enabled:
       params.HdfsResource("/ranger/audit",
                          type="directory",
