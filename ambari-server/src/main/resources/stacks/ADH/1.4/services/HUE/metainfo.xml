@@ -69,12 +69,12 @@
 	    <osFamily>any</osFamily>
 	    <packages>
 	      <package><name>hue</name></package>
-	      <package><name>wget</name></package>   
+	      <package><name>wget</name></package>
 	      <package><name>tar</name></package>
 	      <package><name>asciidoc</name></package>
 	      <package><name>krb5-devel</name></package>
 	      <package><name>libxml2-devel</name></package>
-	      <package><name>libxslt-devel</name></package>		   
+	      <package><name>libxslt-devel</name></package>
 	      <package><name>openldap-devel</name></package>
 	      <package><name>python-devel</name></package>
 	      <package><name>python-simplejson</name></package>
@@ -100,14 +100,18 @@
         <timeout>300</timeout>
 	</commandScript>
 	-->
-        <themes-dir>themes</themes-dir>
+  <requiredServices>
+    <service>HIVE</service>
+  </requiredServices>
+
+  <themes-dir>themes</themes-dir>
 	<themes>
 	  <theme>
 	    <fileName>theme_hue_version_1.json</fileName>
 	    <default>true</default>
 	  </theme>
 	</themes>
-	
+
         <configuration-dependencies>
 	  <config-type>hue-desktop-site</config-type>
 	  <config-type>hue-hadoop-site</config-type>

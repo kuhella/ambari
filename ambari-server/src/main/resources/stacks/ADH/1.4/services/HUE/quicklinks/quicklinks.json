@@ -17,7 +17,7 @@
     "links": [
       {
         "name": "hue_ui",
-        "label": "Hue WEB-UI",
+        "label": "Hue Web UI",
         "requires_user_name": "false",
         "component_name": "HUE_SERVER",
         "url":"%@://%@:%@/",
