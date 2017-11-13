@@ -699,7 +699,8 @@ has_ranger_admin = not len(ranger_admin_hosts) == 0
 enable_ranger_hive = config['configurations']['hive-env']['hive_security_authorization'].lower() == 'ranger'
 
 # ranger support xml_configuration flag, instead of depending on ranger xml_configurations_supported/ranger-env, using stack feature
-xml_configurations_supported = check_stack_feature(StackFeature.RANGER_XML_CONFIGURATION, version_for_stack_feature_checks)
+# Force True
+xml_configurations_supported = True 
 
 # get ranger hive properties if enable_ranger_hive is True
 if enable_ranger_hive:
