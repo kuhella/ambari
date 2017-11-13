@@ -33,7 +33,7 @@ ADH 1.5 Release Notes
 - Apache Spark	2.2.0
 - Apache Zeppelin 	0.7.3
 - Apache Giraph	1.1.0
-- Apache Kite	1.1.0
+- Apache Slider	0.92.0
 
 **Дополнительные компоненты включенные в состав дистрибутива:**
 - Hue	3.11.0
