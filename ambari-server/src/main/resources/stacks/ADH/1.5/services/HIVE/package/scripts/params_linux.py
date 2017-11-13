@@ -311,7 +311,7 @@ driver_curl_source = format("{jdk_location}/{jdbc_jar_name}")
 # normally, the JDBC driver would be referenced by <stack-root>/current/.../foo.jar
 # but in RU if <stack-selector-tool> is called and the restart fails, then this means that current pointer
 # is now pointing to the upgraded version location; that's bad for the cp command
-source_jdbc_file = format("{stack_root}/{current_version}/hive/lib/{jdbc_jar_name}")
+source_jdbc_file = format("/usr/lib/hive/lib/{jdbc_jar_name}")
 
 check_db_connection_jar_name = "DBConnectionVerification.jar"
 check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar_name}")

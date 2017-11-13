@@ -25,6 +25,7 @@ import time
 import shutil
 from datetime import datetime
 import json
+from ra import ra
 
 # Ambari Commons & Resource Management imports
 from resource_management.libraries.script.script import Script
@@ -281,7 +282,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
 
       unique_name = "llap-slider%s" % datetime.utcnow().strftime('%Y-%m-%d_%H-%M-%S')
 
-      cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llap --slider-am-container-mb {params.slider_am_container_mb} "
+      cmd = format("/usr/lib/hive/bin/hive --service llap --slider-am-container-mb {params.slider_am_container_mb} "
                    "--size {params.llap_daemon_container_size}m --cache {params.hive_llap_io_mem_size}m --xmx {params.llap_heap_size}m "
                    "--loglevel {params.llap_log_level} {params.llap_extra_slider_opts} --output {LLAP_PACKAGE_CREATION_PATH}/{unique_name}")
 
@@ -333,10 +334,11 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
 
         if code != 0 or output is None:
           raise Fail("Command failed with either non-zero return code or no output.")
+        ra.log('output='+str(output)) 
 
         # E.g., output:
         # Prepared llap-slider-05Apr2016/run.sh for running LLAP on Slider
-        exp = r"Prepared (.*?run.sh) for running LLAP"
+        exp = r".*Prepared (.*?run.sh) for running LLAP" 
         run_file_path = None
         out_splits = output.split("\n")
         for line in out_splits:
@@ -344,7 +346,9 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
           m = re.match(exp, line, re.I)
           if m and len(m.groups()) == 1:
             run_file_name = m.group(1)
-            run_file_path = os.path.join(params.hive_user_home_dir, run_file_name)
+            #run_file_path = os.path.join(params.hive_user_home_dir, run_file_name)
+            run_file_path = run_file_name
+            ra.log('run_file_path'+str(run_file_path)) 
             break
         if not run_file_path:
           raise Fail("Did not find run.sh file in output: " + str(output))
@@ -437,7 +441,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       import status_params
       LLAP_APP_STATUS_CMD_TIMEOUT = 0
 
-      llap_status_cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llapstatus --name {app_name} --findAppTimeout {LLAP_APP_STATUS_CMD_TIMEOUT}")
+      llap_status_cmd = format("/usr/lib/hive/bin/hive --service llapstatus --name {app_name} --findAppTimeout {LLAP_APP_STATUS_CMD_TIMEOUT}")
       code, output, error = shell.checked_call(llap_status_cmd, user=status_params.hive_user, stderr=subprocess.PIPE,
                                                logoutput=False)
       Logger.info("Received 'llapstatus' command 'output' : {0}".format(output))
@@ -466,7 +470,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       # -t : Exit watch mode if the desired state is not attained until the specified timeout (Default: 300sec)
       #
       #            example : llapstatus -w -r 0.8 -i 2 -t 150
-      llap_status_cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llapstatus -w -r {percent_desired_instances_to_be_up} -i {refresh_rate} -t {total_timeout}")
+      llap_status_cmd = format("/usr/lib/hive/bin/hive --service llapstatus -w -r {percent_desired_instances_to_be_up} -i {refresh_rate} -t {total_timeout}")
       Logger.info("\n\n\n\n\n");
       Logger.info("LLAP status command : {0}".format(llap_status_cmd))
       code, output, error = shell.checked_call(llap_status_cmd, user=status_params.hive_user, quiet=True, stderr=subprocess.PIPE,

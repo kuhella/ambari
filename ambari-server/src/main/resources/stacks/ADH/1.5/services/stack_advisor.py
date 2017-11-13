@@ -1346,13 +1346,13 @@ class ADH15StackAdvisor(ADH14StackAdvisor):
 
     putHiveInteractiveEnvPropertyAttribute('num_llap_nodes', "minimum", 1)
     putHiveInteractiveEnvPropertyAttribute('num_llap_nodes', "maximum", node_manager_cnt)
-    putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', yarn_min_container_size)
+    #putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', yarn_min_container_size)
     putHiveInteractiveSitePropertyAttribute('hive.llap.daemon.yarn.container.mb', "minimum", yarn_min_container_size)
-    putHiveInteractiveSiteProperty('hive.llap.daemon.num.executors', 0)
+    #putHiveInteractiveSiteProperty('hive.llap.daemon.num.executors', 0)
     putHiveInteractiveSitePropertyAttribute('hive.llap.daemon.num.executors', "minimum", 1)
-    putHiveInteractiveSiteProperty('hive.llap.io.threadpool.size', 0)
-    putHiveInteractiveSiteProperty('hive.llap.io.memory.size', 0)
-    putHiveInteractiveEnvProperty('llap_heap_size', 0)
+    #putHiveInteractiveSiteProperty('hive.llap.io.threadpool.size', 0)
+    #putHiveInteractiveSiteProperty('hive.llap.io.memory.size', 0)
+    #putHiveInteractiveEnvProperty('llap_heap_size', 0)
     putHiveInteractiveEnvProperty('slider_am_container_mb', slider_am_container_size)
 
   def isConfigPropertiesChanged(self, services, config_type, config_names, all_exists=True):
