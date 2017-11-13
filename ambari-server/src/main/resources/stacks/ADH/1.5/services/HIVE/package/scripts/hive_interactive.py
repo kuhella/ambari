@@ -83,15 +83,14 @@ def hive_interactive(name=None):
                                    'hadoop.security.credential.provider.path']
 
   # Copy Tarballs in HDFS.
-  if params.stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.stack_version_formatted_major):
-    resource_created = copy_to_hdfs("tez_hive2",
-                 params.user_group,
-                 params.hdfs_user,
-                 file_mode=params.tarballs_mode,
-                 skip=params.sysprep_skip_copy_tarballs_hdfs)
+  resource_created = copy_to_hdfs("tez_hive2",
+               params.user_group,
+               params.hdfs_user,
+               file_mode=params.tarballs_mode,
+               skip=params.sysprep_skip_copy_tarballs_hdfs)
 
-    if resource_created:
-      params.HdfsResource(None, action="execute")
+  if resource_created:
+    params.HdfsResource(None, action="execute")
 
   Directory(params.hive_interactive_etc_dir_prefix,
             mode=0755

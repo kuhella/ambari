@@ -397,7 +397,7 @@ limitations under the License.
     <value-attributes>
       <type>int</type>
       <unit>MB</unit>
-      <overridable>false</overridable>
+      <overridable>true</overridable>
     </value-attributes>
     <depends-on>
       <property>
@@ -482,7 +482,7 @@ limitations under the License.
     <value-attributes>
       <type>int</type>
       <unit>MB</unit>
-      <overridable>false</overridable>
+      <overridable>true</overridable>
     </value-attributes>
     <depends-on>
       <property>
