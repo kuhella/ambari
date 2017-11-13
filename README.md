@@ -14,19 +14,19 @@ ADH 1.5 Release Notes
 - Apache Zookeeper	3.4.10
 - Apache Tez	0.9.0
 - Apache Hive	2.3.0
-- Apache HBase	1.3.3
+- Apache HBase	1.3.1
 - Apache Phoenix	4.11.0
 - Apache Pig	0.17.0
 - Apache Sqoop	1.4.6
 - Apache Flume	1.8.0
 - Apache Oozie	4.3.0
-- Apache Atlas	0.8.0
+- Apache Atlas	0.8.1
 - Apache NiFi   1.3.0
-- Apache Apex 	3.5.0
+- Apache Apex 	3.6.0
 - Apache Flink	1.3.2
 - Apache Kafka	1.0.0
 - Apache Knox	0.12.0
-- Apache Mahout	0.12.2
+- Apache Mahout	0.13.0
 - Apache Ranger	0.7.1
 - Apache Ranger KMS	0.7.1
 - Apache Solr	6.6.0
@@ -40,7 +40,7 @@ ADH 1.5 Release Notes
 - Bigtop-groovy 2.4.10
 - Bigtop-jsvc   1.10.15
 - Bigtop-tomcat 6.0.45
-- Bigtop-utils  1.2.0
+- Bigtop-utils  1.3.0
 - extjs 2.2
 - fping 3.10
 - grafana 4.3.1
@@ -83,11 +83,6 @@ ADH 1.5 Release Notes
 - Hue: https://github.com/cloudera/hue/blob/master/docs/release-notes/release-notes-3.11.0.txt
 
 **Известные проблемы:**
-
-*Apache Atlas:*
-- Возможно появление предупреждения (Warning) о недоступности сервиса;
-- Возможно возникновение ошибки при старте сервиса на хосте с малым объемом памяти (Cannot allocate memory);
-- Возможно возникновени ошибки (Kafka Timeout) при импорте метаданных из Hive Metastore;
 
 *Apache Oozie:*
 - Возможно возникновение ошибки при проверке сервиса (Service Check) из-за недостатка ресурсов, возникает как правило при установке множества сервисов на одном узле;
