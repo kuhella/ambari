@@ -50,7 +50,5 @@ kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executab
 slider_env_sh_template = config['configurations']['slider-env']['content']
 
 java64_home = config['hostLevelParams']['java_home']
-from ra import ra
-ra.log('java64_home='+str(java64_home))
 log4j_props = config['configurations']['slider-log4j']['content']
 slider_cmd = format("{slider_bin_dir}/slider")
