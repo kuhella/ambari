@@ -28,7 +28,7 @@
       <version>0.7.0.1.4</version>
        <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7</osFamily>
+          <osFamily>redhat7,suse12</osFamily>
           <packages>
             <package>
               <name>ranger-admin</name>
@@ -46,7 +46,7 @@
         </osSpecific>
       </osSpecifics>
       <components>
-          
+
         <component>
           <name>RANGER_ADMIN</name>
           <displayName>Ranger Admin</displayName>
@@ -79,10 +79,10 @@
             <script>scripts/ranger_usersync.py</script>
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
-          </commandScript>        
+          </commandScript>
         </component>
 
-      </components>              
+      </components>
 
       <requiredServices>
         <service>SOLR</service>
@@ -103,7 +103,7 @@
       <commandScript>
         <script>scripts/service_check.py</script>
         <scriptType>PYTHON</scriptType>
-        <timeout>300</timeout>        
+        <timeout>300</timeout>
       </commandScript>
 
     </service>

@@ -33,7 +33,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat7,redhat6,suse11</osFamily>
+          <osFamily>redhat7,redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
               <name>hive</name>
@@ -54,7 +54,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat6,suse11</osFamily>
+          <osFamily>redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
               <name>mysql</name>
@@ -63,7 +63,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat7</osFamily>
+          <osFamily>redhat7,suse12</osFamily>
           <packages>
             <package>
               <name>mariadb-server</name>
@@ -95,7 +95,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>suse11</osFamily>
+          <osFamily>suse11,suse12</osFamily>
           <packages>
             <package>
               <name>mysql-client</name>
