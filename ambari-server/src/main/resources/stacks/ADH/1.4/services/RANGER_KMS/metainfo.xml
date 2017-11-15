@@ -28,7 +28,7 @@
       <version>0.7.0.1.4</version>
        <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7</osFamily>
+          <osFamily>redhat7,suse12</osFamily>
           <packages>
             <package>
               <name>ranger-kms</name>
