@@ -31,6 +31,9 @@ from resource_management.core.exceptions import Fail
 from resource_management.core.shell import as_user
 from resource_management.libraries.functions.hive_check import check_thrift_port_sasl
 from resource_management.libraries.functions import get_user_call_output
+from resource_management.libraries.functions.show_logs import show_logs
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
@@ -55,13 +58,13 @@ def hive_service(name, action='start', upgrade_type=None):
 
   if name == 'metastore':
     pid_file = format("{hive_pid_dir}/{hive_metastore_pid}")
-    cmd = format("{start_metastore_path} {hive_log_dir}/hive.out {hive_log_dir}/hive.log {pid_file} {hive_server_conf_dir} {hive_log_dir}")
+    cmd = format("{start_metastore_path} {hive_log_dir}/hive.out {hive_log_dir}/hive.err {pid_file} {hive_server_conf_dir} {hive_log_dir}")
   elif name == 'hiveserver2':
     pid_file = format("{hive_pid_dir}/{hive_pid}")
-    cmd = format("{start_hiveserver2_path} {hive_log_dir}/hive-server2.out {hive_log_dir}/hive-server2.log {pid_file} {hive_server_conf_dir} {hive_log_dir}")
+    cmd = format("{start_hiveserver2_path} {hive_log_dir}/hive-server2.out {hive_log_dir}/hive-server2.err {pid_file} {hive_server_conf_dir} {hive_log_dir}")
 
-    if params.security_enabled and params.current_version != None and (params.current_version.startswith("2.2.4") or
-          params.current_version.startswith("2.2.3")):
+
+    if params.security_enabled and params.current_version and check_stack_feature(StackFeature.HIVE_SERVER2_KERBERIZED_ENV, params.current_version):
       hive_kinit_cmd = format("{kinit_path_local} -kt {hive_server2_keytab} {hive_principal}; ")
       Execute(hive_kinit_cmd, user=params.hive_user)
 
@@ -70,7 +73,7 @@ def hive_service(name, action='start', upgrade_type=None):
 
   if action == 'start':
     if name == 'hiveserver2':
-      check_fs_root()
+      check_fs_root(params.hive_server_conf_dir, params.execute_path)
 
     daemon_cmd = cmd
     hadoop_home = params.hadoop_home
@@ -82,9 +85,8 @@ def hive_service(name, action='start', upgrade_type=None):
     if upgrade_type == UPGRADE_TYPE_ROLLING:
       process_id_exists_command = None
 
-      if params.version:
-        import os
-        hadoop_home = format("/usr/hdp/{version}/hadoop")
+      if params.version and params.stack_root:
+        hadoop_home = format("{stack_root}/{version}/hadoop")
         hive_bin = os.path.join(params.hive_bin, hive_bin)
       
     Execute(daemon_cmd, 
@@ -96,7 +98,7 @@ def hive_service(name, action='start', upgrade_type=None):
     if params.hive_jdbc_driver == "com.mysql.jdbc.Driver" or \
        params.hive_jdbc_driver == "org.postgresql.Driver" or \
        params.hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":
-  
+
       validation_called = False
 
       if params.hive_jdbc_target is not None:
@@ -109,7 +111,7 @@ def hive_service(name, action='start', upgrade_type=None):
       if not validation_called:
         emessage = "ERROR! DB connection check should be executed at least one time!"
         Logger.error(emessage)
-    
+
   elif action == 'stop':
 
     daemon_kill_cmd = format("{sudo} kill {pid}")
@@ -121,14 +123,19 @@ def hive_service(name, action='start', upgrade_type=None):
 
     wait_time = 5
     Execute(daemon_hard_kill_cmd,
-      not_if = format("! ({process_id_exists_command}) || ( sleep {wait_time} && ! ({process_id_exists_command}) )")
+      not_if = format("! ({process_id_exists_command}) || ( sleep {wait_time} && ! ({process_id_exists_command}) )"),
+      ignore_failures = True
     )
 
-    # check if stopped the process, else fail the task
-    Execute(format("! ({process_id_exists_command})"),
-      tries=20,
-      try_sleep=3,
-    )
+    try:
+      # check if stopped the process, else fail the task
+      Execute(format("! ({process_id_exists_command})"),
+        tries=20,
+        try_sleep=3,
+      )
+    except:
+      show_logs(params.hive_log_dir, params.hive_user)
+      raise
 
     File(pid_file,
          action = "delete"
@@ -158,15 +165,15 @@ def validate_connection(target_path_to_jdbc, hive_lib_path):
     raise
 
 
-def check_fs_root():
+def check_fs_root(conf_dir, execution_path):
   import params
 
   if not params.fs_root.startswith("hdfs://"):
     Logger.info("Skipping fs root check as fs_root does not start with hdfs://")
     return
 
-  metatool_cmd = format("hive --config {hive_server_conf_dir} --service metatool")
-  cmd = as_user(format("{metatool_cmd} -listFSRoot", env={'PATH': params.execute_path}), params.hive_user) \
+  metatool_cmd = format("hive --config {conf_dir} --service metatool")
+  cmd = as_user(format("{metatool_cmd} -listFSRoot", env={'PATH': execution_path}), params.hive_user) \
         + format(" 2>/dev/null | grep hdfs:// | cut -f1,2,3 -d '/' | grep -v '{fs_root}' | head -1")
   code, out = shell.call(cmd)
 
@@ -175,6 +182,7 @@ def check_fs_root():
     cmd = format("{metatool_cmd} -updateLocation {fs_root} {out}")
     Execute(cmd,
             user=params.hive_user,
-            environment={'PATH': params.execute_path}
+            environment={'PATH': execution_path}
     )
+
 

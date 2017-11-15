@@ -88,7 +88,8 @@ else:
 
   # default configuration directories
   hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
-  hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
+  #hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
+  hadoop_bin_dir = '/usr/lib/hadoop/bin'
   hive_etc_dir_prefix = "/etc/hive"
   hive_interactive_etc_dir_prefix = "/etc/hive2"
 

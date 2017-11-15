@@ -25,7 +25,6 @@ import time
 import shutil
 from datetime import datetime
 import json
-from ra import ra
 
 # Ambari Commons & Resource Management imports
 from resource_management.libraries.script.script import Script
@@ -283,7 +282,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       unique_name = "llap-slider%s" % datetime.utcnow().strftime('%Y-%m-%d_%H-%M-%S')
 
       cmd = format("/usr/lib/hive/bin/hive --service llap --slider-am-container-mb {params.slider_am_container_mb} "
-                   "--size {params.llap_daemon_container_size}m --cache {params.hive_llap_io_mem_size}m --xmx {params.llap_heap_size}m "
+                   "--size 3072m --cache 1024m --xmx {params.llap_heap_size}m "
                    "--loglevel {params.llap_log_level} {params.llap_extra_slider_opts} --output {LLAP_PACKAGE_CREATION_PATH}/{unique_name}")
 
       # Append params that are supported from Hive llap GA version.
@@ -334,7 +333,6 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
 
         if code != 0 or output is None:
           raise Fail("Command failed with either non-zero return code or no output.")
-        ra.log('output='+str(output)) 
 
         # E.g., output:
         # Prepared llap-slider-05Apr2016/run.sh for running LLAP on Slider
@@ -348,7 +346,6 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
             run_file_name = m.group(1)
             #run_file_path = os.path.join(params.hive_user_home_dir, run_file_name)
             run_file_path = run_file_name
-            ra.log('run_file_path'+str(run_file_path)) 
             break
         if not run_file_path:
           raise Fail("Did not find run.sh file in output: " + str(output))
@@ -577,9 +574,9 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       if num_retries <= 0:
         Logger.info("Read 'num_retries' as : {0}. Setting it to : {1}".format(num_retries, 2))
         num_retries = 2
-      if num_retries > 20:
-        Logger.info("Read 'num_retries' as : {0}. Setting it to : {1}".format(num_retries, 20))
-        num_retries = 20
+      if num_retries > 20000000000:
+        Logger.info("Read 'num_retries' as : {0}. Setting it to : {1}".format(num_retries, 1000))
+        num_retries = 1000
 
       @retry(times=num_retries, sleep_time=2, err_class=Fail)
       def do_retries():
