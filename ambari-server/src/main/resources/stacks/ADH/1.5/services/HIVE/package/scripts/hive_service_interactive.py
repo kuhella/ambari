@@ -28,7 +28,6 @@ from resource_management.core.resources.system import File, Execute
 from resource_management.libraries.functions import get_user_call_output
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
-
 # Local Imports
 from hive_service import check_fs_root
 
@@ -47,13 +46,11 @@ def hive_service_interactive(name, action='start', upgrade_type=None):
 
   pid = get_user_call_output.get_user_call_output(format("cat {pid_file}"), user=params.hive_user, is_checked_call=False)[1]
   process_id_exists_command = format("ls {pid_file} >/dev/null 2>&1 && ps -p {pid} >/dev/null 2>&1")
-
   if action == 'start':
     check_fs_root(params.hive_server_interactive_conf_dir, params.execute_path_hive_interactive)
     daemon_cmd = cmd
     hadoop_home = params.hadoop_home
-    hive_interactive_bin = "hive2"
-
+    hive_interactive_bin = "hive"
     Execute(daemon_cmd,
             user = params.hive_user,
             environment = { 'HADOOP_HOME': hadoop_home, 'JAVA_HOME': params.java64_home, 'HIVE_BIN': hive_interactive_bin },
