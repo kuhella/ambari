@@ -151,6 +151,12 @@ def hive_interactive(name=None):
     Logger.error("Tez's 'tez-site' couldn't be retrieved from passed-in configurations.")
 
   merged_tez_interactive_site.update(params.config['configurations']['tez-interactive-site'])
+  Directory(params.tez_interactive_config_dir,
+            create_parents=True,
+            owner=params.tez_interactive_user,
+            group=params.user_group,
+  )
+ 
   XmlConfig("tez-site.xml",
             conf_dir = params.tez_interactive_config_dir,
             configurations = merged_tez_interactive_site,
