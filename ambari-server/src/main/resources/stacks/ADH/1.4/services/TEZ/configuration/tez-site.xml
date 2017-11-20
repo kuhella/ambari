@@ -249,5 +249,11 @@
     <description>Whether to send history events to YARN Application Timeline Server</description>
   </property>
 
-</configuration>
+  <property>
+    <description>Enable Tez to use the Timeline Server for History Logging</description>
+    <name>tez.history.logging.service.class</name>
+    <value>org.apache.tez.dag.history.logging.ats.ATSHistoryLoggingService</value>
+  </property>
 
+
+</configuration>
