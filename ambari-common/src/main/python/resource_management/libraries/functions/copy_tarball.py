@@ -67,7 +67,13 @@ TARBALL_MAP = {
 TARBALL_ADH_MAP = {
     "tez": ("/usr/lib/tez/share/tez.tar.gz", "/apps/tez/tez.tar.gz"),
     "spark2": ("/tmp/spark2/spark2-{0}-yarn-archive.tar.gz".format('ADH'),
-               "/apps/spark2/jars/spark2-{0}-yarn-archive.tar.gz".format('ADH'))
+               "/apps/spark2/jars/spark2-{0}-yarn-archive.tar.gz".format('ADH')),
+    "tez_hive2": ("/usr/lib/tez/share/tez.tar.gz", "/apps/tez/tez.tar.gz"),
+    "hive": ("/usr/lib/hive/hive.tar.gz", "/apps/hive/hive.tar.gz"),
+    "pig":  ("/usr/lib/pig/pig.tar.gz", "/apps/pig/pig.tar.gz"),
+    "mapreduce": ("/usr/lib/hadoop/mapreduce.tar.gz", "/apps/mapreduce/mapreduce.tar.gz"),
+    "sqoop": ("/usr/lib/sqoop/sqoop.tar.gz", "/apps/sqoop/sqoop.tar.gz"),
+    "hadoop_streaming": ("/usr/lib/hadoop-mapreduce/hadoop-streaming.jar", "/apps/mapreduce/hadoop-streaming.jar")
 }
 
 def get_sysprep_skip_copy_tarballs_hdfs():
