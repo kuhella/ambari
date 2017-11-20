@@ -27,6 +27,13 @@
       <comment>Comprehensive security for Hadoop</comment>
       <version>0.7.1.1.5</version>
 
+      <themes>
+        <theme>
+          <fileName>theme_version_1.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
+
       <quickLinksConfigurations>
           <quickLinksConfiguration>
             <fileName>quicklinks.json</fileName>
