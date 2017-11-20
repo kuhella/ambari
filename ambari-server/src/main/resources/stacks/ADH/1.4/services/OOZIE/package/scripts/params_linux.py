@@ -56,7 +56,7 @@ oozie_lib_dir = "/var/lib/oozie"
 oozie_setup_sh = "/usr/lib/oozie/bin/oozie-setup.sh"
 oozie_webapps_dir = "/var/lib/oozie/oozie-server/webapps/"
 security_enabled = config['configurations']['cluster-env']['security_enabled']
-oozie_webapps_conf_dir = "/var/lib/oozie/oozie-server/conf" 
+oozie_webapps_conf_dir = "/var/lib/oozie/oozie-server/conf"
 
 if config['configurations']['oozie-site']['oozie.service.AuthorizationService.security.enabled']:
   oozie_webapss_conf_target_dir = "/etc/oozie/tomcat-conf.https/conf"
@@ -72,6 +72,7 @@ falcon_home = '/usr/lib/falcon'
 conf_dir = "/etc/oozie/conf"
 hive_conf_dir = "/etc/oozie/conf/action-conf/hive"
 oozie_examples_regex = "/usr/share/doc/oozie-*"
+oozie_examples_suse_regex = "/usr/share/doc/packages/oozie*"
 
 execute_path = oozie_bin_dir + os.pathsep + hadoop_bin_dir
 

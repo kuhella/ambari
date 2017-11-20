@@ -74,7 +74,10 @@ class OozieServiceCheckDefault(OozieServiceCheck):
     )
 
     os_family = System.get_instance().os_family
-    oozie_examples_dir = glob.glob(params.oozie_examples_regex)[0]
+    if os_family == "suse":
+      oozie_examples_dir = glob.glob(params.oozie_examples_suse_regex)[0]
+    else:
+      oozie_examples_dir = glob.glob(params.oozie_examples_regex)[0]
 
     Execute(format("{tmp_dir}/{prepare_hdfs_file_name} {conf_dir} {oozie_examples_dir} {hadoop_conf_dir} "),
             tries=3,
@@ -136,4 +139,3 @@ class OozieServiceCheckWindows(OozieServiceCheck):
 
 if __name__ == "__main__":
   OozieServiceCheck().execute()
-  
