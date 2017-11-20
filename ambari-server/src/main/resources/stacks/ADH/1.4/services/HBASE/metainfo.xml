@@ -44,8 +44,9 @@
               <name>hbase</name>
             </package>
             <package>
-              <name>phoenix</name>
-            </package>
+                 <name>phoenix</name>
+                 <condition>should_install_phoenix</condition>
+               </package>
             <package>
               <name>ranger-hbase-plugin</name>
             </package>
@@ -58,8 +59,9 @@
               <name>hbase</name>
             </package>
             <package>
-              <name>phoenix</name>
-            </package>
+                 <name>phoenix</name>
+                 <condition>should_install_phoenix</condition>
+               </package>
           </packages>
         </osSpecific>
       </osSpecifics>

@@ -59,6 +59,10 @@ export HBASE_CONF_DIR=${HBASE_CONF_DIR:-{{hbase_conf_dir}}}
 # Extra Java CLASSPATH elements. Optional.
 export HBASE_CLASSPATH=${HBASE_CLASSPATH}
 
+if [ -d "/usr/lib/phoenix" ]; then
+export HBASE_CLASSPATH=$HBASE_CLASSPATH:/usr/lib/phoenix/*:/usr/lib/phoenix/lib/*
+fi
+
 
 # The maximum amount of heap to use, in MB. Default is 1000.
 # export HBASE_HEAPSIZE=1000
@@ -109,7 +113,7 @@ export HBASE_MANAGES_ZK=false
 {% if java_version &lt; 8 %}
 JDK_DEPENDED_OPTS="-XX:PermSize=128m -XX:MaxPermSize=128m"
 {% endif %}
-      
+
 {% if security_enabled %}
 export HBASE_OPTS="$HBASE_OPTS -XX:+UseConcMarkSweepGC -XX:ErrorFile={{log_dir}}/hs_err_pid%p.log -Djava.security.auth.login.config={{client_jaas_config_file}} -Djava.io.tmpdir={{java_io_tmpdir}}"
 export HBASE_MASTER_OPTS="$HBASE_MASTER_OPTS -Xmx{{master_heapsize}} -Djava.security.auth.login.config={{master_jaas_config_file}} $JDK_DEPENDED_OPTS"

@@ -364,10 +364,6 @@ if [ -d "/usr/lib/tez" ]; then
   export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:/usr/lib/tez/*:/usr/lib/tez/lib/*:/etc/tez/conf
 fi
 
-if [ -d "/usr/lib/phoenix" ]; then
-export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:/usr/lib/phoenix/*:/usr/lib/phoenix/lib/*
-fi
-
 if [ -d "/usr/lib/atlas-server" ] &amp;&amp; [ -d "/usr/lib/hive" ] || [ -d "/usr/lib/hive2" ]; then
 export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:/usr/lib/atlas-server/hook/hive/*:/usr/lib/atlas-server/hook/hive/atlas-hive-plugin-impl/*
 fi
@@ -379,8 +375,8 @@ export HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir}}
 export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:{{hadoop_lib_home}}/native/Linux-{{architecture}}-64
 
 {% if is_datanode_max_locked_memory_set %}
-# Fix temporary bug, when ulimit from conf files is not picked up, without full relogin. 
-# Makes sense to fix only when runing DN as root 
+# Fix temporary bug, when ulimit from conf files is not picked up, without full relogin.
+# Makes sense to fix only when runing DN as root
 if [ "$command" == "datanode" ] &amp;&amp; [ "$EUID" -eq 0 ] &amp;&amp; [ -n "$HADOOP_SECURE_DN_USER" ]; then
   ulimit -l {{datanode_max_locked_memory}}
 fi
@@ -392,4 +388,3 @@ fi
     <on-ambari-upgrade add="true"/>
   </property>
 </configuration>
-
