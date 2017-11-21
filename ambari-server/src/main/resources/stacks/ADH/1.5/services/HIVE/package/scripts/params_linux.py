@@ -431,15 +431,11 @@ start_metastore_path = format("{tmp_dir}/start_metastore_script")
 hadoop_heapsize = config['configurations']['hadoop-env']['hadoop_heapsize']
 
 if 'role' in config and config['role'] in ["HIVE_SERVER", "HIVE_METASTORE", "HIVE_SERVER_INTERACTIVE"]:
-  if check_stack_feature(StackFeature.HIVE_ENV_HEAPSIZE, version_for_stack_feature_checks):
-    hive_heapsize = config['configurations']['hive-env']['hive.heapsize']
-  else:
-    hive_heapsize = config['configurations']['hive-site']['hive.heapsize']
+  hive_heapsize = config['configurations']['hive-env']['hive.heapsize']
 else:
   hive_heapsize = config['configurations']['hive-env']['hive.client.heapsize']
 
 hive_metastore_heapsize = config['configurations']['hive-env']['hive.metastore.heapsize']
-
 java64_home = config['hostLevelParams']['java_home']
 java_exec = format("{java64_home}/bin/java")
 java_version = expect("/hostLevelParams/java_version", int)
