@@ -102,15 +102,13 @@
         <package><name>krb5-devel</name></package>
         <package><name>libxml2-devel</name></package>
         <package><name>libxslt-devel</name></package>
-        <package><name>openldap-devel</name></package>
+        <package><name>openldap2-devel</name></package>
         <package><name>python-devel</name></package>
         <package><name>python-simplejson</name></package>
         <package><name>python-setuptools</name></package>
-        <package><name>python-psycopg2</name></package>
         <package><name>sqlite-devel</name></package>
         <package><name>rsync</name></package>
-        <package><name>saslwrapper-devel</name></package>
-        <package><name>pycrypto</name></package>
+        <package><name>python-pycrypto</name></package>
         <package><name>gmp-devel</name></package>
         <package><name>libyaml-devel</name></package>
         <package><name>cyrus-sasl-plain</name></package>
