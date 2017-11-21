@@ -66,7 +66,7 @@
 
 	<osSpecifics>
 	  <osSpecific>
-	    <osFamily>any</osFamily>
+	    <osFamily>redhat7</osFamily>
 	    <packages>
 	      <package><name>hue</name></package>
 	      <package><name>wget</name></package>
@@ -92,6 +92,33 @@
 	      <package><name>libffi-devel</name></package>
         </packages>
 	  </osSpecific>
+    <osSpecific>
+      <osFamily>suse12</osFamily>
+      <packages>
+        <package><name>hue</name></package>
+        <package><name>wget</name></package>
+        <package><name>tar</name></package>
+        <package><name>asciidoc</name></package>
+        <package><name>krb5-devel</name></package>
+        <package><name>libxml2-devel</name></package>
+        <package><name>libxslt-devel</name></package>
+        <package><name>openldap-devel</name></package>
+        <package><name>python-devel</name></package>
+        <package><name>python-simplejson</name></package>
+        <package><name>python-setuptools</name></package>
+        <package><name>python-psycopg2</name></package>
+        <package><name>sqlite-devel</name></package>
+        <package><name>rsync</name></package>
+        <package><name>saslwrapper-devel</name></package>
+        <package><name>pycrypto</name></package>
+        <package><name>gmp-devel</name></package>
+        <package><name>libyaml-devel</name></package>
+        <package><name>cyrus-sasl-plain</name></package>
+        <package><name>cyrus-sasl-devel</name></package>
+        <package><name>cyrus-sasl-gssapi</name></package>
+        <package><name>libffi-devel</name></package>
+        </packages>
+    </osSpecific>
 	</osSpecifics>
 	<!--
 	<commandScript>
