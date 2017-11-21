@@ -20,7 +20,7 @@
 <configuration xmlns:xi="http://www.w3.org/2001/XInclude" supports_final="true">
   <property>
     <name>listeners</name>
-    <value>PLAINTEXT://{{hostname}}:6667</value>
+    <value>PLAINTEXT://:9092</value>
     <description>host and port where kafka broker will be accepting connections. localhost will be substituted with hostname.</description>
     <on-ambari-upgrade add="false"/>
   </property>
