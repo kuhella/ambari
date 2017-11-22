@@ -88,7 +88,7 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,sles12</osFamily>
+          <osFamily>redhat7,suse12</osFamily>
           <packages>
             <package>
               <name>slider</name>
