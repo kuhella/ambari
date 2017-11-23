@@ -513,11 +513,6 @@ if enable_ranger_hdfs:
     previous_jdbc_jar = format("{hadoop_lib_home}/{previous_jdbc_jar_name}") if stack_supports_ranger_audit_db else None
     sql_connector_jar = ''
 
-  fuck = open('/tmp/log','a')
-  print >> fuck, security_enabled
-  print >> fuck, dn_principal_name
-  print >> fuck, 'enable_ranger_hdfs='+ str(enable_ranger_hdfs)
-
   hdfs_ranger_plugin_config = {
     'username': repo_config_username,
     'password': repo_config_password,
