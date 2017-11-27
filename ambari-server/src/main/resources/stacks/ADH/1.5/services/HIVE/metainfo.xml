@@ -408,10 +408,12 @@
       </themes>
 
       <requiredServices>
-        <service>PIG</service>
         <service>ZOOKEEPER</service>
+        <service>HDFS</service>
         <service>YARN</service>
         <service>TEZ</service>
+        <service>PIG</service>
+        <service>SLIDER</service>
       </requiredServices>
     </service>
   </services>
