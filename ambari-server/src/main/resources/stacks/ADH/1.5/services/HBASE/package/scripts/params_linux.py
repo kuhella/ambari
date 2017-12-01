@@ -84,7 +84,7 @@ hbase_user_nofile_limit = default("/configurations/hbase-env/hbase_user_nofile_l
 hbase_user_nproc_limit = default("/configurations/hbase-env/hbase_user_nproc_limit", "16000")
 
 # no symlink for phoenix-server at this point
-phx_daemon_script = format('{stack_root}/current/phoenix-server/bin/queryserver.py')
+phx_daemon_script = format('{stack_root}/phoenix/bin/queryserver.py')
 
 hbase_excluded_hosts = config['commandParams']['excluded_hosts']
 hbase_drain_only = default("/commandParams/mark_draining_only",False)
