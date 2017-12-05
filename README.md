@@ -70,7 +70,7 @@ ADH 1.5 Release Notes
 - Apache Sqoop: https://sqoop.apache.org/docs/1.4.6/sqoop-1.4.6.releasenotes.html
 - Apache Flume: https://flume.apache.org/releases/1.8.0.html
 - Apache Oozie: https://oozie.apache.org/docs/4.3.0/release-log.txt
-- Apache Atlas: https://git-wip-us.apache.org/repos/asf?p=incubator-atlas.git;a=blob;f=release-log.txt;hb=refs/tags/release-0.7.1-rc3
+- Apache Atlas: https://git-wip-us.apache.org/repos/asf?p=atlas.git;a=blob;f=release-log.txt;hb=refs/tags/release-0.8.1-rc1
 - Apache Flink: https://flink.apache.org/news/2017/06/01/release-1.3.0.html
 - Apache Kafka: https://archive.apache.org/dist/kafka/1.0.0/RELEASE_NOTES.html
 - Apache Mahout: http://mahout.apache.org/release-notes/Apache-Mahout-0.13.0-Release-Notes.pdf
