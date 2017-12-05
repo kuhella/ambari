@@ -42,6 +42,9 @@
             <package>
               <name>ranger-usersync</name>
             </package>
+            <package>
+              <name>solr</name>
+            </package>
           </packages>
         </osSpecific>
       </osSpecifics>
