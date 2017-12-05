@@ -63,7 +63,7 @@ version_for_stack_feature_checks = get_stack_feature_version(config)
 #stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
 # force true since ADH doesn't support check_stack_feature
 stack_supports_ranger_kerberos = True
-#stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
+stack_supports_ranger_audit_db = False 
 
 # hadoop default parameters
 hadoop_bin_dir = '/usr/lib/hadoop/bin'
