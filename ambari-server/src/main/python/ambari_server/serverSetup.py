@@ -1027,8 +1027,8 @@ def extract_views(options):
     retcode, stdout, stderr = run_os_command(command)
     if retcode == 0:
       sys.stdout.write(f + "\n")
-    elif retcode == 2:
-      sys.stdout.write("Error extracting " + f + "\n")
+#    elif retcode == 2:
+#      sys.stdout.write("Error extracting " + f + "\n")
     else:
       sys.stdout.write(".")
       sys.stdout.flush()
