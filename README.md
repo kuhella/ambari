@@ -84,9 +84,6 @@ ADH 1.5 Release Notes
 
 **Известные проблемы:**
 
-*Apache Ambari:*
-- При установки ambari-server возможно появление ошибки "Error extracting ambari views";
-
 *Apache HDFS:*
 - При активации NFS Gateway возможно появление ошибки "service: no such service nfs-kernel-server";
 
