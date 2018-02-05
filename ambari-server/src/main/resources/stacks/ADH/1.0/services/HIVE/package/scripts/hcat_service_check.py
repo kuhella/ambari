@@ -69,7 +69,7 @@ def hcat_service_check():
                     user=params.hdfs_user,
                     logoutput=True,
                     conf_dir=params.hadoop_conf_dir,
-                    principal=params.hdfs_principal_name,
+                    #principal=params.hdfs_principal_name,
                     bin_dir=params.execute_path)
     else:
       ExecuteHadoop(test_cmd,
@@ -87,3 +87,4 @@ def hcat_service_check():
             try_sleep=5,
             path=['/usr/sbin', '/usr/local/bin', '/bin', '/usr/bin', exec_path],
             logoutput=True)
+
