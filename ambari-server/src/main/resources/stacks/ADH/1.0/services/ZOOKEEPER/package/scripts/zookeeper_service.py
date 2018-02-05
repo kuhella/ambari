@@ -35,7 +35,7 @@ def zookeeper_service(action='start', upgrade_type=None):
   if action == 'start':
     daemon_cmd = format("source {config_dir}/zookeeper-env.sh ; {cmd} start")
     no_op_test = format("ls {zk_pid_file} >/dev/null 2>&1 && ps -p `cat {zk_pid_file}` >/dev/null 2>&1")
-    
+
     try:
       Execute(daemon_cmd,
               not_if=no_op_test,
@@ -46,10 +46,10 @@ def zookeeper_service(action='start', upgrade_type=None):
       raise
 
     if params.security_enabled:
-      kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};")
+      kinit_cmd = format("{kinit_path_local} -kt {zk_keytab_path} {zk_principal};")
 
       Execute(kinit_cmd,
-              user=params.smokeuser
+              user=params.zk_user
       )
 
   elif action == 'stop':

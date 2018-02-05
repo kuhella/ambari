@@ -18,6 +18,9 @@
 
 Client {
 com.sun.security.auth.module.Krb5LoginModule required
-useKeyTab=false
-useTicketCache=true;
+useKeyTab=true
+keyTab=/etc/security/keytabs/zk.service.keytab
+storeKey=true
+useTicketCache=false
+principal="{{zk_principal}}";
 };
