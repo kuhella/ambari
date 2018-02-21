@@ -25,6 +25,7 @@ from resource_management.libraries.functions.flume_agent_helper import get_flume
 
 RESULT_CODE_OK = 'OK'
 RESULT_CODE_CRITICAL = 'CRITICAL'
+RESULT_CODE_WARNING = 'WARNING'
 RESULT_CODE_UNKNOWN = 'UNKNOWN'
 
 FLUME_CONF_DIR_KEY = '{{flume-env/flume_conf_dir}}'
@@ -101,6 +102,6 @@ def execute(configurations={}, parameters={}, host_name=None):
       " and ".join(text_arr),
       "on " + host_name)
 
-    alert_state = RESULT_CODE_CRITICAL if len(critical) > 0 else RESULT_CODE_OK
+    alert_state = RESULT_CODE_WARNING if len(critical) > 0 else RESULT_CODE_OK
 
   return (alert_state, [alert_label])
