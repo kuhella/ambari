@@ -37,7 +37,7 @@
         <changes>
           <definition xsi:type="configure" id="biginsights_4_2_namenode_update_hadoop_env" summary="Update Hadoop env">
             <type>hadoop-env</type>
-            <replace key="content" find="export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/iop/current/hadoop-client/lib/native/Linux-amd64-64" replace-with="export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/hdp/current/hadoop-client/lib/native" />
+            <replace key="content" find="export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/iop/current/hadoop-client/lib/native/Linux-amd64-64" replace-with="export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:{{hadoop_lib_home}}/native/Linux-{{architecture}}-64" />
             <replace key="content" find="export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}" replace-with="export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}&#10;if [ -d &quot;/usr/lib/hadoop-lzo&quot; ]; then&#10;  export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:/usr/lib/hadoop-lzo/lib/*&#10;  export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/lib/hadoop-lzo/lib/native&#10;fi"/>
             <insert key="content" value="{% if hadoop_custom_extensions_enabled %} export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:{{stack_root}}/current/ext/hadoop/* {% endif %}" insert-type="append" newline-after="true" newline-before="true"/>
           </definition>
@@ -56,6 +56,17 @@
             <type>core-site</type>
             <set key="hadoop.custom-extensions.root" value="/hdp/ext/{{major_stack_version}}/hadoop" if-type="core-site" if-key="hadoop.custom-extensions.root" if-key-state="absent"/>
           </definition>
+
+          <definition xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_hdfs_audit_db">
+            <type>ranger-knox-audit</type>
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.url" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.user" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.password" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.driver" />
+            <transfer operation="delete" delete-key="xasecure.audit.credential.provider.file" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
+          </definition>
         </changes>
       </component>
     </service>
@@ -65,11 +76,27 @@
         <changes>
           <definition xsi:type="configure" id="biginsights_4_2_yarn_config_update" summary="Update Yarn configurations">
             <type>yarn-site</type>
-            <replace key="yarn.nodemanager.aux-services" find=",spark_shuffle" replace-with=""/>
+            <!-- adjust the spark shuffle values for spark1 and spark2 -->
+            <set key="yarn.nodemanager.aux-services" value="mapreduce_shuffle,spark_shuffle,spark2_shuffle"/>
+            <set key="yarn.nodemanager.aux-services.spark_shuffle.class" value="org.apache.spark.network.yarn.YarnShuffleService"/>
+            <set key="yarn.nodemanager.aux-services.spark_shuffle.classpath" value="{{stack_root}}/${hdp.version}/spark/aux/*"/>
+            <set key="yarn.nodemanager.aux-services.spark2_shuffle.class" value="org.apache.spark.network.yarn.YarnShuffleService"/>
+            <set key="yarn.nodemanager.aux-services.spark2_shuffle.classpath" value="{{stack_root}}/${hdp.version}/spark2/aux/*"/>
           </definition>
           <definition xsi:type="configure" id="yarn_env_security_opts" summary="Adding YARN Security ACLs">
             <type>yarn-env</type>
             <insert key="content" value="{% if rm_security_opts is defined %} YARN_OPTS=&quot;{{rm_security_opts}} $YARN_OPTS&quot; {% endif %}" insert-type="append" newline-before="true" newline-after="true" />
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_yarn_audit_db">
+            <type>ranger-yarn-audit</type>
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.url" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.user" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.password" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.driver" />
+            <transfer operation="delete" delete-key="xasecure.audit.credential.provider.file" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
           </definition>
         </changes>
       </component>
@@ -81,6 +108,7 @@
           <definition xsi:type="configure" id="biginsights_4_2_mapreduce_application_framework_patch" summary="Update MapReduce2 configurations">
             <type>mapred-site</type>
             <set key="mapreduce.application.framework.path" value="/hdp/apps/${hdp.version}/mapreduce/mapreduce.tar.gz#mr-framework"/>
+            <set key="yarn.app.mapreduce.am.env" value="LD_LIBRARY_PATH=/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-{{architecture}}-64"/>
           </definition>
         </changes>
       </component>
@@ -112,6 +140,17 @@
             <type>hbase-env</type>
             <insert key="content" insert-type="append" value="# Extra Java CLASSPATH elements. Optional.&#10;export HBASE_CLASSPATH=${HBASE_CLASSPATH}:{{stack_root}}/current/ext/hbase/*" newline-after="true" newline-before="true"/>
           </definition>
+
+          <definition xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_hbase_audit_db">
+            <type>ranger-hbase-audit</type>
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.url" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.user" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.password" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.driver" />
+            <transfer operation="delete" delete-key="xasecure.audit.credential.provider.file" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
+          </definition>
         </changes>
       </component>
     </service>
@@ -122,6 +161,10 @@
           <definition xsi:type="configure" id="hdp_2_6_0_0_remove_bind_anonymous">
             <type>ranger-env</type>
             <transfer operation="delete" delete-key="bind_anonymous" />
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_solr_plugin_enabled_property">
+            <type>ranger-env</type>
+            <transfer operation="delete" delete-key="ranger-solr-plugin-enabled" if-type="ranger-env" if-key="ranger-solr-plugin-enabled" if-key-state="present" />
           </definition>
           <definition xsi:type="configure" id="admin_log4j_parameterize" summary="Parameterizing Ranger Log4J Properties">
             <type>admin-log4j</type>
@@ -185,6 +228,15 @@
     </service>
 
     <service name="HIVE">
+      <component name="HIVE_CLIENT">
+        <changes>
+          <definition xsi:type="configure" id="biginsights_4_2_hive_exectype_change" summary="Update Hive Execution Engine">
+            <type>hive-site</type>
+            <set key="hive.execution.engine" value="mr" if-type="hive-site" if-key="hive.execution.engine" if-value="tez"/>
+          </definition>
+        </changes>
+      </component>
+
       <component name="HIVE_SERVER">
         <changes>
           <definition xsi:type="configure" id="biginsights_4_2_hive_server_configure_authentication" summary="Configuring hive authentication">
@@ -240,6 +292,17 @@
             <replace key="content" find="if [ &quot;${HIVE_AUX_JARS_PATH}&quot; != &quot;&quot; ]; then" replace-with="export HIVE_AUX_JARS_PATH={{stack_root}}/current/ext/hive&#10;if [ &quot;${HIVE_AUX_JARS_PATH}&quot; != &quot;&quot; ]; then"/>
             <replace key="content" find="if [ -f &quot;${HIVE_AUX_JARS_PATH}&quot; ]; then" replace-with="if [ -f &quot;${HIVE_AUX_JARS_PATH}&quot; ] || [ -d &quot;${HIVE_AUX_JARS_PATH}&quot; ] ; then"/>
           </definition>
+
+          <definition xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_hive_audit_db">
+            <type>ranger-hive-audit</type>
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.url" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.user" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.password" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.driver" />
+            <transfer operation="delete" delete-key="xasecure.audit.credential.provider.file" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
+          </definition>
         </changes>
       </component>
       
@@ -288,6 +351,23 @@
             <set key="spark.yarn.queue" value="default" if-type="spark-defaults" if-key="spark.yarn.queue" if-key-state="absent"/>
             <transfer operation="delete" delete-key="spark.yarn.archive"/>
             <transfer operation="delete" delete-key="spark.thriftserver.ui.port"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="KNOX">
+      <component name="KNOX_GATEWAY">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_knox_audit_db">
+            <type>ranger-knox-audit</type>
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.url" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.user" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.password" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.driver" />
+            <transfer operation="delete" delete-key="xasecure.audit.credential.provider.file" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
           </definition>
         </changes>
       </component>

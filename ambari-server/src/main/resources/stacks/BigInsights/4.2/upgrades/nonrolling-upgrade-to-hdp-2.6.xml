@@ -23,6 +23,7 @@
   <downgrade-allowed>false</downgrade-allowed>
   <type>NON_ROLLING</type>
   <prerequisite-checks>
+    <check>org.apache.ambari.server.checks.RangerAuditDbCheck</check>
     <check>org.apache.ambari.server.checks.ServicesYarnWorkPreservingCheck</check>
     <check>org.apache.ambari.server.checks.JavaVersionCheck</check>
     <check>org.apache.ambari.server.checks.RangerSSLConfigCheck</check>
@@ -156,7 +157,6 @@
       <service name="RANGER">
         <component>RANGER_USERSYNC</component>
         <component>RANGER_ADMIN</component>
-        <component>RANGER_TAGSYNC</component>
       </service>
 
       <service name="RANGER_KMS">
@@ -223,6 +223,10 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="YARN" component="NAMENODE" title="Apply config changes for HDFS related to Ranger">
+        <task xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_hdfs_audit_db"/>
+      </execute-stage>
+
       <!-- core-site -->
       <execute-stage title="Fix auth_to_local mapping">
         <condition xsi:type="security" type="kerberos"/>
@@ -234,6 +238,10 @@
       <!-- YARN -->
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Update Yarn configurations">
         <task xsi:type="configure" id="biginsights_4_2_yarn_config_update" />
+      </execute-stage>
+
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Apply config changes for YARN related to Ranger">
+        <task xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_yarn_audit_db"/>
       </execute-stage>
 
       <!-- YARN -->
@@ -266,7 +274,14 @@
         <task xsi:type="configure" id="biginsights_4_2_hbase_env_custom_extensions"/>
       </execute-stage>
 
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for HBASE related to Ranger">
+        <task xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_hbase_audit_db"/>
+      </execute-stage>
+
       <!-- HIVE -->
+      <execute-stage service="HIVE" component="HIVE_CLIENT" title="Update Hive Execution Engine">
+        <task xsi:type="configure" id="biginsights_4_2_hive_exectype_change"/>
+      </execute-stage>
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
         <task xsi:type="configure" id="biginsights_4_2_hive_env_configure"/>
       </execute-stage>
@@ -282,6 +297,11 @@
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Enable custom extensions for Hive Server">
         <task xsi:type="configure" id="biginsights_4_2_hive_env_custom_extensions"/>
       </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for HIVE related to Ranger">
+        <task xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_hive_audit_db"/>
+      </execute-stage>
+
       <execute-stage service="HIVE" component="WEBHCAT_SERVER" title="Apply config changes for Hive WebHCat server">
         <task xsi:type="configure" id="biginsights_4_2_webhcat_server_update_environment_configurations" />
       </execute-stage>
@@ -295,6 +315,12 @@
       </execute-stage>
       <execute-stage service="SPARK" component="SPARK_THRIFTSERVER" title="Apply config changes for Spark Thrift server">
         <task xsi:type="configure" id="biginsights_4_2_spark_env" />
+      </execute-stage>
+      <execute-stage service="SPARK" component="SPARK_JOBHISTORYSERVER" title="Apply config changes for Spark History Server">
+        <task xsi:type="configure" id="biginsights_4_2_spark_history_defaults" />
+      </execute-stage>
+      <execute-stage service="SPARK" component="SPARK_JOBHISTORYSERVER" title="Apply config changes for Spark History Server">
+        <task xsi:type="configure" id="biginsights_4_2_spark_history_env" />
       </execute-stage>
 
       <!-- OOZIE -->
@@ -325,10 +351,6 @@
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_sso_property"/>
       </execute-stage>
 
-      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Apply config changes for Ranger Admin">
-        <task xsi:type="configure" id="hdp_2_5_0_0_set_external_solrCloud_flag"/>
-      </execute-stage>
-
       <execute-stage service="RANGER" component="RANGER_ADMIN" title="Calculating Ranger Properties">
         <condition xsi:type="security" type="kerberos"/>
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.RangerKerberosConfigCalculation">
@@ -352,7 +374,7 @@
 
       <!-- RANGER KMS -->
       <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Apply config changes for Ranger KMS Server">
-        <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_kms_audit_db"/>
+        <task xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_kms_audit_db"/>
       </execute-stage>
 
       <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Parameterizing Ranger Kms Log4J Properties">
@@ -370,6 +392,11 @@
 
       <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Apply config changes for Ranger KMS">
         <task xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_kms_duplicate_ssl"/>
+      </execute-stage>
+
+      <!-- KNOX -->
+      <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Apply config changes for KNOX related to Ranger">
+        <task xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_knox_audit_db"/>
       </execute-stage>
     </group>
 

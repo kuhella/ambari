@@ -41,10 +41,82 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
         "HIVE": self.recommendHIVEConfigurations,
         "HBASE": self.recommendHBASEConfigurations,
         "YARN": self.recommendYARNConfigurations,
-        "KAFKA": self.recommendKAFKAConfigurations
+        "KAFKA": self.recommendKAFKAConfigurations,
+        "STORM": self.recommendSTORMConfigurations,
+        "SPARK2": self.recommendSPARK2Configurations,
+        "ZEPPELIN": self.recommendZEPPELINConfigurations
       }
       parentRecommendConfDict.update(childRecommendConfDict)
       return parentRecommendConfDict
+
+  def recommendSTORMConfigurations(self, configurations, clusterData, services, hosts):
+    """
+    In HDF-2.6.1 we introduced a new way of doing Auto Credentials with services such as
+    HDFS, HIVE, HBASE. This method will update the required configs for autocreds if the users installs
+    STREAMLINE service.
+    """
+    super(HDP26StackAdvisor, self).recommendStormConfigurations(configurations, clusterData, services, hosts)
+    storm_site = self.getServicesSiteProperties(services, "storm-site")
+    storm_env = self.getServicesSiteProperties(services, "storm-env")
+    putStormSiteProperty = self.putProperty(configurations, "storm-site", services)
+    putStormSiteAttributes = self.putPropertyAttribute(configurations, "storm-site")
+    security_enabled = self.isSecurityEnabled(services)
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+
+    if storm_env and storm_site and security_enabled and 'STREAMLINE' in servicesList:
+      storm_nimbus_impersonation_acl = storm_site["nimbus.impersonation.acl"] if "nimbus.impersonation.acl" in storm_site else None
+      streamline_env = self.getServicesSiteProperties(services, "streamline-env")
+      _streamline_principal_name = streamline_env['streamline_principal_name'] if 'streamline_principal_name' in streamline_env else None
+      if _streamline_principal_name is not None and storm_nimbus_impersonation_acl is not None:
+        streamline_bare_principal = get_bare_principal(_streamline_principal_name)
+        storm_nimbus_impersonation_acl.replace('{{streamline_bare_principal}}', streamline_bare_principal)
+        putStormSiteProperty('nimbus.impersonation.acl', storm_nimbus_impersonation_acl)
+      
+      storm_nimbus_autocred_plugin_classes = storm_site["nimbus.autocredential.plugins.classes"] if "nimbus.autocredential.plugins.classes" in storm_site else None
+      if storm_nimbus_autocred_plugin_classes is not None:
+        new_storm_nimbus_autocred_plugin_classes = ['org.apache.storm.hdfs.security.AutoHDFS',
+                                                    'org.apache.storm.hbase.security.AutoHBase',
+                                                    'org.apache.storm.hive.security.AutoHive']
+        new_conf = DefaultStackAdvisor.appendToYamlString(storm_nimbus_autocred_plugin_classes,
+                                      new_storm_nimbus_autocred_plugin_classes)
+
+        putStormSiteProperty("nimbus.autocredential.plugins.classes", new_conf)
+      else:
+        putStormSiteProperty("nimbus.autocredential.plugins.classes", "['org.apache.storm.hdfs.security.AutoHDFS', 'org.apache.storm.hbase.security.AutoHBase', 'org.apache.storm.hive.security.AutoHive']")
+
+
+      storm_nimbus_credential_renewer_classes = storm_site["nimbus.credential.renewers.classes"] if "nimbus.credential.renewers.classes" in storm_site else None
+      if storm_nimbus_credential_renewer_classes is not None:
+        new_storm_nimbus_credential_renewer_classes_array = ['org.apache.storm.hdfs.security.AutoHDFS',
+                                                             'org.apache.storm.hbase.security.AutoHBase',
+                                                             'org.apache.storm.hive.security.AutoHive']
+        new_conf = DefaultStackAdvisor.appendToYamlString(storm_nimbus_credential_renewer_classes,
+                                      new_storm_nimbus_credential_renewer_classes_array)
+        putStormSiteProperty("nimbus.autocredential.plugins.classes", new_conf)
+      else:
+        putStormSiteProperty("nimbus.credential.renewers.classes", "['org.apache.storm.hdfs.security.AutoHDFS', 'org.apache.storm.hbase.security.AutoHBase', 'org.apache.storm.hive.security.AutoHive']")
+      putStormSiteProperty("nimbus.credential.renewers.freq.secs", "82800")
+    pass
+
+  def recommendSPARK2Configurations(self, configurations, clusterData, services, hosts):
+    """
+    :type configurations dict
+    :type clusterData dict
+    :type services dict
+    :type hosts dict
+    """
+    super(HDP26StackAdvisor, self).recommendSpark2Configurations(configurations, clusterData, services, hosts)
+    self.__addZeppelinToLivy2SuperUsers(configurations, services)
+
+  def recommendZEPPELINConfigurations(self, configurations, clusterData, services, hosts):
+    """
+    :type configurations dict
+    :type clusterData dict
+    :type services dict
+    :type hosts dict
+    """
+    super(HDP26StackAdvisor, self).recommendZeppelinConfigurations(configurations, clusterData, services, hosts)
+    self.__addZeppelinToLivy2SuperUsers(configurations, services)
 
   def recommendAtlasConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP26StackAdvisor, self).recommendAtlasConfigurations(configurations, clusterData, services, hosts)
@@ -401,9 +473,9 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
          propertyValue = "https://"+webapp_address+"/ws/v1/applicationhistory"
       Logger.info("validateYarnSiteConfigurations: recommended value for webservice url"+services["configurations"]["yarn-site"]["properties"]["yarn.log.server.web-service.url"])
       if services["configurations"]["yarn-site"]["properties"]["yarn.log.server.web-service.url"] != propertyValue:
-         validationItems.append(
+         validationItems = [
               {"config-name": "yarn.log.server.web-service.url",
-               "item": self.getWarnItem("Value should be %s" % propertyValue)})
+               "item": self.getWarnItem("Value should be %s" % propertyValue)}]
       return self.toConfigurationValidationProblems(validationItems, "yarn-site")
 
   def validateDruidHistoricalConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
@@ -598,3 +670,39 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       putRangerKafkaPluginProperty("REPOSITORY_CONFIG_USERNAME",kafka_user)
     else:
       Logger.info("Not setting Kafka Repo user for Ranger.")
+
+  def __addZeppelinToLivy2SuperUsers(self, configurations, services):
+    """
+    If Kerberos is enabled AND Zeppelin is installed AND Spark2 Livy Server is installed, then set
+    livy2-conf/livy.superusers to contain the Zeppelin principal name from
+    zeppelin-env/zeppelin.server.kerberos.principal
+
+    :param configurations:
+    :param services:
+    """
+    if self.isSecurityEnabled(services):
+      zeppelin_env = self.getServicesSiteProperties(services, "zeppelin-env")
+
+      if zeppelin_env and 'zeppelin.server.kerberos.principal' in zeppelin_env:
+        zeppelin_principal = zeppelin_env['zeppelin.server.kerberos.principal']
+        zeppelin_user = zeppelin_principal.split('@')[0] if zeppelin_principal else None
+
+        if zeppelin_user:
+          livy2_conf = self.getServicesSiteProperties(services, 'livy2-conf')
+
+          if livy2_conf:
+            superusers = livy2_conf['livy.superusers'] if livy2_conf and 'livy.superusers' in livy2_conf else None
+
+            # add the Zeppelin user to the set of users
+            if superusers:
+              _superusers = superusers.split(',')
+              _superusers = [x.strip() for x in _superusers]
+              _superusers = filter(None, _superusers)  # Removes empty string elements from array
+            else:
+              _superusers = []
+
+            if zeppelin_user not in _superusers:
+              _superusers.append(zeppelin_user)
+
+              putLivy2ConfProperty = self.putProperty(configurations, 'livy2-conf', services)
+              putLivy2ConfProperty('livy.superusers', ','.join(_superusers))

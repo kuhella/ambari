@@ -284,5 +284,69 @@ describe('App.ConfigsSaverMixin', function() {
       expect(instanceObject.getModifiedConfigs(configs).mapProperty('filename').uniq()).to.eql(['f1','f2','f3']);
     });
   });
+
+  describe('#isOverriddenConfigsModified', function() {
+    it('no configs modified', function() {
+      expect(instanceObject.isOverriddenConfigsModified([
+        Em.Object.create({
+          name: '1',
+          savedValue: '1',
+          value: '1',
+          isFinal: false,
+          savedIsFinal: false
+        })
+      ], Em.Object.create({
+        properties: [
+          {name: '1'}
+        ]
+      }))).to.be.false;
+    });
+    it('config value modified', function() {
+      expect(instanceObject.isOverriddenConfigsModified([
+        Em.Object.create({
+          name: '2',
+          savedValue: '1',
+          value: '2',
+          isFinal: false,
+          savedIsFinal: false
+        })
+      ], Em.Object.create({
+        properties: [
+          {name: '2'}
+        ]
+      }))).to.be.true;
+    });
+    it('config isFinal modified', function() {
+      expect(instanceObject.isOverriddenConfigsModified([
+        Em.Object.create({
+          name: '2',
+          savedValue: '2',
+          value: '2',
+          isFinal: true,
+          savedIsFinal: false
+        })
+      ], Em.Object.create({
+        properties: [
+          {name: '2'}
+        ]
+      }))).to.be.true;
+    });
+    it('one config removed', function() {
+      expect(instanceObject.isOverriddenConfigsModified([
+        Em.Object.create({
+          name: '3',
+          savedValue: '3',
+          value: '3',
+          isFinal: false,
+          savedIsFinal: false
+        })
+      ], Em.Object.create({
+        properties: [
+          {name: '2'},
+          {name: '3'}
+        ]
+      }))).to.be.true;
+    });
+  });
 });
 
