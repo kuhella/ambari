@@ -35,6 +35,7 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.functions.oozie_prepare_war import prepare_war
 from resource_management.libraries.functions.copy_tarball import get_current_version
 from resource_management.libraries.resources.xml_config import XmlConfig
+from resource_management.libraries.functions.lzo_utils import install_lzo_if_needed
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.security_commons import update_credential_provider_path
 from resource_management.core.resources.packaging import Package
@@ -305,10 +306,8 @@ def oozie_server_specific(upgrade_type):
     Execute(format('{sudo} chown {oozie_user}:{user_group} {oozie_libext_dir}/falcon-oozie-el-extension-*.jar'),
       not_if  = no_op_test)
 
-  if params.lzo_enabled and len(params.all_lzo_packages) > 0:
-    Package(params.all_lzo_packages,
-            retry_on_repo_unavailability=params.agent_stack_retry_on_unavailability,
-            retry_count=params.agent_stack_retry_count)
+  if params.lzo_enabled:
+    install_lzo_if_needed()
     Execute(format('{sudo} cp /usr/lib/hadoop-lzo/lib/hadoop-lzo*.jar {oozie_lib_dir}'),
       not_if  = no_op_test,
     )
@@ -424,7 +423,7 @@ def copy_atlas_hive_hook_to_dfs_share_lib(upgrade_type=None, upgrade_direction=N
                  "and performing a Downgrade.")
     return
 
-  current_version = get_current_version()
+  current_version = get_current_version(service="ATLAS")
   atlas_hive_hook_dir = format("{stack_root}/{current_version}/atlas/hook/hive/")
   if not os.path.exists(atlas_hive_hook_dir):
     Logger.error(format("ERROR. Atlas is installed in cluster but this Oozie server doesn't "

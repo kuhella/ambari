@@ -16,10 +16,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import math
-
 from resource_management.core.logger import Logger
 import json
+import math
 import re
 from resource_management.libraries.functions import format
 
@@ -33,6 +32,7 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       parentRecommendConfDict = super(HDP26StackAdvisor, self).getServiceConfigurationRecommenderDict()
       childRecommendConfDict = {
         "DRUID": self.recommendDruidConfigurations,
+        "SUPERSET": self.recommendSupersetConfigurations,
         "ATLAS": self.recommendAtlasConfigurations,
         "TEZ": self.recommendTezConfigurations,
         "RANGER": self.recommendRangerConfigurations,
@@ -66,11 +66,12 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
     if storm_env and storm_site and security_enabled and 'STREAMLINE' in servicesList:
       storm_nimbus_impersonation_acl = storm_site["nimbus.impersonation.acl"] if "nimbus.impersonation.acl" in storm_site else None
       streamline_env = self.getServicesSiteProperties(services, "streamline-env")
-      _streamline_principal_name = streamline_env['streamline_principal_name'] if 'streamline_principal_name' in streamline_env else None
-      if _streamline_principal_name is not None and storm_nimbus_impersonation_acl is not None:
-        streamline_bare_principal = get_bare_principal(_streamline_principal_name)
-        storm_nimbus_impersonation_acl.replace('{{streamline_bare_principal}}', streamline_bare_principal)
-        putStormSiteProperty('nimbus.impersonation.acl', storm_nimbus_impersonation_acl)
+      if streamline_env:
+        _streamline_principal_name = streamline_env['streamline_principal_name'] if 'streamline_principal_name' in streamline_env else None
+        if _streamline_principal_name is not None and storm_nimbus_impersonation_acl is not None:
+          streamline_bare_principal = get_bare_principal(_streamline_principal_name)
+          storm_nimbus_impersonation_acl.replace('{{streamline_bare_principal}}', streamline_bare_principal)
+          putStormSiteProperty('nimbus.impersonation.acl', storm_nimbus_impersonation_acl)
       
       storm_nimbus_autocred_plugin_classes = storm_site["nimbus.autocredential.plugins.classes"] if "nimbus.autocredential.plugins.classes" in storm_site else None
       if storm_nimbus_autocred_plugin_classes is not None:
@@ -134,6 +135,13 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
         knox_port = services['configurations']["gateway-site"]["properties"]['gateway.port']
       putAtlasApplicationProperty('atlas.sso.knox.providerurl', 'https://{0}:{1}/gateway/knoxsso/api/v1/websso'.format(knox_host, knox_port))
 
+    knox_service_user = ''
+    if 'KNOX' in servicesList and 'knox-env' in services['configurations']:
+      knox_service_user = services['configurations']['knox-env']['properties']['knox_user']
+    else:
+      knox_service_user = 'knox'
+    putAtlasApplicationProperty('atlas.proxyusers',knox_service_user)
+
   def recommendDruidConfigurations(self, configurations, clusterData, services, hosts):
 
       # druid is not in list of services to be installed
@@ -178,7 +186,7 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
           # recommend HDFS as default deep storage
           extensions_load_list = self.addToList(extensions_load_list, "druid-hdfs-storage")
           putCommonProperty("druid.storage.type", "hdfs")
-          putCommonProperty("druid.storage.storageDirectory", "/user/druid/data")
+          putCommonProperty("druid.storage.storageDirectory", "/apps/druid/warehouse")
           # configure indexer logs configs
           putCommonProperty("druid.indexer.logs.type", "hdfs")
           putCommonProperty("druid.indexer.logs.directory", "/user/druid/logs")
@@ -194,7 +202,7 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       # JVM Configs go to env properties
       putEnvProperty = self.putProperty(configurations, "druid-env", services)
 
-      # processing thread pool Config
+      # processing thread pool and memory configs
       for component in ['DRUID_HISTORICAL', 'DRUID_BROKER']:
           component_hosts = self.getHostsWithComponent("DRUID", component, services, hosts)
           nodeType = self.DRUID_COMPONENT_NODE_TYPE_MAP[component]
@@ -204,14 +212,38 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
               processingThreads = 1
               if totalAvailableCpu > 1:
                   processingThreads = totalAvailableCpu - 1
+              numMergeBuffers = max(2, processingThreads/4)
               putComponentProperty('druid.processing.numThreads', processingThreads)
               putComponentProperty('druid.server.http.numThreads', max(10, (totalAvailableCpu * 17) / 16 + 2) + 30)
+              putComponentProperty('druid.processing.numMergeBuffers', numMergeBuffers)
+              totalAvailableMemInMb = self.getMinMemory(component_hosts) / 1024
+              maxAvailableBufferSizeInMb = totalAvailableMemInMb/(processingThreads + numMergeBuffers)
+              putComponentProperty('druid.processing.buffer.sizeBytes', self.getDruidProcessingBufferSizeInMb(maxAvailableBufferSizeInMb) * 1024 * 1024)
 
+
+  # returns the recommended druid processing buffer size in Mb.
+  # the recommended buffer size is kept lower then the max available memory to have enough free memory to load druid data.
+  # for low memory nodes, the actual allocated buffer size is small to keep some free memory for memory mapping of segments
+  # If user installs all druid processes on a single node, memory available for loading segments will be further decreased.
+  def getDruidProcessingBufferSizeInMb(self, maxAvailableBufferSizeInMb):
+      if maxAvailableBufferSizeInMb <= 256:
+          return min(64, maxAvailableBufferSizeInMb)
+      elif maxAvailableBufferSizeInMb <= 1024:
+          return 128
+      elif maxAvailableBufferSizeInMb <= 2048:
+          return 256
+      elif maxAvailableBufferSizeInMb <= 6144:
+          return 512
+      # High Memory nodes below
+      else :
+          return 1024
+
+  def recommendSupersetConfigurations(self, configurations, clusterData, services, hosts):
       # superset is in list of services to be installed
-      if 'druid-superset' in services['configurations']:
+      if 'superset' in services['configurations']:
         # Recommendations for Superset
-        superset_database_type = services['configurations']["druid-superset"]["properties"]["SUPERSET_DATABASE_TYPE"]
-        putSupersetProperty = self.putProperty(configurations, "druid-superset", services)
+        superset_database_type = services['configurations']["superset"]["properties"]["SUPERSET_DATABASE_TYPE"]
+        putSupersetProperty = self.putProperty(configurations, "superset", services)
 
         if superset_database_type == "mysql":
             putSupersetProperty("SUPERSET_DATABASE_PORT", "3306")
@@ -628,6 +660,55 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
         putHiveAtlasHookPropertyAttribute('atlas.jaas.ticketBased-KafkaClient.loginModuleControlFlag', 'delete', 'true')
         putHiveAtlasHookPropertyAttribute('atlas.jaas.ticketBased-KafkaClient.loginModuleName', 'delete', 'true')
         putHiveAtlasHookPropertyAttribute('atlas.jaas.ticketBased-KafkaClient.option.useTicketCache', 'delete', 'true')
+
+    # druid is not in list of services to be installed
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if 'DRUID' in servicesList:
+        putHiveInteractiveSiteProperty = self.putProperty(configurations, "hive-interactive-site", services)
+        if 'druid-coordinator' in services['configurations']:
+            component_hosts = self.getHostsWithComponent("DRUID", 'DRUID_COORDINATOR', services, hosts)
+            if component_hosts is not None and len(component_hosts) > 0:
+                # pick the first
+                host = component_hosts[0]
+            druid_coordinator_host_port = str(host['Hosts']['host_name']) + ":" + str(
+                services['configurations']['druid-coordinator']['properties']['druid.port'])
+        else:
+            druid_coordinator_host_port = "localhost:8081"
+
+        if 'druid-router' in services['configurations']:
+            component_hosts = self.getHostsWithComponent("DRUID", 'DRUID_ROUTER', services, hosts)
+            if component_hosts is not None and len(component_hosts) > 0:
+                # pick the first
+                host = component_hosts[0]
+            druid_broker_host_port = str(host['Hosts']['host_name']) + ":" + str(
+                services['configurations']['druid-router']['properties']['druid.port'])
+        elif 'druid-broker' in services['configurations']:
+            component_hosts = self.getHostsWithComponent("DRUID", 'DRUID_BROKER', services, hosts)
+            if component_hosts is not None and len(component_hosts) > 0:
+                # pick the first
+                host = component_hosts[0]
+            druid_broker_host_port = str(host['Hosts']['host_name']) + ":" + str(
+                services['configurations']['druid-broker']['properties']['druid.port'])
+        else:
+            druid_broker_host_port = "localhost:8083"
+
+        druid_metadata_uri = ""
+        druid_metadata_user = ""
+        druid_metadata_type = ""
+        if 'druid-common' in services['configurations']:
+            druid_metadata_uri = services['configurations']['druid-common']['properties']['druid.metadata.storage.connector.connectURI']
+            druid_metadata_type = services['configurations']['druid-common']['properties']['druid.metadata.storage.type']
+            if 'druid.metadata.storage.connector.user' in services['configurations']['druid-common']['properties']:
+                druid_metadata_user = services['configurations']['druid-common']['properties']['druid.metadata.storage.connector.user']
+            else:
+                druid_metadata_user = ""
+
+        putHiveInteractiveSiteProperty('hive.druid.broker.address.default', druid_broker_host_port)
+        putHiveInteractiveSiteProperty('hive.druid.coordinator.address.default', druid_coordinator_host_port)
+        putHiveInteractiveSiteProperty('hive.druid.metadata.uri', druid_metadata_uri)
+        putHiveInteractiveSiteProperty('hive.druid.metadata.username', druid_metadata_user)
+        putHiveInteractiveSiteProperty('hive.druid.metadata.db.type', druid_metadata_type)
+
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP26StackAdvisor, self).recommendHBASEConfigurations(configurations, clusterData, services, hosts)
