@@ -23,13 +23,13 @@
   <parent>
     <artifactId>ambari-metrics</artifactId>
     <groupId>org.apache.ambari</groupId>
-    <version>2.5.1.0.0</version>
+    <version>2.5.2.0.0</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ambari-metrics-assembly</artifactId>
   <name>Ambari Metrics Assembly</name>
   <packaging>pom</packaging>
-  <version>2.5.1.0.0</version>
+  <version>2.5.2.0.0</version>
   <description>Ambari Metrics Assembly</description>
 
   <properties>
@@ -243,7 +243,7 @@
                           <location>${collector.dir}/target/lib</location>
                           <excludes>
                             <exclude>*tests.jar</exclude>
-                            <exclude>*hadoop*2.5.1.jar</exclude>
+                            <exclude>findbugs*.jar</exclude>
                           </excludes>
                         </source>
                         <source>
@@ -263,6 +263,7 @@
                             <exclude>bin/**</exclude>
                             <exclude>bin/*</exclude>
                             <exclude>lib/*tests.jar</exclude>
+                            <exclude>lib/findbugs*.jar</exclude>
                           </excludes>
                         </source>
                       </sources>
