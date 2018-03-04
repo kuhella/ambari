@@ -68,13 +68,20 @@ hadoop_metrics2_properties_content = None
 if 'hadoop-metrics2.properties' in config['configurations']:
   hadoop_metrics2_properties_content = config['configurations']['hadoop-metrics2.properties']['content']
 
+# hadoop default params
+mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
+
 hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
 hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 hadoop_bin = stack_select.get_hadoop_dir("sbin")
+hadoop_home = '/usr'
+create_lib_snappy_symlinks = True
 
-mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
-hadoop_home = stack_select.get_hadoop_dir("home")
-create_lib_snappy_symlinks = False
+# HDP 2.2+ params
+if Script.is_stack_greater_or_equal("2.2"):
+  mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
+  hadoop_home = stack_select.get_hadoop_dir("home")
+  create_lib_snappy_symlinks = False
   
 current_service = config['serviceName']
 
@@ -182,7 +189,7 @@ if has_zk_host:
 
 if has_namenode or dfs_type == 'HCFS':
   hadoop_tmp_dir = format("/tmp/hadoop-{hdfs_user}")
-  hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+  hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
   task_log4j_properties_location = os.path.join(hadoop_conf_dir, "task-log4j.properties")
 
 hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']
@@ -324,16 +331,17 @@ if dfs_ha_enabled:
      namenode_rpc = nn_host
    pass
  pass
+elif 'hdfs-site' in config['configurations'] and 'dfs.namenode.rpc-address' in config['configurations']['hdfs-site']:
+  namenode_rpc = default('/configurations/hdfs-site/dfs.namenode.rpc-address', None)
 else:
- namenode_rpc = default('/configurations/hdfs-site/dfs.namenode.rpc-address', default_fs)
+  namenode_rpc = default('/configurations/core-site/fs.defaultFS', None)
 
-# if HDFS is not installed in the cluster, then don't try to access namenode_rpc
-if has_namenode and namenode_rpc:
+if namenode_rpc:
  port_str = namenode_rpc.split(':')[-1].strip()
  try:
    nn_rpc_client_port = int(port_str)
  except ValueError:
-   nn_rpc_client_port = None
+   pass
 
 if dfs_ha_enabled:
  dfs_service_rpc_address = default(format('/configurations/hdfs-site/dfs.namenode.servicerpc-address.{dfs_ha_nameservices}.{namenode_id}'), None)
