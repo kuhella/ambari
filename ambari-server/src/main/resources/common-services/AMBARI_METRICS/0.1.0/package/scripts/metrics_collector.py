@@ -44,14 +44,13 @@ class AmsCollector(Script):
     hbase('regionserver', action)
     ams(name='collector')
 
-  def start(self, env):
-    self.clear_hbase_tmp_dir()
+  def start(self, env, upgrade_type=None):
     self.configure(env, action = 'start') # for security
     # stop hanging components before start
     ams_service('collector', action = 'stop')
     ams_service('collector', action = 'start')
 
-  def stop(self, env):
+  def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     # Sometimes, stop() may be called before start(), in case restart() is initiated right after installation
@@ -62,11 +61,6 @@ class AmsCollector(Script):
     import status_params
     env.set_params(status_params)
     check_service_status(name='collector')
-
-  def clear_hbase_tmp_dir(self):
-    import params
-    Directory(params.hbase_tmp_dir, action = "delete")
-    Directory(params.hbase_tmp_dir, create_parents = True)
     
   def get_log_folder(self):
     import params
