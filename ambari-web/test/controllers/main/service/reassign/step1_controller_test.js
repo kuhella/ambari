@@ -113,6 +113,7 @@ describe('App.ReassignMasterWizardStep1Controller', function () {
       sinon.stub(controller, 'saveDatabaseType', Em.K);
       sinon.stub(controller, 'saveServiceProperties', Em.K);
       sinon.stub(controller, 'saveConfigs', Em.K);
+      sinon.stub(controller, 'isExistingDb');
 
       reassignCtrl = App.router.reassignMasterController;
       reassignCtrl.set('content.hasManualSteps', true);
@@ -124,6 +125,7 @@ describe('App.ReassignMasterWizardStep1Controller', function () {
       controller.saveDatabaseType.restore();
       controller.saveServiceProperties.restore();
       controller.saveConfigs.restore();
+      controller.isExistingDb.restore();
     });
   
     it('should not set hasManualSteps to false for oozie with derby db', function() {
