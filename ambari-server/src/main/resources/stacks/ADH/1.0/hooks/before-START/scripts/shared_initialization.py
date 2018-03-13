@@ -61,7 +61,7 @@ def setup_hadoop():
       tc_owner = "root"
     else:
       tc_owner = params.hdfs_user
-
+      
     # if WebHDFS is not enabled we need this jar to create hadoop folders and copy tarballs to HDFS.
     if params.sysprep_skip_copy_fast_jar_hdfs:
       print "Skipping copying of fast-hdfs-resource.jar as host is sys prepped"
@@ -71,7 +71,7 @@ def setup_hadoop():
            mode=0644,
            content=StaticFile("fast-hdfs-resource.jar")
       )
-
+      
     if os.path.exists(params.hadoop_conf_dir):
       File(os.path.join(params.hadoop_conf_dir, 'commons-logging.properties'),
            owner=tc_owner,
