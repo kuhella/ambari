@@ -775,7 +775,7 @@ class ADH15StackAdvisor(ADH14StackAdvisor):
         self.checkAndStopLlapQueue(services, configurations, LLAP_QUEUE_NAME)
 
     putYarnSiteProperty = self.putProperty(configurations, "yarn-site", services)
-    stack_root = "/usr/hdp"
+    stack_root = "/usr/lib"
     if cluster_env and "stack_root" in cluster_env:
       stack_root = cluster_env["stack_root"]
 
@@ -785,9 +785,9 @@ class ADH15StackAdvisor(ADH14StackAdvisor):
     if self.__isServiceDeployed(services, "TEZ"):
       timeline_plugin_classes_values.append('org.apache.tez.dag.history.logging.ats.TimelineCachePluginImpl')
 
-    if self.__isServiceDeployed(services, "SPARK"):
+    if self.__isServiceDeployed(services, "SPARK2"):
       timeline_plugin_classes_values.append('org.apache.spark.deploy.history.yarn.plugin.SparkATSPlugin')
-      timeline_plugin_classpath_values.append(stack_root + "/${hdp.version}/spark/hdpLib/*")
+      timeline_plugin_classpath_values.append(stack_root + "/spark/jars/*")
 
     putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes', ",".join(timeline_plugin_classes_values))
     putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.group-id-plugin-classpath', ":".join(timeline_plugin_classpath_values))
