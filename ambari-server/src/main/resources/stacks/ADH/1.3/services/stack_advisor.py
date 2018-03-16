@@ -144,7 +144,7 @@ class ADH13StackAdvisor(ADH12StackAdvisor):
     pass
 
     if has_tez_view:
-      tez_url = '{0}://{1}:9999'.format(server_protocol, server_host, server_port)
+      tez_url = '{0}://{1}:8080/#/main/views/TEZ/0.9.0.0/Tez'.format(server_protocol, server_host, server_port)
       putTezProperty("tez.tez-ui.history-url.base", tez_url)
     pass
 
