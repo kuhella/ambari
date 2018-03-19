@@ -82,9 +82,9 @@ def add_hdfs_configuration(if_ranger=False, security_enabled=False):
     services_configurations['core-site']['hadoop.proxyuser.oozie.groups'] = '*'
     services_configurations['core-site']['hadoop.proxyuser.oozie.hosts'] = '*'
   if params.dfs_ha_enabled:
+    services_configurations['core-site'] = {}
     services_configurations['core-site']['hadoop.proxyuser.httpfs.groups'] = '*'
     services_configurations['core-site']['hadoop.proxyuser.httpfs.hosts'] = '*'
-    services_configurations['core-site'] = {}
     services_configurations['core-site']['httpfs.proxyuser.hue.groups'] = '*'
     services_configurations['core-site']['httpfs.proxyuser.hue.hosts'] = '*'
   if security_enabled:
