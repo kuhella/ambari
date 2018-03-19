@@ -44,6 +44,19 @@
             </dependency>
           </dependencies>
         </component>
+        <component>
+          <name>HTTPFS</name>
+          <displayName>HttpFS</displayName>
+          <category>MASTER</category>
+          <!-- how many of these components are allowed in a cluster -->
+          <cardinality>1+</cardinality>
+          <!-- reference to (and details of) what script is to be used to install/stop/start/config the service -->
+          <commandScript>
+            <script>scripts/httpfs.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+        </component>
       </components>
 
       <osSpecifics>
@@ -82,6 +95,9 @@
             </package>
             <package>
               <name>hadoop-libhdfs</name>
+            </package>
+            <package>
+              <name>hadoop-httpfs</name>
             </package>
           </packages>
         </osSpecific>

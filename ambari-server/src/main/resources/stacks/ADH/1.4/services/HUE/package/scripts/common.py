@@ -84,9 +84,9 @@ def add_hdfs_configuration(if_ranger=False, security_enabled=False):
   if params.dfs_ha_enabled:
     services_configurations['core-site']['hadoop.proxyuser.httpfs.groups'] = '*'
     services_configurations['core-site']['hadoop.proxyuser.httpfs.hosts'] = '*'
-    services_configurations['httpfs-site'] = {}
-    services_configurations['httpfs-site']['httpfs.proxyuser.hue.groups'] = '*'
-    services_configurations['httpfs-site']['httpfs.proxyuser.hue.hosts'] = '*'
+    services_configurations['core-site'] = {}
+    services_configurations['core-site']['httpfs.proxyuser.hue.groups'] = '*'
+    services_configurations['core-site']['httpfs.proxyuser.hue.hosts'] = '*'
   if security_enabled:
     services_configurations['core-site']['hadoop.proxyuser.HTTP.groups'] = '*'
     services_configurations['core-site']['hadoop.proxyuser.HTTP.hosts'] = '*'
@@ -115,7 +115,7 @@ def add_hive_configuration(if_ranger=False, security_enabled=False):
   services_configurations['hive-site']['hive.security.authorization.sqlstd.confwhitelist.append'] = 'hive.server2.logging.operation.verbose'
   services_configurations['webhcat-site'] = {}
   services_configurations['webhcat-site']['webhcat.proxyuser.hue.groups'] = '*'
-  services_configurations['webhcat-site']['webhcat.proxyuser.hue.hosts'] = '*' 	
+  services_configurations['webhcat-site']['webhcat.proxyuser.hue.hosts'] = '*'
   if if_ranger:
     services_configurations['hive-site']['hive.server2.enable.impersonation'] = 'true'
   add_configurations(services_configurations)
@@ -154,5 +154,3 @@ def add_configurations(services_configurations):
           value2 = value1[key2]
           cmd = format(params.service_packagedir + "/files/configs.sh set " + params.ambari_server_hostname + " " + params.cluster_name + " " + key1 + " '" + key2 + "' '"+ value2 + "'")
           Execute(cmd)
-
-  
