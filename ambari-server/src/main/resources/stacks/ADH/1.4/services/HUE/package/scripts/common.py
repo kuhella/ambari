@@ -153,4 +153,4 @@ def add_configurations(services_configurations):
           key2 = value1.keys()[j]
           value2 = value1[key2]
           cmd = format(params.service_packagedir + "/files/configs.sh set " + params.ambari_server_hostname + " " + params.cluster_name + " " + key1 + " '" + key2 + "' '"+ value2 + "'")
-          Execute(cmd)
+          Execute(cmd, user='hue')
