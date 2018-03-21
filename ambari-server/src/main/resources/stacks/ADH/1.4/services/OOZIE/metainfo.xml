@@ -124,7 +124,7 @@
         </osSpecific>
 
         <osSpecific>
-             <osFamily>redhat6,redhat7</osFamily>
+             <osFamily>redhat6,redhat7,redhat-ppc7</osFamily>
              <packages>
                <package>
                  <name>extjs</name>

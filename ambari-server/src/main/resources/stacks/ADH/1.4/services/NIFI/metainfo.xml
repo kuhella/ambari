@@ -9,7 +9,7 @@
             <version>1.1.2.1.4</version>
             <osSpecifics>
              <osSpecific>
-               <osFamily>redhat7,suse12</osFamily>
+               <osFamily>redhat7,suse12,redhat-ppc7</osFamily>
                <packages>
                  <package>
                    <name>nifi</name>

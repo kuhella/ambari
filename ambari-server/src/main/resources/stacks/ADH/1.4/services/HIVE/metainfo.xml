@@ -33,7 +33,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat7,redhat6,suse11,suse12</osFamily>
+          <osFamily>redhat7,redhat6,suse11,suse12,redhat-ppc7</osFamily>
           <packages>
             <package>
               <name>hive</name>
@@ -63,7 +63,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat7,suse12</osFamily>
+          <osFamily>redhat7,suse12,redhat-ppc7</osFamily>
           <packages>
             <package>
               <name>mariadb-server</name>

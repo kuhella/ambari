@@ -41,4 +41,17 @@
       <reponame>ADH-UTILS-1.5.0</reponame>
     </repo>
   </os>
+  <os family="redhat-ppc7">
+    <repo>
+      <baseurl>https://ci.arenadata.io/artifactory/list/adh15-centos7-ppc64le-adh/</baseurl>
+      <repoid>ADH-1.5.0</repoid>
+      <reponame>ADH-1.5.0</reponame>
+    </repo>
+    <repo>
+      <baseurl>https://ci.arenadata.io/artifactory/list/adh15-centos7-ppc64le-adh/</baseurl>
+      <repoid>ADH-UTILS-1.5.0</repoid>
+      <reponame>ADH-UTILS-1.5.0</reponame>
+    </repo>
+  </os>
+
 </reposinfo>

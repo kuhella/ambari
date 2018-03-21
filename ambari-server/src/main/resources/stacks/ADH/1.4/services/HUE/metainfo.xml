@@ -66,7 +66,7 @@
 
 	<osSpecifics>
 	  <osSpecific>
-	    <osFamily>redhat7</osFamily>
+	    <osFamily>redhat7,redhat-ppc7</osFamily>
 	    <packages>
 	      <package><name>hue</name></package>
 	      <package><name>wget</name></package>
