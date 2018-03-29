@@ -237,7 +237,7 @@ this file, see http://wiki.apache.org/solr/SolrConfigXml.
     <mergeFactor>10</mergeFactor>
     -->
     <!-- LogSearch customization. Set to 5 to trigger purging of deleted documents more often -->
-    <mergeFactor>{{logsearch_audit_logs_merge_factor}}</mergeFactor>
+    <mergeFactor>{{logsearch_service_logs_merge_factor}}</mergeFactor>
 
     <!-- Expert: Merge Scheduler
     The Merge Scheduler in Lucene controls how merges are
@@ -1063,7 +1063,6 @@ this file, see http://wiki.apache.org/solr/SolrConfigXml.
   Admin Handlers - This will register all the standard admin
   RequestHandlers.
   -->
-
   <!-- This single handler is equivalent to the following... -->
   <!--
   <requestHandler name="/admin/luke"       class="solr.admin.LukeRequestHandler" />
@@ -1333,7 +1332,7 @@ this file, see http://wiki.apache.org/solr/SolrConfigXml.
     <lst name="suggester">
       <str name="name">mySuggester</str>
       <str name="lookupImpl">FuzzyLookupFactory</str>      <!-- org.apache.solr.spelling.suggest.fst -->
-      <str name="dictionaryImpl">DocumentDictionaryFactory</str>    <!-- org.apache.solr.spelling.suggest.HighFrequencyDictionaryFactory -->
+      <str name="dictionaryImpl">DocumentDictionaryFactory</str>     <!-- org.apache.solr.spelling.suggest.HighFrequencyDictionaryFactory -->
       <str name="field">cat</str>
       <str name="weightField">price</str>
       <str name="suggestAnalyzerFieldType">string</str>
@@ -1650,10 +1649,10 @@ this file, see http://wiki.apache.org/solr/SolrConfigXml.
 
     <processor class="solr.DefaultValueUpdateProcessorFactory">
       <str name="fieldName">_ttl_</str>
-      <str name="value">+{{logsearch_audit_logs_max_retention}}DAYS</str>
+      <str name="value">+{{logsearch_service_logs_max_retention}}DAYS</str>
     </processor>
     <processor class="solr.processor.DocExpirationUpdateProcessorFactory">
-      <int name="autoDeletePeriodSeconds">30</int>
+      <int name="autoDeletePeriodSeconds">86400</int>
       <str name="ttlFieldName">_ttl_</str>
       <str name="expirationFieldName">_expire_at_</str>
     </processor>
