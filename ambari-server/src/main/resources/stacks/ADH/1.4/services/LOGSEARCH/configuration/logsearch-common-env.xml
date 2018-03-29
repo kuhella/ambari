@@ -45,9 +45,9 @@
   </property>
   <property>
     <name>logsearch_external_solr_zk_znode</name>
-    <value></value>
+    <value>/solr</value>
     <display-name>External Solr Logs Znode</display-name>
-    <description>Only needed if using custom solr cloud. E.g. /logsearch_solr</description>
+    <description>Only needed if using custom solr cloud. E.g. /solr</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
