@@ -7,7 +7,7 @@ ADH 1.5 Release Notes
 Все компоненты ADH 1.5, представленные в данном документе, являются наиболее стабильными версиями официальных релизов продуктов Apache Software Foundation. Arenadata оставляет за собой лишь право добавления необхоимых изменений и патчей для обеспечения стабильного функционирования компонентов и их интеграции.
 
 **Состав и версии компонентов ADH 1.5:**
-- Apache Ambari 2.5.1
+- Apache Ambari 2.5.2
 - Apache HDFS	2.8.1
 - Apache YARN	2.8.1
 - Apache MapReduce	2.8.1
@@ -58,6 +58,7 @@ ADH 1.5 Release Notes
 - rrdtool-devel 1.4.8
 - snappy 1.1.0
 - snappy-devel 1.1.0
+- logsearch 0.5.0
 
 **Перечень новых функциональностей:**
 - Apache HDFS, Apache YARN, Apache MR2: https://hadoop.apache.org/docs/r2.8.0/hadoop-project-dist/hadoop-common/release/2.8.0/RELEASENOTES.2.8.0.html
