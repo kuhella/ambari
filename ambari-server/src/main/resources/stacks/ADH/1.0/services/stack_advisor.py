@@ -2026,8 +2026,8 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
         "reassign_allowed" : false,
         "recovery_enabled" : false,
         "service_name" : "HBASE",
-        "stack_name" : "HDP",
-        "stack_version" : "2.5",
+        "stack_name" : "ADH",
+        "stack_version" : "1.5",
         "hostnames" : [ "host1", "host2" ]
 
     :type service str

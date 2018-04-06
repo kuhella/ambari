@@ -62,6 +62,19 @@
 	      </customCommand>
 	    </customCommands>
 	  </component>
+    <component>
+      <name>HTTPFS</name>
+      <displayName>HttpFS</displayName>
+      <category>MASTER</category>
+      <!-- how many of these components are allowed in a cluster -->
+      <cardinality>1+</cardinality>
+      <!-- reference to (and details of) what script is to be used to install/stop/start/config the service -->
+      <commandScript>
+        <script>scripts/httpfs.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>600</timeout>
+      </commandScript>
+    </component>
 	</components>
 
 	<osSpecifics>
@@ -69,6 +82,7 @@
 	    <osFamily>redhat7</osFamily>
 	    <packages>
 	      <package><name>hue</name></package>
+        <package><name>hadoop-httpfs</name></package>
 	      <package><name>wget</name></package>
 	      <package><name>tar</name></package>
 	      <package><name>asciidoc</name></package>
@@ -96,6 +110,7 @@
       <osFamily>suse12</osFamily>
       <packages>
         <package><name>hue</name></package>
+        <package><name>hadoop-httpfs</name></package>
         <package><name>wget</name></package>
         <package><name>tar</name></package>
         <package><name>asciidoc</name></package>
