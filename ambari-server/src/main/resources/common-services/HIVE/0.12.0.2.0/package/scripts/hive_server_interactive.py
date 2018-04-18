@@ -18,7 +18,7 @@ limitations under the License.
 
 """
 # Python Imports
-import subprocess
+from ambari_commons import subprocess32
 import os
 import re
 import time
@@ -36,7 +36,6 @@ from resource_management.core.resources.system import Execute, Directory
 # Imports needed for Rolling/Express Upgrade
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
 
@@ -67,10 +66,6 @@ class HiveServerInteractive(Script):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HiveServerInteractiveDefault(HiveServerInteractive):
-
-    def get_component_name(self):
-      return "hive-server2-hive2"
-
     def install(self, env):
       import params
       self.install_packages(env)
@@ -86,8 +81,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       env.set_params(params)
 
       if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-        stack_select.select("hive-server2-hive2", params.version)
-        conf_select.select(params.stack_name, "hive2", params.version)
+        stack_select.select_packages(params.version)
 
         # Copy hive.tar.gz and tez.tar.gz used by Hive Interactive to HDFS
         resource_created = copy_to_hdfs(
@@ -120,6 +114,8 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       # Start LLAP before Hive Server Interactive start.
       status = self._llap_start(env)
       if not status:
+        # if we couldnt get LLAP in RUNNING or RUNNING_ALL state, stop LLAP process before bailing out.
+        self._llap_stop(env)
         raise Fail("Skipping START of Hive Server Interactive since LLAP app couldn't be STARTED.")
 
       # TODO : test the workability of Ranger and Hive2 during upgrade
@@ -173,7 +169,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
 
       stop_cmd = ["slider", "stop", params.llap_app_name]
 
-      code, output, error = shell.call(stop_cmd, user=params.hive_user, stderr=subprocess.PIPE, logoutput=True)
+      code, output, error = shell.call(stop_cmd, user=params.hive_user, stderr=subprocess32.PIPE, logoutput=True)
       if code == 0:
         Logger.info(format("Stopped {params.llap_app_name} application on Slider successfully"))
       elif code == 69 and output is not None and "Unknown application instance" in output:
@@ -247,8 +243,9 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       if params.security_enabled:
         llap_keytab_splits = params.hive_llap_keytab_file.split("/")
         Logger.debug("llap_keytab_splits : {0}".format(llap_keytab_splits))
+        slider_keytab = llap_keytab_splits[-1]
         cmd += format(" --slider-keytab-dir .slider/keytabs/{params.hive_user}/ --slider-keytab "
-                      "{llap_keytab_splits[4]} --slider-principal {params.hive_llap_principal}")
+                      "{slider_keytab} --slider-principal {params.hive_llap_principal}")
 
       # Add the aux jars if they are specified. If empty, dont need to add this param.
       if params.hive_aux_jars:
@@ -268,7 +265,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       run_file_path = None
       try:
         Logger.info(format("LLAP start command: {cmd}"))
-        code, output, error = shell.checked_call(cmd, user=params.hive_user, quiet = True, stderr=subprocess.PIPE, logoutput=True)
+        code, output, error = shell.checked_call(cmd, user=params.hive_user, quiet = True, stderr=subprocess32.PIPE, logoutput=True)
 
         if code != 0 or output is None:
           raise Fail("Command failed with either non-zero return code or no output.")
@@ -374,7 +371,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       LLAP_APP_STATUS_CMD_TIMEOUT = 0
 
       llap_status_cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llapstatus --name {app_name} --findAppTimeout {LLAP_APP_STATUS_CMD_TIMEOUT}")
-      code, output, error = shell.checked_call(llap_status_cmd, user=status_params.hive_user, stderr=subprocess.PIPE,
+      code, output, error = shell.checked_call(llap_status_cmd, user=status_params.hive_user, stderr=subprocess32.PIPE,
                                                logoutput=False)
       Logger.info("Received 'llapstatus' command 'output' : {0}".format(output))
       if code == 0:
@@ -405,7 +402,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       llap_status_cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llapstatus -w -r {percent_desired_instances_to_be_up} -i {refresh_rate} -t {total_timeout}")
       Logger.info("\n\n\n\n\n");
       Logger.info("LLAP status command : {0}".format(llap_status_cmd))
-      code, output, error = shell.checked_call(llap_status_cmd, user=status_params.hive_user, quiet=True, stderr=subprocess.PIPE,
+      code, output, error = shell.checked_call(llap_status_cmd, user=status_params.hive_user, quiet=True, stderr=subprocess32.PIPE,
                                                logoutput=True)
 
       if code == 0:
@@ -420,13 +417,14 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
 
 
     """
-    Remove extra lines from 'llapstatus' status output (eg: because of MOTD logging) so as to have a valid JSON data to be passed in
-    to JSON converter.
+    Remove extra lines (begginning/end) from 'llapstatus' status output (eg: because of MOTD logging) so as to have 
+    a valid JSON data to be passed in to JSON converter.
     """
     def _make_valid_json(self, output):
       '''
 
-      Note: It is assumed right now that extra lines will be only at the start and not at the end.
+      Note: Extra lines (eg: because of MOTD) may be at the start or the end (some other logging getting appended)
+      of the passed-in data.
 
       Sample expected JSON to be passed for 'loads' is either of the form :
 
@@ -462,6 +460,19 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       if (len_splits < 3):
         raise Fail ("Malformed JSON data received from 'llapstatus' command. Exiting ....")
 
+      # Firstly, remove extra lines from the END.
+      updated_splits = []
+      for itr, line in enumerate(reversed(splits)):
+        if line == "}": # Our assumption of end of JSON data.
+          updated_splits = splits[:-itr]
+          break
+
+      if len(updated_splits) > 0:
+        splits = updated_splits
+        len_splits = len(splits)
+
+
+      # Secondly, remove extra lines from the BEGGINNING.
       marker_idx = None # To detect where from to start reading for JSON data
       for idx, split in enumerate(splits):
         curr_elem = split.strip()
