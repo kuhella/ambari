@@ -158,8 +158,10 @@ class NameNodeDefault(NameNode):
     hdfs_binary = self.get_hdfs_binary()
     namenode_upgrade.prepare_upgrade_check_for_previous_dir()
     namenode_upgrade.prepare_upgrade_enter_safe_mode(hdfs_binary)
-    namenode_upgrade.prepare_upgrade_save_namespace(hdfs_binary)
-    namenode_upgrade.prepare_upgrade_backup_namenode_dir()
+    if not params.skip_namenode_save_namespace_express:
+      namenode_upgrade.prepare_upgrade_save_namespace(hdfs_binary)
+    if not params.skip_namenode_namedir_backup_express:
+      namenode_upgrade.prepare_upgrade_backup_namenode_dir()
     namenode_upgrade.prepare_upgrade_finalize_previous_upgrades(hdfs_binary)
 
     # Call -rollingUpgrade prepare
@@ -280,12 +282,6 @@ class NameNodeDefault(NameNode):
              "operation earlier. The process may take a long time to finish (hours, even days). If the problem persists "
              "please consult with the HDFS administrators if they have triggred or killed the operation.")
 
-    if params.security_enabled:
-      # Delete the kerberos credentials cache (ccache) file
-      File(ccache_file_path,
-           action = "delete",
-      )
-      
   def get_log_folder(self):
     import params
     return params.hdfs_log_dir
