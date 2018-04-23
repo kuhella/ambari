@@ -18,7 +18,6 @@
 package org.apache.ambari.server.upgrade;
 
 import java.sql.SQLException;
-import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 
@@ -89,9 +88,4 @@ public interface UpgradeCatalog {
    * Update schema version in the database to the Target one
    */
   void updateDatabaseSchemaVersion();
-
-  /*
-  Get upgrade json output, which is sent to python executing process.
-   */
-  Map<String,String> getUpgradeJsonOutput();
 }

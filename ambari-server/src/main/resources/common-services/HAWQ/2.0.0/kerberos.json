@@ -4,8 +4,7 @@
       "name": "HAWQ",
       "identities": [
         {
-          "name": "hawq_hdfs",
-          "reference": "/HDFS/NAMENODE/hdfs"
+          "name": "/HDFS/NAMENODE/hdfs"
         },
         {
           "name": "hawq_identity",
@@ -54,8 +53,7 @@
           "name": "HAWQMASTER",
           "identities": [
             {
-              "name": "hawq_hawqmaster_hawq_identity",
-              "reference": "/HAWQ/hawq_identity"
+              "name": "/HAWQ/hawq_identity"
             }
           ]
         },
@@ -63,8 +61,7 @@
           "name": "HAWQSTANDBY",
           "identities": [
             {
-              "name": "hawq_hawqstandby_hawq_identity",
-              "reference": "/HAWQ/hawq_identity"
+              "name": "/HAWQ/hawq_identity"
             }
           ]
         }

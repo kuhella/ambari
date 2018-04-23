@@ -85,7 +85,21 @@ public class OutputManager {
 
     // TODO: Ideally most of the overrides should be configurable
 
-    LogFeederUtil.fillMapWithFieldDefaults(jsonObj, inputMarker, true);
+    if (jsonObj.get("type") == null) {
+      jsonObj.put("type", input.getStringValue("type"));
+    }
+    if (jsonObj.get("path") == null && input.getFilePath() != null) {
+      jsonObj.put("path", input.getFilePath());
+    }
+    if (jsonObj.get("path") == null && input.getStringValue("path") != null) {
+      jsonObj.put("path", input.getStringValue("path"));
+    }
+    if (jsonObj.get("host") == null && LogFeederUtil.hostName != null) {
+      jsonObj.put("host", LogFeederUtil.hostName);
+    }
+    if (jsonObj.get("ip") == null && LogFeederUtil.ipAddress != null) {
+      jsonObj.put("ip", LogFeederUtil.ipAddress);
+    }
     if (jsonObj.get("level") == null) {
       jsonObj.put("level", LogFeederConstants.LOG_LEVEL_UNKNOWN);
     }

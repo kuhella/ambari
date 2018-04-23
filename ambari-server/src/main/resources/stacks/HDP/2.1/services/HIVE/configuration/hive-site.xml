@@ -258,7 +258,7 @@ limitations under the License.
   </property>
   <property>
     <name>hive.auto.convert.sortmerge.join</name>
-    <value>false</value>
+    <value>true</value>
     <description>Will the join be automatically converted to a sort-merge join, if the joined tables pass
       the criteria for sort-merge join.
     </description>

@@ -22,8 +22,8 @@ import os
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.script import Script
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions import upgrade_summary
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.version import compare_versions
@@ -67,6 +67,9 @@ class HiveMetastore(Script):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HiveMetastoreDefault(HiveMetastore):
+  def get_component_name(self):
+    return "hive-metastore"
+
   def status(self, env):
     import status_params
     from resource_management.libraries.functions import check_process_status
@@ -85,7 +88,8 @@ class HiveMetastoreDefault(HiveMetastore):
       self.upgrade_schema(env)
 
     if params.version and compare_versions(format_stack_version(params.version), '4.0.0.0') >= 0:
-      stack_select.select_packages(params.version)
+      conf_select.select(params.stack_name, "hive", params.version)
+      stack_select.select("hive-metastore", params.version)
 
   def security_status(self, env):
     import status_params
@@ -159,7 +163,7 @@ class HiveMetastoreDefault(HiveMetastore):
     # ensure that the JDBC drive is present for the schema tool; if it's not
     # present, then download it first
     if params.hive_jdbc_driver in params.hive_jdbc_drivers_list and params.hive_use_existing_db:
-      source = params.source_jdbc_file
+      source = format("/usr/iop/{current_version}/hive/lib/{jdbc_jar_name}")
       target_directory = format("/usr/iop/{version}/hive/lib")
       if not os.path.exists(source):
         # download it
@@ -179,12 +183,9 @@ class HiveMetastoreDefault(HiveMetastore):
     # since the configurations have not been written out yet during an upgrade
     # we need to choose the original legacy location
     schematool_hive_server_conf_dir = params.hive_server_conf_dir
-
-    upgrade_from_version = upgrade_summary.get_source_version("HIVE",
-      default_version = params.version_for_stack_feature_checks)
-
-    if params.version_for_stack_feature_checks is not None:
-      if compare_versions(upgrade_from_version, "4.1.0.0") < 0:
+    if params.current_version is not None:
+      current_version = format_stack_version(params.current_version)
+      if compare_versions(current_version, "4.1.0.0") < 0:
         schematool_hive_server_conf_dir = LEGACY_HIVE_SERVER_CONF
 
     env_dict = {

@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -47,9 +47,6 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
@@ -86,11 +83,6 @@ public class JMXHostProviderTest {
   private static final String MAPREDUCE_HTTPS_POLICY = "mapreduce.jobhistory.http.policy";
   private static final String MAPREDUCE_HTTPS_PORT = "mapreduce.jobhistory.webapp.https.address";
 
-  private final String STACK_VERSION = "2.0.6";
-  private final String REPO_VERSION = "2.0.6-1234";
-  private final StackId STACK_ID = new StackId("HDP", STACK_VERSION);
-  private RepositoryVersionEntity m_repositoryVersion;
-
   @Before
   public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
@@ -98,10 +90,6 @@ public class JMXHostProviderTest {
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
     controller = injector.getInstance(AmbariManagementController.class);
-    OrmTestHelper ormTestHelper = injector.getInstance(OrmTestHelper.class);
-
-    m_repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(STACK_ID, REPO_VERSION);
-    Assert.assertNotNull(m_repositoryVersion);
 
     // Set the authenticated user
     // TODO: remove this or replace the authenticated user to test authorization rules
@@ -116,21 +104,17 @@ public class JMXHostProviderTest {
     SecurityContextHolder.getContext().setAuthentication(null);
   }
 
-  private void createService(String clusterName, String serviceName, State desiredState)
+  private void createService(String clusterName,
+                             String serviceName, State desiredState)
       throws AmbariException, AuthorizationException {
     String dStateStr = null;
-
     if (desiredState != null) {
       dStateStr = desiredState.toString();
     }
-
-    ServiceRequest r1 = new ServiceRequest(clusterName, serviceName, m_repositoryVersion.getId(), dStateStr);
-
-    Set<ServiceRequest> requests = new HashSet<>();
+    ServiceRequest r1 = new ServiceRequest(clusterName, serviceName, dStateStr);
+    Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
     requests.add(r1);
-
-    ServiceResourceProviderTest.createServices(controller,
-        injector.getInstance(RepositoryVersionDAO.class), requests);
+    ServiceResourceProviderTest.createServices(controller, requests);
   }
 
   private void createServiceComponent(String clusterName,
@@ -143,7 +127,7 @@ public class JMXHostProviderTest {
     ServiceComponentRequest r = new ServiceComponentRequest(clusterName,
       serviceName, componentName, dStateStr);
     Set<ServiceComponentRequest> requests =
-      new HashSet<>();
+      new HashSet<ServiceComponentRequest>();
     requests.add(r);
     ComponentResourceProviderTest.createComponents(controller, requests);
   }
@@ -158,7 +142,7 @@ public class JMXHostProviderTest {
     ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName,
       serviceName, componentName, hostname, dStateStr);
     Set<ServiceComponentHostRequest> requests =
-      new HashSet<>();
+      new HashSet<ServiceComponentHostRequest>();
     requests.add(r);
     controller.createHostComponents(requests);
   }
@@ -184,13 +168,13 @@ public class JMXHostProviderTest {
 
     String host1 = "h1";
     clusters.addHost(host1);
-    Map<String, String> hostAttributes = new HashMap<>();
+    Map<String, String> hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "5.9");
     clusters.getHost("h1").setHostAttributes(hostAttributes);
     String host2 = "h2";
     clusters.addHost(host2);
-    hostAttributes = new HashMap<>();
+    hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
     clusters.getHost("h2").setHostAttributes(hostAttributes);
@@ -210,7 +194,7 @@ public class JMXHostProviderTest {
 
     // Create configs
     if (version1) {
-      Map<String, String> configs = new HashMap<>();
+      Map<String, String> configs = new HashMap<String, String>();
       configs.put(NAMENODE_PORT_V1, "localhost:${ambari.dfs.datanode.http.port}");
       configs.put(DATANODE_PORT, "localhost:70075");
       configs.put("ambari.dfs.datanode.http.port", "70070");
@@ -222,7 +206,7 @@ public class JMXHostProviderTest {
       controller.updateClusters(Collections.singleton(crequest), new HashMap<String,String>());
 
     } else {
-      Map<String, String> configs = new HashMap<>();
+      Map<String, String> configs = new HashMap<String, String>();
       configs.put(NAMENODE_PORT_V2, "localhost:70071");
       configs.put(DATANODE_PORT, "localhost:70075");
 
@@ -282,13 +266,13 @@ public class JMXHostProviderTest {
 
     String host1 = "h1";
     clusters.addHost(host1);
-    Map<String, String> hostAttributes = new HashMap<>();
+    Map<String, String> hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "5.9");
     clusters.getHost("h1").setHostAttributes(hostAttributes);
     String host2 = "h2";
     clusters.addHost(host2);
-    hostAttributes = new HashMap<>();
+    hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
     clusters.getHost("h2").setHostAttributes(hostAttributes);
@@ -321,7 +305,7 @@ public class JMXHostProviderTest {
       host2, null);
 
     // Create configs
-    Map<String, String> configs = new HashMap<>();
+    Map<String, String> configs = new HashMap<String, String>();
     configs.put(NAMENODE_PORT_V1, "localhost:${ambari.dfs.datanode.http.port}");
     configs.put(DATANODE_PORT, "localhost:70075");
     configs.put("ambari.dfs.datanode.http.port", "70070");
@@ -329,18 +313,18 @@ public class JMXHostProviderTest {
     configs.put(DATANODE_HTTPS_PORT, "50475");
     configs.put(HDFS_HTTPS_POLICY, "HTTPS_ONLY");
 
-    Map<String, String> yarnConfigs = new HashMap<>();
+    Map<String, String> yarnConfigs = new HashMap<String, String>();
     yarnConfigs.put(RESOURCEMANAGER_PORT, "8088");
     yarnConfigs.put(NODEMANAGER_PORT, "8042");
     yarnConfigs.put(RESOURCEMANAGER_HTTPS_PORT, "8090");
     yarnConfigs.put(NODEMANAGER_HTTPS_PORT, "8044");
     yarnConfigs.put(YARN_HTTPS_POLICY, "HTTPS_ONLY");
 
-    Map<String, String> mapreduceConfigs = new HashMap<>();
+    Map<String, String> mapreduceConfigs = new HashMap<String, String>();
     mapreduceConfigs.put(MAPREDUCE_HTTPS_PORT, "19889");
     mapreduceConfigs.put(MAPREDUCE_HTTPS_POLICY, "HTTPS_ONLY");
 
-    Map<String, String> hbaseConfigs = new HashMap<>();
+    Map<String, String> hbaseConfigs = new HashMap<String, String>();
     hbaseConfigs.put("hbase.ssl.enabled", "true");
 
     ConfigurationRequest cr1 = new ConfigurationRequest(clusterName,
@@ -395,13 +379,13 @@ public class JMXHostProviderTest {
 
     String host1 = "h1";
     clusters.addHost(host1);
-    Map<String, String> hostAttributes = new HashMap<>();
+    Map<String, String> hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "5.9");
     clusters.getHost("h1").setHostAttributes(hostAttributes);
     String host2 = "h2";
     clusters.addHost(host2);
-    hostAttributes = new HashMap<>();
+    hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
     clusters.getHost("h2").setHostAttributes(hostAttributes);
@@ -422,7 +406,7 @@ public class JMXHostProviderTest {
         host2, null);
 
     // Create configs
-    Map<String, String> configs = new HashMap<>();
+    Map<String, String> configs = new HashMap<String, String>();
     configs.put("dfs.internal.nameservices", "ns");
     configs.put("dfs.namenode.http-address", "h1:50070");
     configs.put("dfs.namenode.http-address.ns.nn1", "h1:50071");
@@ -529,7 +513,7 @@ public class JMXHostProviderTest {
     Service serviceMock = createNiceMock(Service.class);
     ServiceComponent serviceComponentMock = createNiceMock(ServiceComponent.class);
 
-    Map<String, ServiceComponentHost> hostComponents = new HashMap<>();
+    Map<String, ServiceComponentHost> hostComponents = new HashMap<String, ServiceComponentHost>();
     hostComponents.put("host1", null);
 
     expect(managementControllerMock.getClusters()).andReturn(clustersMock).anyTimes();
@@ -628,7 +612,7 @@ public class JMXHostProviderTest {
     // Non default port addresses
     Assert.assertEquals("8088", providerModule.getPort("c1", "RESOURCEMANAGER", "localhost"));
 
-    Map<String, String> yarnConfigs = new HashMap<>();
+    Map<String, String> yarnConfigs = new HashMap<String, String>();
     yarnConfigs.put(RESOURCEMANAGER_PORT, "localhost:50030");
     yarnConfigs.put(NODEMANAGER_PORT, "localhost:11111");
     ConfigurationRequest cr2 = new ConfigurationRequest("c1",
@@ -656,15 +640,14 @@ public class JMXHostProviderTest {
 
     Injector injector = createNiceMock(Injector.class);
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
-    RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
-
     {
       expect(injector.getInstance(Clusters.class)).andReturn(null);
       replay(maintenanceStateHelper, injector);
     }
 
-    ResourceProvider serviceResourceProvider = new ServiceResourceProvider(controller,
-        maintenanceStateHelper, repositoryVersionDAO);
+    ResourceProvider serviceResourceProvider = new ServiceResourceProvider(PropertyHelper
+      .getPropertyIds(Resource.Type.Service),
+      PropertyHelper.getKeyPropertyIds(Resource.Type.Service), controller, maintenanceStateHelper);
 
     ResourceProvider hostCompResourceProvider = new
       HostComponentResourceProvider(PropertyHelper.getPropertyIds(Resource

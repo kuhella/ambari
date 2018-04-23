@@ -25,7 +25,7 @@ from contextlib import closing
 from resource_management.core.resources.system import Execute
 
 def archive_dir(output_filename, input_dir):
-  Execute(('tar', '-zcf', output_filename, '-C', input_dir, '.'),
+  Execute(('tar', '-zcvf', output_filename, input_dir),
     sudo = True,
     tries = 3,
     try_sleep = 1,
@@ -40,19 +40,17 @@ def archive_directory_dereference(archive, directory):
   :return:  None
   """
 
-  Execute(('tar', '-zchf', archive, '-C', directory, '.'),
+  Execute(('tar', '-zcvhf', archive, directory),
     sudo = True,
     tries = 3,
     try_sleep = 1,
   )
 
-def untar_archive(archive, directory, silent=True):
+def untar_archive(archive, directory):
   """
   :param directory:   can be a symlink and is followed
   """
-  options = "-xf" if silent else "-xvf"
-
-  Execute(('tar',options,archive,'-C',directory+"/"),
+  Execute(('tar','-xvf',archive,'-C',directory+"/"),
     sudo = True,
     tries = 3,
     try_sleep = 1,

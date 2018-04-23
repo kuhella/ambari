@@ -45,10 +45,5 @@ public enum ExperimentalFeature {
   /**
    * Upgrades from one stack vendor (FOO-1.0) to another (BAR-5.5.0).
    */
-  STACK_UPGRADES_BETWEEN_VENDORS,
-
-  /**
-   * Support for service-specific repos for custom services
-   */
-  CUSTOM_SERVICE_REPOS
+  STACK_UPGRADES_BETWEEN_VENDORS
 }

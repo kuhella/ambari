@@ -34,8 +34,6 @@ class TestNFSGateway(RMFTestCase):
   STACK_VERSION = "2.0.6"
   UPGRADE_STACK_VERSION = "2.2"
 
-  CONFIG_OVERRIDES = {"serviceName":"HDFS", "role":"NFS_GATEWAY"}
-
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nfsgateway.py",
                        classname = "NFSGateway",
@@ -293,9 +291,10 @@ class TestNFSGateway(RMFTestCase):
                        classname = "NFSGateway",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       config_overrides = self.CONFIG_OVERRIDES,
                        stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES)
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(0, None, ''), (0, None), (0, None), (0, None)])
+    self.assertResourceCalled('Link', ('/etc/hadoop/conf'), to='/usr/hdp/current/hadoop-client/conf')
     self.assertResourceCalled('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-hdfs-nfs3', version), sudo=True,)
     self.assertNoMoreResources()

@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -34,7 +34,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigurationRequest;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -45,14 +45,12 @@ import org.apache.ambari.server.state.ConfigMergeHelper.ThreeWayValue;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.ConfigurationKeyValue;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Insert;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Masked;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Replace;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Transfer;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
-import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.PropertyKeyState;
 import org.apache.ambari.server.state.stack.upgrade.TransferOperation;
 import org.apache.commons.lang.StringUtils;
@@ -84,9 +82,9 @@ import com.google.inject.Provider;
  * property value</li>
  * </ul>
  */
-public class ConfigureAction extends AbstractUpgradeServerAction {
+public class ConfigureAction extends AbstractServerAction {
 
-  private static final Logger LOG = LoggerFactory.getLogger(ConfigureAction.class);
+  private static Logger LOG = LoggerFactory.getLogger(ConfigureAction.class);
 
   /**
    * Used to lookup the cluster.
@@ -184,21 +182,9 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
 
     String clusterName = commandParameters.get("clusterName");
     Cluster cluster = m_clusters.getCluster(clusterName);
-    UpgradeContext upgradeContext = getUpgradeContext(cluster);
 
     // such as hdfs-site or hbase-env
     String configType = commandParameters.get(ConfigureTask.PARAMETER_CONFIG_TYPE);
-    String serviceName = cluster.getServiceByConfigType(configType);
-
-    // !!! we couldn't get the service based on its config type, so try the associated
-    if (StringUtils.isBlank(serviceName)) {
-      serviceName = commandParameters.get(ConfigureTask.PARAMETER_ASSOCIATED_SERVICE);
-    }
-
-    RepositoryVersionEntity sourceRepoVersion = upgradeContext.getSourceRepositoryVersion(serviceName);
-    RepositoryVersionEntity targetRepoVersion = upgradeContext.getTargetRepositoryVersion(serviceName);
-    StackId sourceStackId = sourceRepoVersion.getStackId();
-    StackId targetStackId = targetRepoVersion.getStackId();
 
     // extract setters
     List<ConfigurationKeyValue> keyValuePairs = Collections.emptyList();
@@ -266,12 +252,13 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
     if (desiredConfig == null) {
       throw new AmbariException("Could not find desired config type with name " + configType);
     }
-
     Config config = cluster.getConfig(configType, desiredConfig.getTag());
     if (config == null) {
       throw new AmbariException("Could not find config type with name " + configType);
     }
 
+    StackId currentStack = cluster.getCurrentStackVersion();
+    StackId targetStack = cluster.getDesiredStackVersion();
     StackId configStack = config.getStackId();
 
     // !!! initial reference values
@@ -418,8 +405,8 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
           String oldValue = base.get(key);
 
           // !!! values are not changing, so make this a no-op
-          if (StringUtils.equals(value, oldValue)) {
-            if (sourceStackId.equals(targetStackId) && !changedValues) {
+          if (null != oldValue && value.equals(oldValue)) {
+            if (currentStack.equals(targetStack) && !changedValues) {
               updateBufferWithMessage(outputBuffer,
                   MessageFormat.format(
                   "{0}/{1} for cluster {2} would not change, skipping setting", configType, key,
@@ -532,7 +519,7 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
     // !!! check to see if we're going to a new stack and double check the
     // configs are for the target.  Then simply update the new properties instead
     // of creating a whole new history record since it was already done
-    if (!targetStackId.equals(sourceStackId) && targetStackId.equals(configStack)) {
+    if (!targetStack.equals(currentStack) && targetStack.equals(configStack)) {
       config.setProperties(newValues);
       config.save();
 
@@ -541,9 +528,7 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
 
     // !!! values are different and within the same stack.  create a new
     // config and service config version
-    Direction direction = upgradeContext.getDirection();
-    String serviceVersionNote = String.format("%s %s %s", direction.getText(true),
-        direction.getPreposition(), upgradeContext.getRepositoryVersion().getVersion());
+    String serviceVersionNote = "Stack Upgrade";
 
     String auditName = getExecutionCommand().getRoleParams().get(ServerAction.ACTION_USER_NAME);
 
@@ -551,10 +536,12 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
       auditName = m_configuration.getAnonymousAuditName();
     }
 
-    m_configHelper.createConfigType(cluster, targetStackId, m_controller, configType,
+    m_configHelper.createConfigType(cluster, m_controller, configType,
         newValues, auditName, serviceVersionNote);
 
-    return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", outputBuffer.toString(), "");
+    String message = "Finished updating configuration ''{0}''";
+    message = MessageFormat.format(message, configType);
+    return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", message, "");
   }
 
 
@@ -693,72 +680,33 @@ public class ConfigureAction extends AbstractUpgradeServerAction {
     return allowedTransfers;
   }
 
-  /**
-   * Gets whether the {@code set} directive is valid based on the optional
-   * attributes specified.
-   *
-   * @param cluster
-   *          the cluster (not {@code null}).
-   * @param configType
-   *          the configuration type for the change (not {@code null}).
-   * @param targetPropertyKey
-   *          the property to set (not {@code null}).
-   * @param ifKey
-   *          the property name to check in order to satisfy a condition, or
-   *          {@code null} if there is no condition.
-   * @param ifType
-   *          the property type to check in order to satisfy a condition, or
-   *          {@code null} if there is no condition.
-   * @param ifValue
-   *          the property value to compare for equality in order to satisfy a
-   *          condition, or {@code null} if there is no condition.
-   * @param ifKeyState
-   *          the state of the if-property. If the property is
-   *          {@link PropertyKeyState#ABSENT}, then execute the set directory
-   *          only if the if-key is absent.
-   * @return {@code true} if the set operation should be executed by the
-   *         upgrade, {@code false} otherwise.
-   */
   private boolean isOperationAllowed(Cluster cluster, String configType, String targetPropertyKey,
       String ifKey, String ifType, String ifValue, PropertyKeyState ifKeyState){
     boolean isAllowed = true;
 
     boolean ifKeyIsNotBlank = StringUtils.isNotBlank(ifKey);
     boolean ifTypeIsNotBlank = StringUtils.isNotBlank(ifType);
-    boolean ifValueIsBlank = StringUtils.isBlank(ifValue);
 
-    // if-key/if-type and no value - set only if absent
-    if (ifKeyIsNotBlank && ifTypeIsNotBlank && ifValueIsBlank && ifKeyState == PropertyKeyState.ABSENT) {
+    if (ifKeyIsNotBlank && ifTypeIsNotBlank && ifKeyState == PropertyKeyState.ABSENT) {
       boolean keyPresent = getDesiredConfigurationKeyPresence(cluster, ifType, ifKey);
       if (keyPresent) {
         LOG.info("Skipping property operation for {}/{} as the key {} for {} is present",
           configType, targetPropertyKey, ifKey, ifType);
         isAllowed = false;
       }
-      // if-key/if-type and no value - set only is present
-    } else if (ifKeyIsNotBlank && ifTypeIsNotBlank && ifValueIsBlank && ifKeyState == PropertyKeyState.PRESENT) {
+    } else if (ifKeyIsNotBlank && ifTypeIsNotBlank && ifValue == null &&
+      ifKeyState == PropertyKeyState.PRESENT) {
       boolean keyPresent = getDesiredConfigurationKeyPresence(cluster, ifType, ifKey);
       if (!keyPresent) {
         LOG.info("Skipping property operation for {}/{} as the key {} for {} is not present",
           configType, targetPropertyKey, ifKey, ifType);
         isAllowed = false;
       }
-      // if-key/if-type and a value to check - set only if values match
-    } else if (ifKeyIsNotBlank && ifTypeIsNotBlank && !ifValueIsBlank) {
+    } else if (ifKeyIsNotBlank && ifTypeIsNotBlank && ifValue != null) {
+
       String ifConfigType = ifType;
       String checkValue = getDesiredConfigurationValue(cluster, ifConfigType, ifKey);
-
-      // the check value is blank and there is an if-key-state of ABSENT - in
-      // this case, it means set the value if it matches or if it's absent
-      if (ifKeyState == PropertyKeyState.ABSENT) {
-        boolean keyPresent = getDesiredConfigurationKeyPresence(cluster, ifType, ifKey);
-        if (!keyPresent) {
-          return true;
-        }
-      }
-
-      // the if-key was found, so we need to do a comparison
-      if (!StringUtils.equalsIgnoreCase(ifValue, checkValue)) {
+      if (!ifValue.toLowerCase().equals(StringUtils.lowerCase(checkValue))) {
         // skip adding
         LOG.info("Skipping property operation for {}/{} as the value {} for {}/{} is not equal to {}",
                  configType, targetPropertyKey, checkValue, ifConfigType, ifKey, ifValue);

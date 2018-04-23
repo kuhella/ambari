@@ -27,7 +27,6 @@ from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.core.resources import Execute
 from resource_management.core import global_lock
-from resource_management.core.signal_utils import TerminateStrategy
 
 stack_root = Script.get_stack_root()
 
@@ -141,12 +140,7 @@ def execute(configurations={}, parameters={}, host_name=None):
 
         start_time = time.time()
         try:
-            Execute(cmd,
-                    user=hiveruser,
-                    path=[beeline_cmd],
-                    timeout=CHECK_COMMAND_TIMEOUT_DEFAULT,
-                    timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_TREE,
-            )
+            Execute(cmd, user=hiveruser, path=[beeline_cmd], timeout=CHECK_COMMAND_TIMEOUT_DEFAULT)
             total_time = time.time() - start_time
             result_code = 'OK'
             label = OK_MESSAGE.format(total_time, port)

@@ -68,28 +68,19 @@ module.exports = {
       },
       'driver': 'com.mysql.jdbc.Driver',
       'sql_jar_connector': '/usr/share/java/mysql-connector-java.jar',
-      'db_type': 'mysql',
-      'db_name': 'MySQL',
-      'driver_download_url': 'https://dev.mysql.com/downloads/connector/j/',
-      'driver_name': 'MySQL Connector/J JDBC Driver'
+      'db_type': 'mysql'
     },
     'POSTGRES': {
       'connection_url': 'jdbc:postgresql://{0}:5432/{1}',
       'driver': 'org.postgresql.Driver',
       'sql_jar_connector': '/usr/share/java/postgresql.jar',
-      'db_type': 'postgres',
-      'db_name': 'PostgreSQL',
-      'driver_download_url': 'https://jdbc.postgresql.org/',
-      'driver_name': 'PostgreSQL JDBC Driver'
+      'db_type': 'postgres'
     },
     'ORACLE': {
       'connection_url': 'jdbc:oracle:thin:@//{0}:1521/{1}',
       'driver': 'oracle.jdbc.driver.OracleDriver',
       'sql_jar_connector': '/usr/share/java/ojdbc6.jar',
-      'db_type': 'oracle',
-      'db_name': 'Oracle',
-      'driver_download_url': 'http://www.oracle.com/technetwork/database/features/jdbc/index-091264.html',
-      'driver_name': 'Oracle JDBC Driver'
+      'db_type': 'oracle'
     },
     'MSSQL': {
       'connection_url': 'jdbc:sqlserver://{0};databaseName={1}',

@@ -31,6 +31,9 @@ from setup_ranger_hbase import setup_ranger_hbase
          
 class HbaseMaster(Script):
 
+  def get_component_name(self):
+    return "hbase-master"
+
   def install(self, env):
     self.install_packages(env)
     
@@ -43,7 +46,7 @@ class HbaseMaster(Script):
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    upgrade.prestart(env)
+    upgrade.prestart(env, "hbase-master")
 
   def start(self, env, upgrade_type=None):
     import params

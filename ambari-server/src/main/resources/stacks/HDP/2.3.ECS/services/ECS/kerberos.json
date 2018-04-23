@@ -4,8 +4,7 @@
       "name": "ECS",
       "identities": [
         {
-          "name": "ecs_smokeuser",
-          "reference": "/smokeuser"
+          "name": "/smokeuser"
         },
         {
           "name": "hdfs",

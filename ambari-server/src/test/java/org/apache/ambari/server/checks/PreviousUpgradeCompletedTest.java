@@ -44,12 +44,13 @@ public class PreviousUpgradeCompletedTest {
   private final Cluster cluster = Mockito.mock(Cluster.class);
   private StackId sourceStackId = new StackId("HDP", "2.2");
   private StackId targetStackId = new StackId("HDP", "2.2");
-  private String destRepositoryVersion = "2.2.8.0-5678";
+  private final RepositoryVersionEntity sourceRepositoryVersion = Mockito.mock(RepositoryVersionEntity.class);
+  private final RepositoryVersionEntity targetRepositoryVersion = Mockito.mock(RepositoryVersionEntity.class);
+  private String sourceVersion = "2.2.6.0-1234";
+  private String destVersion = "2.2.8.0-5678";
   private String clusterName = "cluster";
   private PrereqCheckRequest checkRequest = new PrereqCheckRequest(clusterName);
   private PreviousUpgradeCompleted puc = new PreviousUpgradeCompleted();
-
-  private RepositoryVersionEntity toRepsitoryVersion;
 
   /**
    *
@@ -66,12 +67,9 @@ public class PreviousUpgradeCompletedTest {
     stack.setStackName(stackId.getStackName());
     stack.setStackVersion(stackId.getStackVersion());
 
-    toRepsitoryVersion = Mockito.mock(RepositoryVersionEntity.class);
-    Mockito.when(toRepsitoryVersion.getVersion()).thenReturn(destRepositoryVersion);
-    Mockito.when(toRepsitoryVersion.getStackId()).thenReturn(targetStackId);
-
+    checkRequest.setRepositoryVersion(sourceVersion);
     checkRequest.setSourceStackId(sourceStackId);
-    checkRequest.setTargetRepositoryVersion(toRepsitoryVersion);
+    checkRequest.setTargetStackId(targetStackId);
 
     puc.clustersProvider = new Provider<Clusters>() {
       @Override
@@ -79,6 +77,7 @@ public class PreviousUpgradeCompletedTest {
         return clusters;
       }
     };
+
   }
 
   @Test
@@ -93,7 +92,8 @@ public class PreviousUpgradeCompletedTest {
     UpgradeEntity upgradeInProgress = Mockito.mock(UpgradeEntity.class);
     Mockito.when(upgradeInProgress.getDirection()).thenReturn(Direction.UPGRADE);
     Mockito.when(upgradeInProgress.getClusterId()).thenReturn(1L);
-    Mockito.when(upgradeInProgress.getRepositoryVersion()).thenReturn(toRepsitoryVersion);
+    Mockito.when(upgradeInProgress.getFromRepositoryVersion()).thenReturn(sourceRepositoryVersion);
+    Mockito.when(upgradeInProgress.getToRepositoryVersion()).thenReturn(targetRepositoryVersion);
 
     Mockito.when(cluster.getUpgradeInProgress()).thenReturn(upgradeInProgress);
     check = new PrerequisiteCheck(null, null);

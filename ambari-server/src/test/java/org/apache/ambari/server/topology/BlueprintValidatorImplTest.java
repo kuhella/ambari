@@ -18,11 +18,6 @@
 
 package org.apache.ambari.server.topology;
 
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -42,6 +37,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
 
 /**
  * BlueprintValidatorImpl unit tests.
@@ -216,8 +216,6 @@ public class BlueprintValidatorImplTest {
 
     services.addAll(Arrays.asList("HIVE"));
 
-    org.apache.ambari.server.configuration.Configuration serverConfig =
-        BlueprintImplTest.setupConfigurationWithGPLLicense(true);
     expect(group1.getConfiguration()).andReturn(new Configuration(new HashMap(), new HashMap())).anyTimes();
 
     expect(stack.getComponents("HIVE")).andReturn(Collections.singleton("HIVE_METASTORE")).anyTimes();
@@ -226,7 +224,7 @@ public class BlueprintValidatorImplTest {
 
     expect(blueprint.getHostGroupsForComponent("HIVE_METASTORE")).andReturn(Collections.singleton(group1)).anyTimes();
 
-    replay(blueprint, stack, group1, group2, dependency1, serverConfig);
+    replay(blueprint, stack, group1, group2, dependency1);
     BlueprintValidator validator = new BlueprintValidatorImpl(blueprint);
     validator.validateRequiredProperties();
   }
@@ -241,8 +239,6 @@ public class BlueprintValidatorImplTest {
 
     services.addAll(Arrays.asList("OOZIE"));
 
-    org.apache.ambari.server.configuration.Configuration serverConfig =
-        BlueprintImplTest.setupConfigurationWithGPLLicense(true);
     expect(group1.getConfiguration()).andReturn(new Configuration(new HashMap(), new HashMap())).anyTimes();
 
     expect(stack.getComponents("OOZIE")).andReturn(Collections.singleton("OOZIE_SERVER")).anyTimes();
@@ -251,7 +247,7 @@ public class BlueprintValidatorImplTest {
 
     expect(blueprint.getHostGroupsForComponent("OOZIE_SERVER")).andReturn(Collections.singleton(group1)).anyTimes();
 
-    replay(blueprint, stack, group1, group2, dependency1, serverConfig);
+    replay(blueprint, stack, group1, group2, dependency1);
     BlueprintValidator validator = new BlueprintValidatorImpl(blueprint);
     validator.validateRequiredProperties();
   }

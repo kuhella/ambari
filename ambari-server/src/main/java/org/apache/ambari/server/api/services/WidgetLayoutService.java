@@ -17,23 +17,19 @@
  */
 package org.apache.ambari.server.api.services;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.sun.jersey.core.util.Base64;
+import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.controller.spi.Resource;
 
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-
-import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.controller.spi.Resource;
+import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * WidgetLayout Service
@@ -68,6 +64,7 @@ public class WidgetLayoutService extends BaseService {
   @GET
   @Produces("text/plain")
   public Response getServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+    System.out.println("###########");
     return handleRequest(headers, body, ui, Request.Type.GET,
             createResource(null));
   }
@@ -115,7 +112,7 @@ public class WidgetLayoutService extends BaseService {
   }
 
   private ResourceInstance createResource(String widgetLayoutId) {
-    Map<Resource.Type,String> mapIds = new HashMap<>();
+    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
     mapIds.put(Resource.Type.WidgetLayout, widgetLayoutId);
     mapIds.put(Resource.Type.Cluster, clusterName);
     return createResource(Resource.Type.WidgetLayout, mapIds);

@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -57,13 +57,13 @@ import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -79,7 +79,7 @@ import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.topology.TopologyRequest;
-import org.apache.ambari.server.topology.tasks.TopologyHostTask;
+import org.apache.ambari.server.topology.tasks.TopologyTask;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.junit.After;
 import org.junit.Before;
@@ -125,11 +125,11 @@ public class ClustersTest {
   }
 
   private void setOsFamily(Host host, String osFamily, String osVersion) {
-    Map<String, String> hostAttributes = new HashMap<>();
-    hostAttributes.put("os_family", osFamily);
-    hostAttributes.put("os_release_version", osVersion);
+	  Map<String, String> hostAttributes = new HashMap<String, String>();
+	  hostAttributes.put("os_family", osFamily);
+	  hostAttributes.put("os_release_version", osVersion);
 
-    host.setHostAttributes(hostAttributes);
+	  host.setHostAttributes(hostAttributes);
   }
 
   @Test
@@ -146,9 +146,8 @@ public class ClustersTest {
 
   @Test
   public void testAddAndGetCluster() throws AmbariException {
-    StackId stackId = new StackId("HDP-2.1.1");
 
-    helper.createStack(stackId);
+    StackId stackId = new StackId("HDP-2.1.1");
 
     String c1 = "foo";
     String c2 = "foo";
@@ -201,8 +200,6 @@ public class ClustersTest {
   @Test
   public void testAddAndGetClusterWithSecurityType() throws AmbariException {
     StackId stackId = new StackId("HDP-2.1.1");
-
-    helper.createStack(stackId);
 
     String c1 = "foo";
     SecurityType securityType = SecurityType.KERBEROS;
@@ -269,8 +266,6 @@ public class ClustersTest {
 
     StackId stackId = new StackId("HDP-0.1");
 
-    helper.createStack(stackId);
-
     clusters.addCluster(c1, stackId);
     clusters.addCluster(c2, stackId);
 
@@ -281,6 +276,15 @@ public class ClustersTest {
 
     cluster1.setDesiredStackVersion(stackId);
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    cluster1.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.INSTALLING);
+    cluster1.transitionClusterVersion(stackId, stackId.getStackVersion(),
+        RepositoryVersionState.CURRENT);
+    cluster2.setDesiredStackVersion(stackId);
+    cluster2.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.INSTALLING);
+    cluster2.transitionClusterVersion(stackId, stackId.getStackVersion(),
+        RepositoryVersionState.CURRENT);
 
     try {
       clusters.mapHostToCluster(h1, c1);
@@ -323,7 +327,7 @@ public class ClustersTest {
     Cluster c4 = (Cluster) clusters.getClustersForHost(h2).toArray()[0];
 
     Assert.assertEquals(c3, c4);
-    Set<String> hostnames = new HashSet<>();
+    Set<String> hostnames = new HashSet<String>();
     hostnames.add(h1);
     hostnames.add(h2);
 
@@ -355,8 +359,6 @@ public class ClustersTest {
 
     StackId stackId = new StackId("HDP-0.1");
 
-    helper.createStack(stackId);
-
     clusters.addCluster(c1, stackId);
     clusters.addCluster(c2, stackId);
     Cluster cluster1 = clusters.getCluster(c1);
@@ -365,7 +367,15 @@ public class ClustersTest {
     Assert.assertNotNull(clusters.getCluster(c2));
 
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-
+    cluster1.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.INSTALLING);
+    cluster1.transitionClusterVersion(stackId, stackId.getStackVersion(),
+        RepositoryVersionState.CURRENT);
+    cluster2.setDesiredStackVersion(stackId);
+    cluster2.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.INSTALLING);
+    cluster2.transitionClusterVersion(stackId, stackId.getStackVersion(),
+        RepositoryVersionState.CURRENT);
     clusters.addHost(h1);
     clusters.addHost(h2);
     clusters.addHost(h3);
@@ -387,18 +397,17 @@ public class ClustersTest {
     final String h2 = "h2";
 
     StackId stackId = new StackId("HDP-0.1");
-
-    helper.createStack(stackId);
-
     clusters.addCluster(c1, stackId);
 
     Cluster cluster = clusters.getCluster(c1);
 
     cluster.setDesiredStackVersion(stackId);
     cluster.setCurrentStackVersion(stackId);
-
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
-        stackId.getStackVersion());
+    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.INSTALLING);
+    cluster.transitionClusterVersion(stackId, stackId.getStackVersion(),
+        RepositoryVersionState.CURRENT);
 
     final Config config1 = injector.getInstance(ConfigFactory.class).createNew(cluster, "t1", "1",
         new HashMap<String, String>() {{
@@ -417,7 +426,7 @@ public class ClustersTest {
     clusters.addHost(h2);
 
     Host host1 = clusters.getHost(h1);
-
+    Host host2 = clusters.getHost(h2);
     setOsFamily(clusters.getHost(h1), "centos", "5.9");
     setOsFamily(clusters.getHost(h2), "centos", "5.9");
 
@@ -430,7 +439,7 @@ public class ClustersTest {
     // host config override
     host1.addDesiredConfig(cluster.getClusterId(), true, "_test", config2);
 
-    Service hdfs = cluster.addService("HDFS", repositoryVersion);
+    Service hdfs = cluster.addService("HDFS");
 
     Assert.assertNotNull(injector.getInstance(ClusterServiceDAO.class).findByClusterAndServiceNames(c1, "HDFS"));
 
@@ -460,7 +469,7 @@ public class ClustersTest {
     ));
     Assert.assertEquals(2, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigEntity config").getResultList().size());
     Assert.assertEquals(1, injector.getProvider(EntityManager.class).get().createQuery("SELECT state FROM ClusterStateEntity state").getResultList().size());
-    Assert.assertEquals(1, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigEntity config WHERE config.selected = 1").getResultList().size());
+    Assert.assertEquals(1, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigMappingEntity config").getResultList().size());
 
     // add topology request
     Blueprint bp = createNiceMock(Blueprint.class);
@@ -501,6 +510,7 @@ public class ClustersTest {
     ));
     Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigEntity config").getResultList().size());
     Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT state FROM ClusterStateEntity state").getResultList().size());
+    Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigMappingEntity config").getResultList().size());
     Assert.assertEquals(0, topologyRequestDAO.findByClusterId(cluster.getClusterId()).size());
   }
 
@@ -650,7 +660,7 @@ public class ClustersTest {
     expect(hr.getHostgroupName()).andReturn("MyHostGroup").anyTimes();
     expect(hr.getHostName()).andReturn(hostName).anyTimes();
     expect(hr.getStageId()).andReturn(1L);
-    expect(hr.getTopologyTasks()).andReturn(Collections.<TopologyHostTask>emptyList());
+    expect(hr.getTopologyTasks()).andReturn(Collections.<TopologyTask>emptyList());
 
     replay(hr);
     return hr;
@@ -688,9 +698,6 @@ public class ClustersTest {
 
   private Cluster createCluster(String clusterName) throws AmbariException {
     StackId stackId = new StackId("HDP-0.1");
-
-    helper.createStack(stackId);
-
     clusters.addCluster(clusterName, stackId);
 
     return clusters.getCluster(clusterName);

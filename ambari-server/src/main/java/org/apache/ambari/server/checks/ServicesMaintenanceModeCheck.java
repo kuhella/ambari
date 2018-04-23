@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.checks;
 
-import java.util.Set;
+import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
@@ -49,11 +49,10 @@ public class ServicesMaintenanceModeCheck extends AbstractCheckDescriptor {
 
   @Override
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
-    final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
-    Set<String> servicesInUpgrade = getServicesInUpgrade(request);
-
-    for (String serviceName : servicesInUpgrade) {
-      final Service service = cluster.getService(serviceName);
+    final String clusterName = request.getClusterName();
+    final Cluster cluster = clustersProvider.get().getCluster(clusterName);
+    for (Map.Entry<String, Service> serviceEntry : cluster.getServices().entrySet()) {
+      final Service service = serviceEntry.getValue();
       if (!service.isClientOnlyService() && service.getMaintenanceState() == MaintenanceState.ON) {
         prerequisiteCheck.getFailedOn().add(service.getName());
       }

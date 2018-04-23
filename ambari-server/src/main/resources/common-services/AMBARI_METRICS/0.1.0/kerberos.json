@@ -4,8 +4,7 @@
       "name": "AMBARI_METRICS",
       "identities": [
         {
-          "name": "ambari_metrics_spnego",
-          "reference": "/spnego"
+          "name": "/spnego"
         }
       ],
       "components": [
@@ -13,8 +12,7 @@
           "name": "METRICS_COLLECTOR",
           "identities": [
             {
-              "name": "ambari_metrics_metrics_collector_hdfs",
-              "reference": "/HDFS/NAMENODE/hdfs",
+              "name": "/HDFS/NAMENODE/hdfs",
               "when" : {
                 "contains" : ["services", "HDFS"]
               }

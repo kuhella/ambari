@@ -20,12 +20,12 @@ limitations under the License.
 # For compatibility with different OSes
 # Edit PYTHONPATH to be able to import common_functions
 import sys
-sys.path.append("/usr/lib/ambari-agent/lib/")
+sys.path.append("/usr/lib/python2.6/site-packages/")
 ########################################################
 
 import os
 import string
-from ambari_commons import subprocess32
+import subprocess
 import logging
 import shutil
 import platform
@@ -36,8 +36,9 @@ import shlex
 import datetime
 import tempfile
 from AmbariConfig import AmbariConfig
+from ambari_agent.Constants import AGENT_TMP_DIR
 from ambari_commons import OSCheck, OSConst
-from ambari_commons.constants import AMBARI_SUDO_BINARY, AGENT_TMP_DIR
+from ambari_commons.constants import AMBARI_SUDO_BINARY
 from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
 
 logger = logging.getLogger()
@@ -234,8 +235,8 @@ class HostCleanup:
     command = ALT_DISP_CMD.format(alt_name)
     out = None
     try:
-      p1 = subprocess32.Popen(shlex.split(command), stdout=subprocess32.PIPE)
-      p2 = subprocess32.Popen(["grep", "priority"], stdin=p1.stdout, stdout=subprocess32.PIPE)
+      p1 = subprocess.Popen(shlex.split(command), stdout=subprocess.PIPE)
+      p2 = subprocess.Popen(["grep", "priority"], stdin=p1.stdout, stdout=subprocess.PIPE)
       p1.stdout.close()
       out = p2.communicate()[0]
       logger.debug('alternatives --display ' + alt_name + '\n, out = ' + out)
@@ -474,10 +475,10 @@ class HostCleanup:
     logger.info('Executing command: ' + str(cmd))
     if type(cmd) == str:
       cmd = shlex.split(cmd)
-    process = subprocess32.Popen(cmd,
-                               stdout=subprocess32.PIPE,
-                               stdin=subprocess32.PIPE,
-                               stderr=subprocess32.PIPE
+    process = subprocess.Popen(cmd,
+                               stdout=subprocess.PIPE,
+                               stdin=subprocess.PIPE,
+                               stderr=subprocess.PIPE
     )
     (stdoutdata, stderrdata) = process.communicate()
     return process.returncode, stdoutdata, stderrdata

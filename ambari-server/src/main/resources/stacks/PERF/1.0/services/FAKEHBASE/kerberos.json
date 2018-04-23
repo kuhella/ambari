@@ -4,8 +4,7 @@
       "name": "FAKEHBASE",
       "identities": [
         {
-          "name": "fakehbase_spnego",
-          "reference": "/spnego"
+          "name": "/spnego"
         },
         {
           "name": "hbase",
@@ -29,8 +28,7 @@
           }
         },
         {
-          "name": "fakehbase_smokeuser",
-          "reference": "/smokeuser"
+          "name": "/smokeuser"
         }
       ],
       "configurations": [
@@ -62,8 +60,7 @@
           "name": "FAKEHBASE_MASTER",
           "identities": [
             {
-              "name": "fakehbase_fakehbase_master_hdfs",
-              "reference": "/FAKEHDFS/FAKENAMENODE/hdfs"
+              "name": "/FAKEHDFS/FAKENAMENODE/hdfs"
             },
             {
               "name": "hbase_master_hbase",
@@ -87,8 +84,7 @@
               }
             },
             {
-              "name": "fakehbase_fakehbase_master_spnego",
-              "reference": "/spnego",
+              "name": "/spnego",
               "principal": {
                 "configuration": "hbase-site/hbase.security.authentication.spnego.kerberos.principal"
               },
@@ -133,8 +129,7 @@
               }
             },
             {
-              "name": "fakehbase_fakehbase_regionserver_spnego",
-              "reference": "/spnego",
+              "name": "/spnego",
               "principal": {
                 "configuration": "hbase-site/hbase.security.authentication.spnego.kerberos.principal"
               },

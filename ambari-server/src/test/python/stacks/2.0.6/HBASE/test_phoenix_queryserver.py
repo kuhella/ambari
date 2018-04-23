@@ -32,9 +32,6 @@ class TestPhoenixQueryServer(RMFTestCase):
   STACK_VERSION = "2.3"
   TMP_PATH = "/hadoop"
 
-  CONFIG_OVERRIDES = {"serviceName":"HBASE", "role":"PHOENIX_QUERY_SERVER"}
-
-  @patch("resource_management.core.sudo.path_isdir", new = MagicMock(return_value = True))
   def test_configure_default(self):
     self.executeScript(
       self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
@@ -49,7 +46,6 @@ class TestPhoenixQueryServer(RMFTestCase):
     self.assert_configure_default()
     self.assertNoMoreResources()
 
-  @patch("resource_management.core.sudo.path_isdir", new = MagicMock(return_value = True))
   def test_start_default(self):
     self.executeScript(
       self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
@@ -69,7 +65,6 @@ class TestPhoenixQueryServer(RMFTestCase):
     )
     self.assertNoMoreResources()
 
-  @patch("resource_management.core.sudo.path_isdir", new = MagicMock(return_value = True))
   def test_stop_default(self):
     self.executeScript(
       self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
@@ -93,7 +88,6 @@ class TestPhoenixQueryServer(RMFTestCase):
     )
     self.assertNoMoreResources()
 
-  @patch("resource_management.core.sudo.path_isdir", new = MagicMock(return_value = True))
   def test_configure_secured(self):
     self.executeScript(
       self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
@@ -108,7 +102,6 @@ class TestPhoenixQueryServer(RMFTestCase):
     self.assert_configure_secured()
     self.assertNoMoreResources()
 
-  @patch("resource_management.core.sudo.path_isdir", new = MagicMock(return_value = True))
   def test_start_secured(self):
     self.executeScript(
       self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
@@ -128,7 +121,6 @@ class TestPhoenixQueryServer(RMFTestCase):
     )
     self.assertNoMoreResources()
 
-  @patch("resource_management.core.sudo.path_isdir", new = MagicMock(return_value = True))
   def test_stop_secured(self):
     self.executeScript(
       self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
@@ -428,7 +420,6 @@ class TestPhoenixQueryServer(RMFTestCase):
       content = InlineTemplate('log4jproperties\nline2')
     )
 
-  @patch("resource_management.core.sudo.path_isdir", new = MagicMock(return_value = True))
   def test_upgrade_restart(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.3/configs/hbase_default.json"
     with open(config_file, "r") as f:
@@ -441,10 +432,14 @@ class TestPhoenixQueryServer(RMFTestCase):
       classname = "PhoenixQueryServer",
       command = "pre_upgrade_restart",
       config_dict = json_content,
-      config_overrides = self.CONFIG_OVERRIDES,
       call_mocks = [(0, "/etc/hbase/2.3.0.0-1234/0", ''), (0, None, None), (0, None, None)],
       stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES)
 
+    self.assertResourceCalled('Directory', '/etc/hbase/2.3.0.0-1234/0',
+        create_parents = True,
+        mode = 0755,
+        cd_access = 'a',
+    )
     self.assertResourceCalledIgnoreEarlier('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'phoenix-server', '2.3.0.0-1234'), sudo=True)
     self.assertNoMoreResources()

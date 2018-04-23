@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -22,7 +22,6 @@ import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 
 public interface ServiceComponent {
 
@@ -52,18 +51,13 @@ public interface ServiceComponent {
 
   void setDesiredState(State state);
 
-  /**
-   * Gets the desired repository for this service component.
-   *
-   * @return
-   */
-  RepositoryVersionEntity getDesiredRepositoryVersion();
+  StackId getDesiredStackVersion();
 
-  StackId getDesiredStackId();
+  void setDesiredStackVersion(StackId stackVersion);
 
   String getDesiredVersion();
 
-  void setDesiredRepositoryVersion(RepositoryVersionEntity repositoryVersionEntity);
+  void setDesiredVersion(String version);
 
   /**
    * Refresh Component info due to current stack
@@ -103,19 +97,4 @@ public interface ServiceComponent {
       String hostName) throws AmbariException;
 
   void delete() throws AmbariException;
-
-  /**
-   * This method computes the state of the repository that's associated with the desired
-   * version.  It is used, for example, when a host component reports its version and the
-   * state can be in flux.
-   *
-   * @param reportedVersion
-   * @throws AmbariException
-   */
-  void updateRepositoryState(String reportedVersion) throws AmbariException;
-
-  /**
-   * @return the repository state for the desired version
-   */
-  RepositoryVersionState getRepositoryState();
 }

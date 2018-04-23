@@ -4,8 +4,7 @@
       "name": "KAFKA",
       "identities": [
         {
-          "name": "kafka_smokeuser",
-          "reference": "/smokeuser"
+          "name": "/smokeuser"
         }
       ],
       "configurations": [
@@ -47,8 +46,7 @@
               }
             },
             {
-              "name": "kafka_kafka_broker_hdfs",
-              "reference": "/HDFS/NAMENODE/hdfs",
+              "name": "/HDFS/NAMENODE/hdfs",
               "when" : {
                 "contains" : ["services", "HDFS"]
               }

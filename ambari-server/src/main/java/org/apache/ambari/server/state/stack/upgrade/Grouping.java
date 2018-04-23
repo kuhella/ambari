@@ -71,7 +71,7 @@ public class Grouping {
   public boolean allowRetry = true;
 
   @XmlElement(name="service")
-  public List<UpgradePack.OrderService> services = new ArrayList<>();
+  public List<UpgradePack.OrderService> services = new ArrayList<UpgradePack.OrderService>();
 
   @XmlElement(name="service-check", defaultValue="true")
   public boolean performServiceCheck = true;
@@ -93,21 +93,6 @@ public class Grouping {
   public Condition condition;
 
   /**
-   * @return {@code true} when the grouping is used to upgrade services and that it is
-   * appropriate to run service checks after orchestration.
-   */
-  public final boolean isProcessingGroup() {
-    return serviceCheckAfterProcessing();
-  }
-
-  /**
-   * Overridable function to indicate if full service checks can be run
-   */
-  protected boolean serviceCheckAfterProcessing() {
-    return true;
-  }
-
-  /**
    * Gets the default builder.
    */
   public StageWrapperBuilder getBuilder() {
@@ -116,8 +101,8 @@ public class Grouping {
 
   private static class DefaultBuilder extends StageWrapperBuilder {
 
-    private List<StageWrapper> m_stages = new ArrayList<>();
-    private Set<String> m_servicesToCheck = new HashSet<>();
+    private List<StageWrapper> m_stages = new ArrayList<StageWrapper>();
+    private Set<String> m_servicesToCheck = new HashSet<String>();
     private boolean m_serviceCheck = true;
 
     private DefaultBuilder(Grouping grouping, boolean serviceCheck) {
@@ -182,7 +167,7 @@ public class Grouping {
      * @return List of list of TaskWrappers, where each outer list is a separate stage.
      */
     private List<List<TaskWrapper>> organizeTaskWrappersBySyncRules(List<TaskWrapper> tasks) {
-      List<List<TaskWrapper>> groupedTasks = new ArrayList<>();
+      List<List<TaskWrapper>> groupedTasks = new ArrayList<List<TaskWrapper>>();
 
       List<TaskWrapper> subTasks = new ArrayList<>();
       for (TaskWrapper tw : tasks) {
@@ -225,13 +210,8 @@ public class Grouping {
       // Expand some of the TaskWrappers into multiple based on the batch size.
       for (TaskWrapper tw : tasks) {
         List<Set<String>> hostSets = null;
-
-        if (m_grouping.parallelScheduler != null) {
-          int taskParallelism = m_grouping.parallelScheduler.maxDegreeOfParallelism;
-          if (taskParallelism == Integer.MAX_VALUE) {
-            taskParallelism = ctx.getDefaultMaxDegreeOfParallelism();
-          }
-          hostSets = SetUtils.split(tw.getHosts(), taskParallelism);
+        if (m_grouping.parallelScheduler != null && m_grouping.parallelScheduler.maxDegreeOfParallelism > 0) {
+          hostSets = SetUtils.split(tw.getHosts(), m_grouping.parallelScheduler.maxDegreeOfParallelism);
         } else {
           hostSets = SetUtils.split(tw.getHosts(), 1);
         }
@@ -267,8 +247,8 @@ public class Grouping {
         m_stages.addAll(0, stageWrappers);
       }
 
-      List<TaskWrapper> tasks = new ArrayList<>();
-      List<String> displays = new ArrayList<>();
+      List<TaskWrapper> tasks = new ArrayList<TaskWrapper>();
+      List<String> displays = new ArrayList<String>();
       for (String service : m_servicesToCheck) {
         tasks.add(new TaskWrapper(
             service, "", Collections.<String>emptySet(), new ServiceCheckTask()));
@@ -297,7 +277,7 @@ public class Grouping {
       return Collections.emptyList();
     }
 
-    List<TaskBucket> holders = new ArrayList<>();
+    List<TaskBucket> holders = new ArrayList<TaskBucket>();
 
     TaskBucket current = null;
 
@@ -321,7 +301,7 @@ public class Grouping {
 
   private static class TaskBucket {
     private StageWrapper.Type type;
-    private List<Task> tasks = new ArrayList<>();
+    private List<Task> tasks = new ArrayList<Task>();
     private TaskBucket(Task initial) {
       switch (initial.getType()) {
         case CONFIGURE:
@@ -330,7 +310,7 @@ public class Grouping {
           type = StageWrapper.Type.SERVER_SIDE_ACTION;
           break;
         case EXECUTE:
-          type = StageWrapper.Type.UPGRADE_TASKS;
+          type = StageWrapper.Type.RU_TASKS;
           break;
         case CONFIGURE_FUNCTION:
           type = StageWrapper.Type.CONFIGURE;

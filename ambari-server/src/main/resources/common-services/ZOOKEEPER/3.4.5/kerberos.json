@@ -4,8 +4,7 @@
       "name": "ZOOKEEPER",
       "identities": [
         {
-          "name": "zookeeper_smokeuser",
-          "reference": "/smokeuser"
+          "name": "/smokeuser"
         }
       ],
       "components": [

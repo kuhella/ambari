@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.checks;
 
-import java.util.Set;
+import java.util.Arrays;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
@@ -27,7 +27,6 @@ import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 
-import com.google.common.collect.Sets;
 import com.google.inject.Singleton;
 
 /**
@@ -48,12 +47,9 @@ public class KafkaKerberosCheck extends AbstractCheckDescriptor {
     super(CheckDescription.KAFKA_KERBEROS_CHECK);
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
-  public Set<String> getApplicableServices() {
-    return Sets.newHashSet(KAFKA_SERVICE);
+  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
+    return super.isApplicable(request, Arrays.asList(KAFKA_SERVICE), true);
   }
 
   @Override

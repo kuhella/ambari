@@ -58,11 +58,6 @@ module.exports = App.WizardRoute.extend({
                 self.exitWizard();
               }, true);
               break;
-            case "8":
-              kerberosWizardController.warnBeforeExitPopup(function () {
-                self.exitWizard(true);
-              }, false);
-              break;
             default:
               kerberosWizardController.warnBeforeExitPopup(function () {
                 self.exitWizard();
@@ -74,17 +69,20 @@ module.exports = App.WizardRoute.extend({
           this.fitHeight();
         },
 
-        exitWizard: function (skipDiscardChanges) {
+        exitWizard: function () {
+          var kerberosProgressPageController = App.router.get('kerberosProgressPageController');
           var controller = App.router.get('kerberosWizardController');
           var exitPath = controller.getDBProperty('onClosePath') || 'adminKerberos.index';
           controller.clearTasksData();
-          if (skipDiscardChanges) {
+          controller.discardChanges().then(function() {
+            if (App.get('testMode')) {
+              App.get('router').transitionTo('adminKerberos.index');
+              Em.run.next(function() {
+                location.reload();
+              });
+            }
             controller.resetOnClose(controller, exitPath);
-          } else {
-            controller.discardChanges().then(function() {
-              controller.resetOnClose(controller, exitPath);
-            });
-          }
+          });
         }
       });
       kerberosWizardController.set('popup', popup);

@@ -21,9 +21,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
@@ -33,7 +33,6 @@ import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
 import org.apache.commons.lang.StringUtils;
 
-import com.google.common.collect.Sets;
 import com.google.inject.Singleton;
 
 /**
@@ -51,21 +50,18 @@ public class ServicesTezDistributedCacheCheck extends AbstractCheckDescriptor {
   static final String DFS_PROTOCOLS_REGEX_PROPERTY_NAME = "dfs-protocols-regex";
   static final String DFS_PROTOCOLS_REGEX_DEFAULT = "^([^:]*dfs|wasb|ecs):.*";
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
-  public Set<String> getApplicableServices() {
-    return Sets.newHashSet("TEZ");
-  }
+  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
+    if (!super.isApplicable(request, Arrays.asList("TEZ"), true)) {
+      return false;
+    }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public List<CheckQualification> getQualifications() {
-    return Arrays.<CheckQualification> asList(
-        new PriorCheckQualification(CheckDescription.SERVICES_NAMENODE_HA));
+    PrereqCheckStatus ha = request.getResult(CheckDescription.SERVICES_NAMENODE_HA);
+    if (null != ha && ha == PrereqCheckStatus.FAIL) {
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -101,7 +97,7 @@ public class ServicesTezDistributedCacheCheck extends AbstractCheckDescriptor {
     final String useHadoopLibs = tezConfig.getProperties().get("tez.use.cluster.hadoop-libs");
     final String defaultFS = coreSiteConfig.getProperties().get("fs.defaultFS");
 
-    List<String> errorMessages = new ArrayList<>();
+    List<String> errorMessages = new ArrayList<String>();
     if (libUris == null || libUris.isEmpty()) {
       errorMessages.add(getFailReason(KEY_LIB_URI_MISSING, prerequisiteCheck, request));
     }

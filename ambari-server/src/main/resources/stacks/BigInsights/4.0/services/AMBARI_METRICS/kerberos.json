@@ -4,12 +4,10 @@
       "name": "AMBARI_METRICS",
       "identities": [
         {
-          "name": "ambari_metrics_spnego",
-          "reference": "/spnego"
+          "name": "/spnego"
         },
         {
-          "name": "ambari_metrics_hdfs",
-          "reference": "/hdfs"
+          "name": "/hdfs"
         }
       ],
       "components": [

@@ -51,8 +51,6 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.StackId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,8 +92,7 @@ public class ConfigGroupImpl implements ConfigGroup {
 
   @AssistedInject
   public ConfigGroupImpl(@Assisted("cluster") Cluster cluster, @Assisted("name") String name,
-      @Assisted("tag") String tag, @Assisted("serviceName") String serviceName,
-      @Assisted("description") String description,
+      @Assisted("tag") String tag, @Assisted("description") String description,
       @Assisted("configs") Map<String, Config> configurations,
       @Assisted("hosts") Map<Long, Host> hosts, Clusters clusters, ConfigFactory configFactory,
       ClusterDAO clusterDAO, HostDAO hostDAO, ConfigGroupDAO configGroupDAO,
@@ -118,7 +115,6 @@ public class ConfigGroupImpl implements ConfigGroup {
     configGroupEntity.setClusterId(cluster.getClusterId());
     configGroupEntity.setGroupName(name);
     configGroupEntity.setTag(tag);
-    configGroupEntity.setServiceName(serviceName);
     configGroupEntity.setDescription(description);
 
     m_hosts = hosts == null ? new ConcurrentHashMap<Long, Host>()
@@ -152,8 +148,8 @@ public class ConfigGroupImpl implements ConfigGroup {
     configGroupId = configGroupEntity.getGroupId();
     configGroupName = configGroupEntity.getGroupName();
 
-    m_configurations = new ConcurrentHashMap<>();
-    m_hosts = new ConcurrentHashMap<>();
+    m_configurations = new ConcurrentHashMap<String, Config>();
+    m_hosts = new ConcurrentHashMap<Long, Host>();
 
     // Populate configs
     for (ConfigGroupConfigMappingEntity configMappingEntity : configGroupEntity.getConfigGroupConfigMappingEntities()) {
@@ -425,12 +421,8 @@ public class ConfigGroupImpl implements ConfigGroup {
           (cluster.getClusterId(), config.getType(), config.getTag());
 
         if (clusterConfigEntity == null) {
-          String serviceName = getServiceName();
-          Service service = cluster.getServices().get(serviceName);
-          StackId stackId = (null == service) ? cluster.getDesiredStackVersion() : service.getDesiredStackId();
-
-          config = configFactory.createNew(stackId, cluster, config.getType(),
-              config.getTag(), config.getProperties(), config.getPropertiesAttributes());
+          config = configFactory.createNew(cluster, config.getType(), config.getTag(),
+              config.getProperties(), config.getPropertiesAttributes());
 
           entry.setValue(config);
 
@@ -490,17 +482,17 @@ public class ConfigGroupImpl implements ConfigGroup {
 
   @Override
   public ConfigGroupResponse convertToResponse() throws AmbariException {
-    Set<Map<String, Object>> hostnames = new HashSet<>();
+    Set<Map<String, Object>> hostnames = new HashSet<Map<String, Object>>();
     for (Host host : m_hosts.values()) {
-      Map<String, Object> hostMap = new HashMap<>();
+      Map<String, Object> hostMap = new HashMap<String, Object>();
       hostMap.put("host_name", host.getHostName());
       hostnames.add(hostMap);
     }
 
-    Set<Map<String, Object>> configObjMap = new HashSet<>();
+    Set<Map<String, Object>> configObjMap = new HashSet<Map<String, Object>>();
 
     for (Config config : m_configurations.values()) {
-      Map<String, Object> configMap = new HashMap<>();
+      Map<String, Object> configMap = new HashMap<String, Object>();
       configMap.put(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TYPE_PROPERTY_ID,
           config.getType());
       configMap.put(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID,

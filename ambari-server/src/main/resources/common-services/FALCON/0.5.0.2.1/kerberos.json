@@ -4,12 +4,10 @@
       "name": "FALCON",
       "identities": [
         {
-          "name": "falcon_spnego",
-          "reference": "/spnego"
+          "name": "/spnego"
         },
         {
-          "name": "falcon_smokeuser",
-          "reference": "/smokeuser"
+          "name": "/smokeuser"
         }
       ],
       "configurations": [
@@ -29,8 +27,7 @@
           "name": "FALCON_SERVER",
           "identities": [
             {
-              "name": "falcon_falcon_server_hdfs",
-              "reference": "/HDFS/NAMENODE/hdfs"
+              "name": "/HDFS/NAMENODE/hdfs"
             },
             {
               "name": "falcon_server",
@@ -54,8 +51,7 @@
               }
             },
             {
-              "name": "falcon_falcon_server_spnego",
-              "reference": "/spnego",
+              "name": "/spnego",
               "principal": {
                 "value": "HTTP/_HOST@${realm}",
                 "configuration": "falcon-startup.properties/*.falcon.http.authentication.kerberos.principal"

@@ -29,8 +29,7 @@
               }
             },
             {
-              "name": "knox_knox_gateway_knox_principal",
-              "reference": "/KNOX/KNOX_GATEWAY/knox_principal",
+              "name": "/KNOX/KNOX_GATEWAY/knox_principal",
               "principal": {
                 "configuration": "ranger-knox-audit/xasecure.audit.jaas.Client.option.principal"                
               },

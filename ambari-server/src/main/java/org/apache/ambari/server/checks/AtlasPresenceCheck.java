@@ -17,14 +17,15 @@
  */
 package org.apache.ambari.server.checks;
 
-import java.util.Set;
+import java.util.Arrays;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Sets;
 import com.google.inject.Singleton;
 
 /**
@@ -35,18 +36,16 @@ import com.google.inject.Singleton;
 @UpgradeCheck(group = UpgradeCheckGroup.DEFAULT)
 public class AtlasPresenceCheck extends AbstractCheckDescriptor{
 
+  private static final Logger LOG = LoggerFactory.getLogger(AtlasPresenceCheck.class);
   private static final String serviceName = "ATLAS";
 
   public AtlasPresenceCheck(){
     super(CheckDescription.ATLAS_SERVICE_PRESENCE_CHECK);
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
-  public Set<String> getApplicableServices() {
-    return Sets.newHashSet(serviceName);
+  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
+    return super.isApplicable(request, Arrays.asList(serviceName), true);
   }
 
   @Override

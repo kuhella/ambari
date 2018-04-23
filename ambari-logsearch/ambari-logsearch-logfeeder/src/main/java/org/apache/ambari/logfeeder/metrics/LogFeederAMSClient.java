@@ -64,9 +64,6 @@ public class LogFeederAMSClient extends AbstractTimelineMetricsSink {
 
   @Override
   public String getCollectorUri(String host) {
-    if (collectorProtocol == null || host == null || collectorPort == null || collectorPath == null) {
-      return null;
-    }
     return String.format("%s://%s:%s%s", collectorProtocol, host, collectorPort, collectorPath);
   }
 

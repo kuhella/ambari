@@ -26,15 +26,13 @@ export default Ember.Route.extend(FileOperationMixin, {
   queryParams: {
     path: {
       refreshModel: true
-    },
-    filter: {
-      refreshModel: true
     }
   },
   model: function(params) {
     this.store.unloadAll('file');
-    return this.store.query('file', {path: params.path, nameFilter:params.filter});
+    return this.store.query('file', {path: params.path});
   },
+
   setupController: function(controller, model) {
     this._super(controller, model);
     controller.set('searchText', '');
@@ -46,17 +44,7 @@ export default Ember.Route.extend(FileOperationMixin, {
     refreshCurrentRoute: function() {
       this.refresh();
     },
-    searchAction : function(searchText) {
-     this.set('controller.filter', searchText);
 
-     this.transitionTo({
-       queryParams: {
-         path: this.get('currentPath'),
-         filter: searchText
-       }
-     });
-
-    },
     error: function(error, transition) {
       this.get('fileSelectionService').reset();
       let path = transition.queryParams.path;

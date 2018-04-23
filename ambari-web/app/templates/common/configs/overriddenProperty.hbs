@@ -48,9 +48,7 @@
       {{/isAuthorized}}
       <span class="help-inline">{{view.overriddenSCP.errorMessage}}</span>
     {{else}}
-        {{#unless controller.isHostsConfigsPage}}
-            <a class="action">{{view.overriddenSCP.group.switchGroupTextShort}}</a> <i class="icon-spinner"></i>
-        {{/unless}}
+      <a class="action">{{view.overriddenSCP.group.switchGroupTextShort}}</a> <i class="icon-spinner"></i>
     {{/if}}
   {{/if}}
 </div>

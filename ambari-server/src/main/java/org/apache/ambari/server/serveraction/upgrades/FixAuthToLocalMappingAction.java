@@ -62,7 +62,7 @@ public class FixAuthToLocalMappingAction  extends AbstractServerAction {
     String clusterName = getExecutionCommand().getClusterName();
     Cluster cluster = clusters.getCluster(clusterName);
 
-    KerberosDescriptor kd = kerberosHelper.getKerberosDescriptor(cluster, false);
+    KerberosDescriptor kd = kerberosHelper.getKerberosDescriptor(cluster);
     if (kd == null) {
       return null;
     }

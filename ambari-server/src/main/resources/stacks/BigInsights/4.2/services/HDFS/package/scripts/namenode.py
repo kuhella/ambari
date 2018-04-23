@@ -24,6 +24,7 @@ import  tempfile
 from resource_management import Script
 from resource_management.core.resources.system import Execute, File
 from resource_management.core import shell
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
@@ -57,12 +58,15 @@ except ImportError:
 
 class NameNode(Script):
 
+  def get_component_name(self):
+    return "hadoop-hdfs-namenode"
+
   def get_hdfs_binary(self):
     """
     Get the name or path to the hdfs binary depending on the stack and version.
     """
     import params
-    stack_to_comp = "hadoop-hdfs-namenode"
+    stack_to_comp = self.get_component_name()
     if params.stack_name in stack_to_comp:
       return get_hdfs_binary(stack_to_comp[params.stack_name])
     return "hdfs"
@@ -95,7 +99,8 @@ class NameNode(Script):
     env.set_params(params)
 
     if params.version and compare_versions(format_stack_version(params.version), '4.0.0.0') >= 0:
-      stack_select.select_packages(params.version)
+      conf_select.select(params.stack_name, "hadoop", params.version)
+      stack_select.select("hadoop-hdfs-namenode", params.version)
       #Execute(format("iop-select set hadoop-hdfs-namenode {version}"))
 
   def start(self, env, upgrade_type=None):

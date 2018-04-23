@@ -40,16 +40,6 @@ angular.module('ambariAdminConsole')
     display_name: ''
   };
 
-  $scope.isGPLAccepted = false;
-
-  $scope.isGPLRepo = function (repository) {
-    return repository.Repositories.tags.indexOf('GPL') >= 0;
-  };
-
-  $scope.showRepo = function (repository) {
-    return $scope.isGPLAccepted || !$scope.isGPLRepo(repository);
-  };
-
   $scope.publicOption = {
     index: 1,
     hasError: false
@@ -186,15 +176,6 @@ angular.module('ambariAdminConsole')
   };
 
   /**
-   * Load GPL License Accepted value
-   */
-  $scope.fetchGPLLicenseAccepted = function () {
-    Stack.getGPLLicenseAccepted().then(function (data) {
-      $scope.isGPLAccepted = data === 'true';
-    })
-  };
-
-  /**
    * Load supported OS list
    */
   $scope.afterStackVersionRead = function () {
@@ -292,7 +273,8 @@ angular.module('ambariAdminConsole')
         enabled = true
       }
     });
-    return !(enabled && $scope.validBaseUrlsExist());
+    var isRedhatSatelliteSelected = $scope.useRedhatSatellite;
+    return !(isRedhatSatelliteSelected || (enabled && $scope.validBaseUrlsExist()));
   };
 
   $scope.defaulfOSRepos = {};
@@ -362,11 +344,7 @@ angular.module('ambariAdminConsole')
 
   $scope.updateRepoVersions = function () {
     var skip = $scope.skipValidation || $scope.useRedhatSatellite;
-    // Filter out repositories that are not shown in the UI
-    var osList = Object.assign([], $scope.osList).map(function(os) {
-      return Object.assign({}, os, {repositories: os.repositories.filter(function(repo) { return $scope.showRepo(repo); })});
-    });
-    return Stack.validateBaseUrls(skip, osList, $scope.upgradeStack).then(function (invalidUrls) {
+    return Stack.validateBaseUrls(skip, $scope.osList, $scope.upgradeStack).then(function (invalidUrls) {
       if (invalidUrls.length === 0) {
         Stack.updateRepo($scope.upgradeStack.stack_name, $scope.upgradeStack.stack_version, $scope.id, $scope.updateObj).then(function () {
           Alert.success($t('versions.alerts.versionEdited', {
@@ -473,10 +451,8 @@ angular.module('ambariAdminConsole')
 
   $scope.setVersionSelected = function (version) {
     var response = version;
-    var stackVersion = response.updateObj.RepositoryVersions || response.updateObj.VersionDefinition;
     $scope.id = response.id;
-    $scope.isPatch = stackVersion.type === 'PATCH';
-    $scope.isMaint = stackVersion.type === 'MAINT';
+    $scope.isPatch = response.type == 'PATCH';
     $scope.stackNameVersion = response.stackNameVersion || $t('common.NA');
     $scope.displayName = response.displayName || $t('common.NA');
     $scope.actualVersion = response.repositoryVersion || response.actualVersion || $t('common.NA');
@@ -487,15 +463,15 @@ angular.module('ambariAdminConsole')
       stack_version: response.stackVersion,
       display_name: response.displayName || $t('common.NA')
     };
-    $scope.activeStackVersion.services = Stack.filterAvailableServices(response);
+    $scope.services = response.services.filter(function (service) {
+          var skipServices = ['MAPREDUCE2', 'GANGLIA', 'KERBEROS'];
+          return skipServices.indexOf(service.name) === -1;
+        }) || [];
     $scope.repoVersionFullName = response.repoVersionFullName;
     $scope.osList = response.osList;
 
     // load supported os type base on stack version
     $scope.afterStackVersionRead();
-
-    // Load GPL license accepted value
-    $scope.fetchGPLLicenseAccepted();
   };
 
   $scope.selectRepoInList = function() {

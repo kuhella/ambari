@@ -22,6 +22,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
@@ -34,25 +35,18 @@ import java.util.Map;
 
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
-import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.repository.ClusterVersionSummary;
-import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -88,25 +82,12 @@ public class RangerPasswordCheckTest {
       "]}";
 
   private Clusters m_clusters = EasyMock.createMock(Clusters.class);
-  private Map<String, String> m_configMap = new HashMap<>();
+  private Map<String, String> m_configMap = new HashMap<String, String>();
   private RangerPasswordCheck m_rpc = null;
   private URLStreamProvider m_streamProvider = EasyMock.createMock(URLStreamProvider.class);
 
-  @Mock
-  private ClusterVersionSummary m_clusterVersionSummary;
-
-  @Mock
-  private VersionDefinitionXml m_vdfXml;
-
-  @Mock
-  private RepositoryVersionEntity m_repositoryVersion;
-
-  final Map<String, Service> m_services = new HashMap<>();
-
   @Before
   public void setup() throws Exception {
-    MockitoAnnotations.initMocks(this);
-
     m_configMap.put("policymgr_external_url", RANGER_URL);
     m_configMap.put("admin_username", "admin");
     m_configMap.put("admin_password", "pass");
@@ -148,31 +129,38 @@ public class RangerPasswordCheckTest {
 
     EasyMock.reset(m_streamProvider);
     PowerMockito.whenNew(URLStreamProvider.class).withAnyArguments().thenReturn(m_streamProvider);
-
-    m_services.clear();
-
-    Mockito.when(m_repositoryVersion.getType()).thenReturn(RepositoryType.STANDARD);
-    Mockito.when(m_repositoryVersion.getRepositoryXml()).thenReturn(m_vdfXml);
-    Mockito.when(m_vdfXml.getClusterSummary(Mockito.any(Cluster.class))).thenReturn(m_clusterVersionSummary);
-    Mockito.when(m_clusterVersionSummary.getAvailableServiceNames()).thenReturn(m_services.keySet());
   }
 
   @Test
   public void testApplicable() throws Exception {
 
     final Service service = EasyMock.createMock(Service.class);
-    m_services.put("RANGER", service);
+    Map<String, Service> services = new HashMap<>();
+    services.put("RANGER", service);
 
     Cluster cluster = m_clusters.getCluster("cluster");
     EasyMock.reset(cluster);
-    expect(cluster.getServices()).andReturn(m_services).anyTimes();
+    expect(cluster.getServices()).andReturn(services).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP-2.3")).anyTimes();
     replay(cluster);
 
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
-    request.setTargetRepositoryVersion(m_repositoryVersion);
-
+    request.setSourceStackId(new StackId("HDP-2.3"));
     assertTrue(m_rpc.isApplicable(request));
+
+    request = new PrereqCheckRequest("cluster");
+    request.setSourceStackId(new StackId("HDP-2.2"));
+    assertFalse(m_rpc.isApplicable(request));
+
+    EasyMock.reset(cluster);
+    expect(cluster.getServices()).andReturn(services).anyTimes();
+    expect(cluster.getCurrentStackVersion()).andReturn(new StackId("WILDSTACK-2.0")).anyTimes();
+    replay(cluster);
+
+    request = new PrereqCheckRequest("cluster");
+    request.setSourceStackId(new StackId("HDP-2.2"));
+    assertTrue(m_rpc.isApplicable(request));
+
   }
 
   @SuppressWarnings("unchecked")

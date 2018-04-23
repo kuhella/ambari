@@ -260,10 +260,9 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       controller.stopServices.restore();
     });
     it('stopServices is called with valid list of services', function() {
-      controller.set('content.reassign.component_name', 'HISTORYSERVER');
-      controller.set('content.componentsToStopAllServices', ['NAMENODE', 'SECONDARY_NAMENODE'])
+      controller.set('content.reassign.component_name', 'JOBTRACKER');
       controller.stopRequiredServices();
-      expect(controller.stopServices.calledWith(['MAPREDUCE2', 'HIVE', 'PIG', 'OOZIE'], true)).to.be.true;
+      expect(controller.stopServices.calledWith(['PIG', 'OOZIE'], true)).to.be.true;
     });
   });
 
@@ -356,8 +355,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
 
   describe('#stopServices()', function () {
     it('request is sent', function () {
-      var servicesToStop;
-      controller.stopServices(servicesToStop, true, true);
+      controller.stopServices();
       var args = testHelpers.findAjaxRequest('name', 'common.services.update');
       expect(args).exists;
     });
@@ -935,9 +933,9 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       controller.startServices.restore();
     });
     it("component has related services", function() {
-      controller.set('content.reassign.component_name', 'HISTORYSERVER');
+      controller.set('content.reassign.component_name', 'JOBTRACKER');
       controller.startRequiredServices();
-      expect(controller.startServices.calledWith(false, ['MAPREDUCE2', 'HIVE', 'PIG', 'OOZIE'], true)).to.be.true;
+      expect(controller.startServices.calledWith(false, ['PIG', 'OOZIE'], true)).to.be.true;
     });
     it("component does not have related services", function() {
       controller.set('content.reassign.component_name', 'C1');
@@ -1104,18 +1102,15 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         dependencies: [
           Em.Object.create({
             componentName: 'C1',
-            serviceName: 'S1',
-            scope: 'host'
+            serviceName: 'S1'
           }),
           Em.Object.create({
             componentName: 'C2',
-            serviceName: 'S2',
-            scope: 'host'
+            serviceName: 'S2'
           }),
           Em.Object.create({
             componentName: 'C3',
-            serviceName: 'S3',
-            scope: 'host'
+            serviceName: 'S3'
           })
         ]
       }));

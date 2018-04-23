@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -33,7 +33,6 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
@@ -56,7 +55,7 @@ import com.google.gson.JsonObject;
 public class HostOrderGrouping extends Grouping {
   private static final String TYPE = "type";
   private static final String HOST = "host";
-  private static final Logger LOG = LoggerFactory.getLogger(HostOrderGrouping.class);
+  private static Logger LOG = LoggerFactory.getLogger(HostOrderGrouping.class);
 
   /**
    * Contains the ordered actions to schedule for this grouping.
@@ -174,14 +173,10 @@ public class HostOrderGrouping extends Grouping {
           // either doesn't exist or the downgrade is to the current target version.
           // hostsType better not be null either, but check anyway
           if (null != hostsType && !hostsType.hosts.contains(hostName)) {
-            RepositoryVersionEntity targetRepositoryVersion = upgradeContext.getTargetRepositoryVersion(
-                sch.getServiceName());
-
             LOG.warn("Host {} could not be orchestrated. Either there are no components for {}/{} " +
                 "or the target version {} is already current.",
                 hostName, sch.getServiceName(), sch.getServiceComponentName(),
-                targetRepositoryVersion.getVersion());
-
+                upgradeContext.getTargetRepositoryVersion().getVersion());
             continue;
           }
 
@@ -231,7 +226,7 @@ public class HostOrderGrouping extends Grouping {
           // create task wrappers
           List<TaskWrapper> taskWrappers = new ArrayList<>();
           for (HostRoleCommand command : stageCommandsForHost) {
-            StackId stackId = upgradeContext.getRepositoryVersion().getStackId();
+            StackId stackId = upgradeContext.getTargetStackId();
             String componentName = command.getRole().name();
 
             String serviceName = null;
@@ -293,6 +288,7 @@ public class HostOrderGrouping extends Grouping {
 
     /**
      * @param upgradeContext  the context
+     * @param hosts           the list of hostnames
      * @return  the wrappers for a host
      */
     private List<StageWrapper> buildServiceChecks(UpgradeContext upgradeContext, List<String> serviceChecks) {
@@ -334,10 +330,7 @@ public class HostOrderGrouping extends Grouping {
      * @return                {@code true} if the host component advertises its version
      */
     private boolean isVersionAdvertised(UpgradeContext upgradeContext, ServiceComponentHost sch) {
-      RepositoryVersionEntity targetRepositoryVersion = upgradeContext.getTargetRepositoryVersion(
-          sch.getServiceName());
-
-      StackId targetStack = targetRepositoryVersion.getStackId();
+      StackId targetStack = upgradeContext.getTargetStackId();
 
       try {
         ComponentInfo component = upgradeContext.getAmbariMetaInfo().getComponent(

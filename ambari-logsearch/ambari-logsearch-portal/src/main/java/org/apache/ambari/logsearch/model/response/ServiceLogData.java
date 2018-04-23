@@ -60,6 +60,4 @@ public interface ServiceLogData extends CommonLogData, ComponentTypeLogData, Hos
   String getHost();
 
   void setHost(String host);
-
-
 }

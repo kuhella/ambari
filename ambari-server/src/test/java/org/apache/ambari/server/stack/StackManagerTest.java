@@ -44,7 +44,6 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.AmbariManagementHelper;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.ExtensionDAO;
 import org.apache.ambari.server.orm.dao.ExtensionLinkDAO;
@@ -120,10 +119,9 @@ public class StackManagerTest {
     replay(config, metaInfoDao, stackDao, extensionDao, linkDao, actionMetadata);
 
     osFamily = new OsFamily(config);
-    AmbariManagementHelper helper = new AmbariManagementHelper(stackDao, extensionDao, linkDao);
 
     StackManager stackManager = new StackManager(new File(stackRoot), null, null, osFamily, false,
-        metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao, helper);
+        metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao);
 
     verify(config, metaInfoDao, stackDao, actionMetadata);
 
@@ -133,13 +131,13 @@ public class StackManagerTest {
   @Test
   public void testGetsStacks() throws Exception {
     Collection<StackInfo> stacks = stackManager.getStacks();
-    assertEquals(21, stacks.size());
+    assertEquals(20, stacks.size());
   }
 
   @Test
   public void testGetStacksByName() {
     Collection<StackInfo> stacks = stackManager.getStacks("HDP");
-    assertEquals(17, stacks.size());
+    assertEquals(16, stacks.size());
 
     stacks = stackManager.getStacks("OTHER");
     assertEquals(2, stacks.size());
@@ -166,7 +164,7 @@ public class StackManagerTest {
     List<String> removedServices = stack.getRemovedServices();
     assertEquals(removedServices.size(), 2);
 
-    HashSet<String> expectedServices = new HashSet<>();
+    HashSet<String> expectedServices = new HashSet<String>();
     expectedServices.add("SPARK");
     expectedServices.add("SPARK2");
 
@@ -188,7 +186,7 @@ public class StackManagerTest {
     Collection<ServiceInfo> services = stack.getServices();
     assertEquals(3, services.size());
 
-    Map<String, ServiceInfo> serviceMap = new HashMap<>();
+    Map<String, ServiceInfo> serviceMap = new HashMap<String, ServiceInfo>();
     for (ServiceInfo service : services) {
       serviceMap.put(service.getName(), service);
     }
@@ -274,7 +272,7 @@ public class StackManagerTest {
 
     //should include all stacks in hierarchy
     assertEquals(17, services.size());
-    HashSet<String> expectedServices = new HashSet<>();
+    HashSet<String> expectedServices = new HashSet<String>();
     expectedServices.add("GANGLIA");
     expectedServices.add("HBASE");
     expectedServices.add("HCATALOG");
@@ -385,7 +383,7 @@ public class StackManagerTest {
     // compare components
     List<ComponentInfo> stormServiceComponents = stormService.getComponents();
     List<ComponentInfo> baseStormServiceComponents = baseStormService.getComponents();
-    assertEquals(new HashSet<>(stormServiceComponents), new HashSet<>(baseStormServiceComponents));
+    assertEquals(new HashSet<ComponentInfo>(stormServiceComponents), new HashSet<ComponentInfo>(baseStormServiceComponents));
     // values from base service
     assertEquals(baseStormService.isDeleted(), stormService.isDeleted());
     //todo: specify alerts file in stack
@@ -518,7 +516,7 @@ public class StackManagerTest {
     Collection<ServiceInfo> allServices = stack.getServices();
 
     assertEquals(12, allServices.size());
-    HashSet<String> expectedServices = new HashSet<>();
+    HashSet<String> expectedServices = new HashSet<String>();
     expectedServices.add("GANGLIA");
     expectedServices.add("HBASE");
     expectedServices.add("HCATALOG");
@@ -780,10 +778,9 @@ public class StackManagerTest {
     replay(config, metaInfoDao, stackDao, extensionDao, linkDao, actionMetadata);
 
     OsFamily osFamily = new OsFamily(config);
-    AmbariManagementHelper helper = new AmbariManagementHelper(stackDao, extensionDao, linkDao);
 
     StackManager stackManager = new StackManager(stackRoot, commonServices, extensions,
-            osFamily, false, metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao, helper);
+            osFamily, false, metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao);
 
     for (StackInfo stackInfo : stackManager.getStacks()) {
       for (ServiceInfo serviceInfo : stackInfo.getServices()) {
@@ -846,10 +843,9 @@ public class StackManagerTest {
     replay(config, metaInfoDao, stackDao, extensionDao, linkDao, actionMetadata);
 
     OsFamily osFamily = new OsFamily(config);
-    AmbariManagementHelper helper = new AmbariManagementHelper(stackDao, extensionDao, linkDao);
 
     StackManager stackManager = new StackManager(stackRoot, commonServices, extensions, osFamily,
-        false, metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao, helper);
+        false, metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao);
 
     String rangerUserSyncRoleCommand = Role.RANGER_USERSYNC + "-" + RoleCommand.START;
     String rangerAdminRoleCommand = Role.RANGER_ADMIN + "-" + RoleCommand.START;
@@ -976,10 +972,9 @@ public class StackManagerTest {
     replay(config, metaInfoDao, stackDao, extensionDao, linkDao, actionMetadata);
 
     OsFamily osFamily = new OsFamily(config);
-    AmbariManagementHelper helper = new AmbariManagementHelper(stackDao, extensionDao, linkDao);
 
     StackManager stackManager = new StackManager(stackRoot, commonServices, extensions, osFamily,
-        false, metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao, helper);
+        false, metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao);
 
     String zookeeperServerRoleCommand = Role.ZOOKEEPER_SERVER + "-" + RoleCommand.START;
     String logsearchServerRoleCommand = Role.LOGSEARCH_SERVER + "-" + RoleCommand.START;

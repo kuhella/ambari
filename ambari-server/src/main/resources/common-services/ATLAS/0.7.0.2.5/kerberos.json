@@ -66,8 +66,7 @@
               }
             },
             {
-              "name": "atlas_atlas_server_spnego",
-              "reference": "/spnego",
+              "name": "/spnego",
               "principal": {
                 "value": "HTTP/_HOST@${realm}",
                 "configuration": "application-properties/atlas.authentication.method.kerberos.principal"
@@ -87,12 +86,10 @@
               }
             },
             {
-              "name": "atlas_atlas_server_kafka_broker",
-              "reference": "/KAFKA/KAFKA_BROKER/kafka_broker"
+              "name": "/KAFKA/KAFKA_BROKER/kafka_broker"
             },
             {
-              "name": "atlas_atlas_server_infra-solr",
-              "reference": "/AMBARI_INFRA/INFRA_SOLR/infra-solr",
+              "name": "/AMBARI_INFRA/INFRA_SOLR/infra-solr",
               "when" : {
                 "contains" : ["services", "AMBARI_INFRA"]
               }

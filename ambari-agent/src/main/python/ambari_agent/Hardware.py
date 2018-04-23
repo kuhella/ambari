@@ -20,7 +20,7 @@ limitations under the License.
 
 import os.path
 import logging
-from ambari_commons import subprocess32
+import subprocess
 from resource_management.core import shell
 from resource_management.core.shell import call
 from resource_management.core.exceptions import ExecuteTimeoutException, Fail
@@ -44,72 +44,55 @@ class Hardware:
   IGNORE_DEVICES = ["proc", "tmpfs", "cgroup", "mqueue", "shm"]
   LINUX_PATH_SEP = "/"
 
-  def __init__(self, config=None, cache_info=True):
-    """
-    Initialize hardware object with available metrics. Metrics cache could be
-     disabled by setting cache_info to False
-
-    :param config Ambari Agent Configuration
-    :param cache_info initialize hardware dictionary with available metrics
-
-    :type config AmbariConfig
-    :type cache_info bool
-    """
-    self.config = config
-    self._hardware = None
-
-    if cache_info:
-      self._cache_hardware_info()
-
-  def _cache_hardware_info(self):
-    """
-    Creating cache with hardware information
-    """
+  def __init__(self, config):
     logger.info("Initializing host system information.")
-    self._hardware = {
-      'mounts': self.osdisks()
+    self.hardware = {
+      'mounts': Hardware.osdisks()
     }
-    self._hardware.update(Facter(self.config).facterInfo())
-    logger.info("Host system information: %s", self._hardware)
+    self.config = config
+    self.hardware.update(Facter(self.config).facterInfo())
+    logger.info("Host system information: %s", self.hardware)
 
-  def _parse_df(self, lines):
+  @classmethod
+  def _parse_df_line(cls, line):
     """
-      Generator, which parses df command output and yields parsed entities
+      Initialize data-structure from string in specific 'df' command output format
 
       Expected string format:
        device fs_type disk_size used_size available_size capacity_used_percents mount_point
 
-    :type lines list[str]
-    :rtype collections.Iterable
+    :type line str
     """
+
+    line_split = line.split()
+    if len(line_split) != 7:
+      return None
+
     titles = ["device", "type", "size", "used", "available", "percent", "mountpoint"]
+    return dict(zip(titles, line_split))
 
-    for line in lines:
-      line_split = line.split()
-      if len(line_split) != 7:
-        continue
-
-      yield dict(zip(titles, line_split))
-
-  def _get_mount_check_timeout(self):
+  @classmethod
+  def _get_mount_check_timeout(cls, config=None):
     """Return timeout for df call command"""
-    if self.config and self.config.has_option(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_KEY) \
-      and self.config.get(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_KEY) != "0":
+    if config and config.has_option(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_KEY) \
+      and config.get(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_KEY) != "0":
 
-      return self.config.get(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_KEY)
+      return config.get(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_KEY)
 
     return Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_DEFAULT
 
-  def _check_remote_mounts(self):
+  @classmethod
+  def _check_remote_mounts(cls, config=None):
     """Verify if remote mount allowed to be processed or not"""
-    if self.config and self.config.has_option(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY) and \
-      self.config.get(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY).lower() == "false":
+    if config and config.has_option(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY) and \
+       config.get(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY).lower() == "false":
 
       return False
 
     return True
 
-  def _is_mount_blacklisted(self, blacklist, mount_point):
+  @classmethod
+  def _is_mount_blacklisted(cls, blacklist, mount_point):
     """
     Verify if particular mount point is in the black list.
 
@@ -128,44 +111,49 @@ class Hardware:
     if not blacklist or not mount_point:
       return False
 
-    # in this way we excluding possibility
-    mount_point_elements = mount_point.split(self.LINUX_PATH_SEP)
+    mount_point_elements = mount_point.split(cls.LINUX_PATH_SEP)
 
     for el in blacklist:
-      el_list = el.split(self.LINUX_PATH_SEP)
+      el_list = el.split(cls.LINUX_PATH_SEP)
       # making patch elements comparision
       if el_list == mount_point_elements[:len(el_list)]:
         return True
 
     return False
 
+
+  @classmethod
   @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
-  def osdisks(self):
+  def osdisks(cls, config=None):
     """ Run df to find out the disks on the host. Only works on linux
     platforms. Note that this parser ignores any filesystems with spaces
     and any mounts with spaces. """
-    timeout = self._get_mount_check_timeout()
+    timeout = cls._get_mount_check_timeout(config)
     command = ["timeout", timeout, "df", "-kPT"]
     blacklisted_mount_points = []
 
-    if self.config:
-      ignore_mount_value = self.config.get("agent", "ignore_mount_points", default="")
-      blacklisted_mount_points = [item.strip() for item in ignore_mount_value.split(",") if len(item.strip()) != 0]
+    if config:
+      ignore_mount_value = config.get("agent", "ignore_mount_points", default="")
+      blacklisted_mount_points = [item.strip() for item in ignore_mount_value.split(",")]
 
-    if not self._check_remote_mounts():
+    if not cls._check_remote_mounts(config):
       command.append("-l")
 
     try:
-      code, out, err = shell.call(command, stdout=subprocess32.PIPE, stderr=subprocess32.PIPE, timeout=int(timeout), quiet=True)
+      code, out, err = shell.call(command, stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = int(timeout), quiet = True)
       dfdata = out
     except Exception as ex:
       logger.warn("Checking disk usage failed: " + str(ex))
       dfdata = ''
 
+    mounts = [cls._parse_df_line(line) for line in dfdata.splitlines() if line]
     result_mounts = []
     ignored_mounts = []
 
-    for mount in self._parse_df(dfdata.splitlines()):
+    for mount in mounts:
+      if not mount:
+        continue
+
       """
       We need to filter mounts by several parameters:
        - mounted device is not in the ignored list
@@ -173,11 +161,11 @@ class Hardware:
        - it is not file-mount (docker environment)
        - mount path or a part of mount path is not in the blacklist
       """
-      if mount["device"] not in self.IGNORE_DEVICES and\
-         mount["mountpoint"].split("/")[0] not in self.IGNORE_ROOT_MOUNTS and\
-         self._chk_writable_mount(mount['mountpoint']) and\
+      if mount["device"] not in cls.IGNORE_DEVICES and\
+         mount["mountpoint"].split("/")[0] not in cls.IGNORE_ROOT_MOUNTS and\
+         cls._chk_writable_mount(mount['mountpoint']) and\
          not path_isfile(mount["mountpoint"]) and\
-         not self._is_mount_blacklisted(blacklisted_mount_points, mount["mountpoint"]):
+         not cls._is_mount_blacklisted(blacklisted_mount_points, mount["mountpoint"]):
 
         result_mounts.append(mount)
       else:
@@ -189,7 +177,8 @@ class Hardware:
 
     return result_mounts
 
-  def _chk_writable_mount(self, mount_point):
+  @classmethod
+  def _chk_writable_mount(cls, mount_point):
     if os.geteuid() == 0:
       return os.access(mount_point, os.W_OK)
     else:
@@ -207,8 +196,9 @@ class Hardware:
         logger.exception("Exception happened while checking mount {0}".format(mount_point))
         return False
     
+  @classmethod
   @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-  def osdisks(self):
+  def osdisks(cls, config=None):
     mounts = []
     runner = shellRunner()
     command_result = runner.runPowershell(script_block=Hardware.WINDOWS_GET_DRIVES_CMD)
@@ -226,28 +216,16 @@ class Hardware:
 
     return mounts
 
-  def get(self, invalidate_cache=False):
-    """
-    Getting cached hardware information
-
-    :param invalidate_cache resets hardware metrics cache
-    :type invalidate_cache bool
-    """
-    if invalidate_cache:
-      self._hardware = None
-
-    if not self._hardware:
-      self._cache_hardware_info()
-
-    return self._hardware
+  def get(self):
+    return self.hardware
 
 
 def main():
   from resource_management.core.logger import Logger
   Logger.initialize_logger()
 
-  print Hardware().get()
-
+  config = None
+  print Hardware(config).get()
 
 if __name__ == '__main__':
   main()

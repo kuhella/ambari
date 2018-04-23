@@ -19,6 +19,7 @@ package org.apache.ambari.server.actionmanager;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -33,6 +34,7 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.metadata.RoleCommandPair;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
@@ -87,13 +89,13 @@ public class Stage {
   private volatile boolean wrappersLoaded = false;
 
   //Map of roles to successFactors for this stage. Default is 1 i.e. 100%
-  private Map<Role, Float> successFactors = new HashMap<>();
+  private Map<Role, Float> successFactors = new HashMap<Role, Float>();
 
   //Map of host to host-roles
   Map<String, Map<String, HostRoleCommand>> hostRoleCommands =
-      new TreeMap<>();
+      new TreeMap<String, Map<String, HostRoleCommand>>();
   private Map<String, List<ExecutionCommandWrapper>> commandsToSend =
-      new TreeMap<>();
+      new TreeMap<String, List<ExecutionCommandWrapper>>();
 
   @Inject
   private HostRoleCommandFactory hostRoleCommandFactory;
@@ -190,9 +192,7 @@ public class Stage {
     stageEntity.setHostRoleCommands(new ArrayList<HostRoleCommandEntity>());
     stageEntity.setRoleSuccessCriterias(new ArrayList<RoleSuccessCriteriaEntity>());
     stageEntity.setCommandParamsStage(commandParamsStage);
-    if (null != hostParamsStage) {
-      stageEntity.setHostParamsStage(hostParamsStage);
-    }
+    stageEntity.setHostParamsStage(hostParamsStage);
     stageEntity.setCommandExecutionType(commandExecutionType);
 
     for (Role role : successFactors.keySet()) {
@@ -228,7 +228,7 @@ public class Stage {
   }
 
   public List<HostRoleCommand> getOrderedHostRoleCommands() {
-    List<HostRoleCommand> commands = new ArrayList<>();
+    List<HostRoleCommand> commands = new ArrayList<HostRoleCommand>();
     //Correct due to ordered maps
     for (Map.Entry<String, Map<String, HostRoleCommand>> hostRoleCommandEntry : hostRoleCommands.entrySet()) {
       for (Map.Entry<String, HostRoleCommand> roleCommandEntry : hostRoleCommandEntry.getValue().entrySet()) {
@@ -443,8 +443,7 @@ public class Stage {
    * @param retryAllowed
    *          indicates whether retry after failure is allowed
    */
-  public synchronized void addServerActionCommand(String actionName,
-      @Nullable String userName,
+  public synchronized void addServerActionCommand(String actionName, @Nullable String userName,
       Role role, RoleCommand command, String clusterName,
       ServiceComponentHostServerActionEvent event, @Nullable Map<String, String> commandParams,
       @Nullable String commandDetail, @Nullable Map<String, Map<String, String>> configTags,
@@ -458,7 +457,7 @@ public class Stage {
 
     ExecutionCommand cmd = commandWrapper.getExecutionCommand();
 
-    Map<String, String> cmdParams = new HashMap<>();
+    Map<String, String> cmdParams = new HashMap<String, String>();
     if (commandParams != null) {
       cmdParams.putAll(commandParams);
     }
@@ -467,18 +466,18 @@ public class Stage {
     }
     cmd.setCommandParams(cmdParams);
 
-    Map<String, Map<String, String>> configurations = new TreeMap<>();
+    Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
     cmd.setConfigurations(configurations);
 
-    Map<String, Map<String, Map<String, String>>> configurationAttributes = new TreeMap<>();
+    Map<String, Map<String, Map<String, String>>> configurationAttributes = new TreeMap<String, Map<String, Map<String, String>>>();
     cmd.setConfigurationAttributes(configurationAttributes);
 
     if (configTags == null) {
-      configTags = new TreeMap<>();
+      configTags = new TreeMap<String, Map<String, String>>();
     }
     cmd.setConfigurationTags(configTags);
 
-    Map<String, String> roleParams = new HashMap<>();
+    Map<String, String> roleParams = new HashMap<String, String>();
     roleParams.put(ServerAction.ACTION_NAME, actionName);
     if (userName != null) {
       roleParams.put(ServerAction.ACTION_USER_NAME, userName);
@@ -506,7 +505,7 @@ public class Stage {
 
     Assert.notEmpty(cancelTargets, "Provided targets task Id are empty.");
 
-    Map<String, String> roleParams = new HashMap<>();
+    Map<String, String> roleParams = new HashMap<String, String>();
 
     roleParams.put("cancelTaskIdTargets", StringUtils.join(cancelTargets, ','));
     cmd.setRoleParams(roleParams);
@@ -517,7 +516,7 @@ public class Stage {
    * @return list of hosts
    */
   public synchronized List<String> getHosts() { // TODO: Check whether method should be synchronized
-    List<String> hlist = new ArrayList<>();
+    List<String> hlist = new ArrayList<String>();
     for (String h : hostRoleCommands.keySet()) {
       hlist.add(h);
     }

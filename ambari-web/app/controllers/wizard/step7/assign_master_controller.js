@@ -65,7 +65,6 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
     
     switch (action) {
       case 'ADD':
-        this.clearRecommendations();
         if (hostComponent.componentName == "HIVE_SERVER_INTERACTIVE") {
           this.getPendingBatchRequests(hostComponent);  
         } else {
@@ -280,31 +279,30 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
   },
 
   /**
-   * Success callback after loading active host list
+   * Load active host list to <code>hosts</code> variable
    * @override
-   * @method loadWizardHostsSuccessCallback
+   * @method renderHostInfo
    */
-   loadWizardHostsSuccessCallback: function (data) {
+  renderHostInfo: function () {
     var parentController = this.get('content.controllerName');
     if (parentController) {
-      this._super(data);
+      this._super();
     } else {
+      var hosts = App.Host.find().toArray();
       var result = [];
-      data.items.forEach(function (host) {
-        var hostName = host.Hosts.host_name,
-          cpu = host.Hosts.cpu_count,
-          memory = host.Hosts.total_mem.toFixed(2);
+      for (var p = 0; p < hosts.length; p++) {
         result.push(Em.Object.create({
-          host_name: hostName,
-          cpu: cpu,
-          memory: memory,
-          disk_info: host.Hosts.disk_info,
-          maintenance_state: host.Hosts.maintenance_state,
-          host_info: Em.I18n.t('installer.step5.hostInfo').fmt(hostName, numberUtils.bytesToSize(memory, 1, 'parseFloat', 1024), cpu)
+          host_name: hosts[p].get('hostName'),
+          cpu: hosts[p].get('cpu'),
+          memory: hosts[p].get('memory'),
+          maintenance_state: hosts[p].get('maintenance_state'),
+          disk_info: hosts[p].get('diskInfo'),
+          host_info: Em.I18n.t('installer.step5.hostInfo').fmt(hosts[p].get('hostName'), numberUtils.bytesToSize(hosts[p].get('memory'), 1, 'parseFloat', 1024), hosts[p].get('cpu'))
         }));
-      }, this);
-      this.set('hosts', result);
-      this.sortHosts(this.get('hosts'));
+      }
+
+      this.set("hosts", result);
+      this.sortHosts(result);
       this.set('isHostsLoaded', true);
     }
   },

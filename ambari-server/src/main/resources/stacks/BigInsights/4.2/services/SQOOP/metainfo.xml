@@ -70,6 +70,9 @@
             <package>
               <name>sqoop_4_2_*</name>
             </package>
+            <package>
+              <name>mysql-connector-java</name>
+            </package>
           </packages>
         </osSpecific>
       </osSpecifics>

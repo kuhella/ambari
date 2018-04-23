@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-App.ManageJournalNodeWizardStep8Controller = App.ManageJournalNodeProgressPageController.extend(App.WizardEnableDone, {
+App.ManageJournalNodeWizardStep8Controller = App.ManageJournalNodeProgressPageController.extend({
   name: 'manageJournalNodeWizardStep8Controller',
   clusterDeployState: 'JOURNALNODE_MANAGEMENT',
   tasksMessagesPrefix: 'admin.manageJournalNode.wizard.step',

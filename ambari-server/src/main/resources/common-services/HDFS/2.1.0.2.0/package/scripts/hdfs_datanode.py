@@ -33,7 +33,7 @@ def create_dirs(data_dir):
   Directory(data_dir,
             create_parents = True,
             cd_access="a",
-            mode=params.dfs_data_dirs_perm,
+            mode=0755,
             owner=params.hdfs_user,
             group=params.user_group,
             ignore_failures=True

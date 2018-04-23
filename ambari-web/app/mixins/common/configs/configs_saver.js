@@ -328,9 +328,9 @@ App.ConfigsSaverMixin = Em.Mixin.create({
       return App.config.getOriginalFileName(type);
     });
 
-    // save modified original configs that have no group and are not Undefined label
+    // save modified original configs that have no group
     modifiedConfigs = this.saveSiteConfigs(modifiedConfigs.filter(function (config) {
-      return !config.get('group') && !config.get('isUndefinedLabel');
+      return !config.get('group');
     }));
 
     if (!Em.isArray(modifiedConfigs) || modifiedConfigs.length == 0) return null;
@@ -574,7 +574,6 @@ App.ConfigsSaverMixin = Em.Mixin.create({
         "cluster_name": App.get('clusterName') || this.get('clusterName'),
         "group_name": group.name,
         "tag": group.service_id,
-        "service_name": group.service_id,
         "description": group.description,
         "hosts": groupHosts,
         "service_config_version_note": configVersionNote || "",

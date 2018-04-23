@@ -20,6 +20,7 @@ limitations under the License.
 
 import sys
 from resource_management import *
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 
 from oozie import oozie
@@ -27,6 +28,9 @@ from oozie_service import oozie_service
 
 
 class OozieClient(Script):
+
+  def get_component_name(self):
+    return "oozie-client"
 
   def install(self, env):
     self.install_packages(env)
@@ -53,7 +57,8 @@ class OozieClient(Script):
       return
 
     Logger.info("Executing Oozie Client Rolling Upgrade pre-restart")
-    stack_select.select_packages(params.version)
+    conf_select.select(params.stack_name, "oozie", params.version)
+    stack_select.select("oozie-client", params.version)
     #Execute(format("iop-select set oozie-client {version}"))
 
   # We substitute some configs (oozie.authentication.kerberos.principal) before generation (see oozie.py and params.py).

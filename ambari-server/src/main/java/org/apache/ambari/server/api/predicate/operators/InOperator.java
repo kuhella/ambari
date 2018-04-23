@@ -47,7 +47,7 @@ public class InOperator extends AbstractOperator implements RelationalOperator {
   public Predicate toPredicate(String prop, String val) throws InvalidQueryException {
 
     if (val == null) {
-      throw new InvalidQueryException("IN operator is missing a required right operand for property " + prop);
+      throw new InvalidQueryException("IN operator is missing a required right operand.");
     }
 
     String[] tokens = val.split(",");

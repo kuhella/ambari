@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.topology.tasks;
 
-import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.topology.ClusterConfigurationRequest;
 import org.apache.ambari.server.topology.ClusterTopology;
 
@@ -26,6 +25,6 @@ import org.apache.ambari.server.topology.ClusterTopology;
 public interface ConfigureClusterTaskFactory {
 
    ConfigureClusterTask createConfigureClusterTask(ClusterTopology topology, ClusterConfigurationRequest
-    configRequest, AmbariEventPublisher ambariEventPublisher);
+    configRequest);
 
 }

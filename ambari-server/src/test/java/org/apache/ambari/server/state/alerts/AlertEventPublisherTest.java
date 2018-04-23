@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -33,7 +33,6 @@ import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -77,9 +76,6 @@ public class AlertEventPublisherTest {
   private OrmTestHelper ormHelper;
   private AggregateDefinitionMapping aggregateMapping;
 
-  private final String STACK_VERSION = "2.0.6";
-  private final String REPO_VERSION = "2.0.6-1234";
-
   /**
    *
    */
@@ -99,10 +95,7 @@ public class AlertEventPublisherTest {
     aggregateMapping = injector.getInstance(AggregateDefinitionMapping.class);
 
     clusterName = "foo";
-    StackId stackId = new StackId("HDP", STACK_VERSION);
-    ormHelper.createStack(stackId);
-
-    clusters.addCluster(clusterName, stackId);
+    clusters.addCluster(clusterName, new StackId("HDP", "2.0.6"));
     cluster = clusters.getCluster(clusterName);
     Assert.assertNotNull(cluster);
   }
@@ -307,12 +300,12 @@ public class AlertEventPublisherTest {
         source.getAlertName()));
   }
 
+  /**
+   * Calls {@link Service#persist()} to mock a service install.
+   */
   private void installHdfsService() throws Exception {
-    RepositoryVersionEntity repositoryVersion = ormHelper.getOrCreateRepositoryVersion(
-        cluster.getCurrentStackVersion(), REPO_VERSION);
-
     String serviceName = "HDFS";
-    Service service = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
+    Service service = serviceFactory.createNew(cluster, serviceName);
     service = cluster.getService(serviceName);
 
     Assert.assertNotNull(service);

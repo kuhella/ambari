@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -134,10 +134,10 @@ public class HostComponentResourceProviderTest {
         managementController);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
 
     // Service 1: create a map of properties for the request
-    Map<String, Object> properties = new LinkedHashMap<>();
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
 
     // add properties to the request map
     properties.put(HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -180,36 +180,26 @@ public class HostComponentResourceProviderTest {
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
-    Set<ServiceComponentHostResponse> allResponse = new HashSet<>();
+    Set<ServiceComponentHostResponse> allResponse = new HashSet<ServiceComponentHostResponse>();
     StackId stackId = new StackId("HDP-0.1");
     StackId stackId2 = new StackId("HDP-0.2");
-
-    String repositoryVersion2 = "0.2-1234";
+    allResponse.add(new ServiceComponentHostResponse(
+        "Cluster100", "Service100", "Component100", "Component 100", "Host100", "Host100", State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
+        stackId2.getStackId(), null));
+    allResponse.add(new ServiceComponentHostResponse(
+        "Cluster100", "Service100", "Component101", "Component 101", "Host100", "Host100", State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
+        stackId2.getStackId(), null));
 
     allResponse.add(new ServiceComponentHostResponse(
-        "Cluster100", "Service100", "Component100", "Component 100", "Host100", "Host100",
-        State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
-        stackId2.getStackId(), repositoryVersion2, null));
-
-    allResponse.add(new ServiceComponentHostResponse(
-        "Cluster100", "Service100", "Component101", "Component 101", "Host100", "Host100",
-        State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
-        stackId2.getStackId(), repositoryVersion2, null));
-
-    allResponse.add(new ServiceComponentHostResponse(
-        "Cluster100", "Service100", "Component102", "Component 102", "Host100", "Host100",
-        State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
-        stackId2.getStackId(), repositoryVersion2, null));
-
-    Map<String, String> expectedNameValues = new HashMap<>();
+        "Cluster100", "Service100", "Component102", "Component 102", "Host100","Host100", State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
+        stackId2.getStackId(), null));
+    Map<String, String> expectedNameValues = new HashMap<String, String>();
     expectedNameValues.put(
         HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     expectedNameValues.put(
         HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, State.INSTALLED.toString());
     expectedNameValues.put(
-        HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID, repositoryVersion2);
-    expectedNameValues.put(
-        HostComponentResourceProvider.HOST_COMPONENT_DESIRED_REPOSITORY_VERSION, repositoryVersion2);
+        HostComponentResourceProvider.HOST_COMPONENT_STACK_ID_PROPERTY_ID, stackId.getStackId());
     expectedNameValues.put(
         HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, State.STARTED.toString());
     expectedNameValues.put(
@@ -224,13 +214,12 @@ public class HostComponentResourceProviderTest {
         eq(managementController))).
         andReturn(hostComponentResourceProvider).anyTimes();
 
-    Set<String> propertyIds = new HashSet<>();
+    Set<String> propertyIds = new HashSet<String>();
 
     propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID);
     propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
     propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID);
-    propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID);
-    propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_REPOSITORY_VERSION);
+    propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_STACK_ID_PROPERTY_ID);
     propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID);
     propertyIds.add(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID);
 
@@ -238,7 +227,7 @@ public class HostComponentResourceProviderTest {
         HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").toPredicate();
     Request request = PropertyHelper.getReadRequest(propertyIds);
 
-    Set<Resource> hostsComponentResources = new HashSet<>();
+    Set<Resource> hostsComponentResources = new HashSet<Resource>();
 
     Resource hostsComponentResource1 = new ResourceImpl(Resource.Type.HostComponent);
     hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -247,11 +236,9 @@ public class HostComponentResourceProviderTest {
     hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "Component100");
     hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, State.INSTALLED.name());
     hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, State.STARTED.name());
-    hostsComponentResource1.setProperty(
-        HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID, repositoryVersion2);
+    hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_STACK_ID_PROPERTY_ID, stackId.getStackId());
     hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID, stackId2.getStackId());
     hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID, UpgradeState.NONE.name());
-    hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_REPOSITORY_VERSION, repositoryVersion2);
 
     Resource hostsComponentResource2 = new ResourceImpl(Resource.Type.HostComponent);
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -260,11 +247,9 @@ public class HostComponentResourceProviderTest {
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "Component101");
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, State.INSTALLED.name());
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, State.STARTED.name());
-    hostsComponentResource2.setProperty(
-        HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID, repositoryVersion2);
+    hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_STACK_ID_PROPERTY_ID, stackId.getStackId());
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID, stackId2.getStackId());
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID, UpgradeState.NONE.name());
-    hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_REPOSITORY_VERSION, repositoryVersion2);
 
     Resource hostsComponentResource3 = new ResourceImpl(Resource.Type.HostComponent);
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -273,11 +258,9 @@ public class HostComponentResourceProviderTest {
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "Component102");
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, State.INSTALLED.name());
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, State.STARTED.name());
-    hostsComponentResource3.setProperty(
-        HostComponentResourceProvider.HOST_COMPONENT_VERSION_PROPERTY_ID, repositoryVersion2);
+    hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_STACK_ID_PROPERTY_ID, stackId.getStackId());
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID, stackId2.getStackId());
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID, UpgradeState.NONE.name());
-    hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_REPOSITORY_VERSION, repositoryVersion2);
 
     hostsComponentResources.add(hostsComponentResource1);
     hostsComponentResources.add(hostsComponentResource2);
@@ -300,7 +283,7 @@ public class HostComponentResourceProviderTest {
     Set<Resource> resources = provider.getResources(request, predicate);
 
     Assert.assertEquals(3, resources.size());
-    Set<String> names = new HashSet<>();
+    Set<String> names = new HashSet<String>();
     for (Resource resource : resources) {
       for (String key : expectedNameValues.keySet()) {
         Assert.assertEquals(expectedNameValues.get(key), resource.getPropertyValue(key));
@@ -349,13 +332,12 @@ public class HostComponentResourceProviderTest {
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
 
 
-    Map<String, String> mapRequestProps = new HashMap<>();
+    Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
 
-    Set<ServiceComponentHostResponse> nameResponse = new HashSet<>();
+    Set<ServiceComponentHostResponse> nameResponse = new HashSet<ServiceComponentHostResponse>();
     nameResponse.add(new ServiceComponentHostResponse(
-        "Cluster102", "Service100", "Component100", "Component 100", "Host100", "Host100",
-        "INSTALLED", "", "", "", "", null));
+        "Cluster102", "Service100", "Component100", "Component 100", "Host100", "Host100","INSTALLED", "", "", "", null));
 
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
@@ -376,8 +358,8 @@ public class HostComponentResourceProviderTest {
     expect(managementController.getHostComponents(
         EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).andReturn(nameResponse).once();
 
-    Map<String, Map<State, List<ServiceComponentHost>>> changedHosts = new HashMap<>();
-    List<ServiceComponentHost> changedComponentHosts = new ArrayList<>();
+    Map<String, Map<State, List<ServiceComponentHost>>> changedHosts = new HashMap<String, Map<State, List<ServiceComponentHost>>>();
+    List<ServiceComponentHost> changedComponentHosts = new ArrayList<ServiceComponentHost>();
     changedComponentHosts.add(componentHost);
     changedHosts.put("Component100", Collections.singletonMap(State.STARTED, changedComponentHosts));
 
@@ -405,7 +387,7 @@ public class HostComponentResourceProviderTest {
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-    Map<String, Object> properties = new LinkedHashMap<>();
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
 
     properties.put(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
 
@@ -489,7 +471,7 @@ public class HostComponentResourceProviderTest {
 
   @Test
   public void testCheckPropertyIds() throws Exception {
-    Set<String> propertyIds = new HashSet<>();
+    Set<String> propertyIds = new HashSet<String>();
     propertyIds.add("foo");
     propertyIds.add("cat1/foo");
     propertyIds.add("cat2/bar");
@@ -498,7 +480,7 @@ public class HostComponentResourceProviderTest {
     propertyIds.add("cat4/sub2/sub3/bat");
     propertyIds.add("cat5/subcat5/map");
 
-    Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
+    Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Injector injector = createNiceMock(Injector.class);
@@ -551,13 +533,12 @@ public class HostComponentResourceProviderTest {
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
 
 
-    Map<String, String> mapRequestProps = new HashMap<>();
+    Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
 
-    Set<ServiceComponentHostResponse> nameResponse = new HashSet<>();
+    Set<ServiceComponentHostResponse> nameResponse = new HashSet<ServiceComponentHostResponse>();
     nameResponse.add(new ServiceComponentHostResponse(
-        "Cluster102", "Service100", "Component100", "Component 100", "Host100", "Host100",
-        "INSTALLED", "", "", "", "", null));
+        "Cluster102", "Service100", "Component100", "Component 100", "Host100", "Host100","INSTALLED", "", "", "", null));
 
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
@@ -576,8 +557,8 @@ public class HostComponentResourceProviderTest {
     expect(managementController.getHostComponents(
         EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).andReturn(Collections.<ServiceComponentHostResponse>emptySet()).once();
 
-    Map<String, Map<State, List<ServiceComponentHost>>> changedHosts = new HashMap<>();
-    List<ServiceComponentHost> changedComponentHosts = new ArrayList<>();
+    Map<String, Map<State, List<ServiceComponentHost>>> changedHosts = new HashMap<String, Map<State, List<ServiceComponentHost>>>();
+    List<ServiceComponentHost> changedComponentHosts = new ArrayList<ServiceComponentHost>();
     changedComponentHosts.add(componentHost);
     changedHosts.put("Component100", Collections.singletonMap(State.STARTED, changedComponentHosts));
 
@@ -599,7 +580,7 @@ public class HostComponentResourceProviderTest {
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-    Map<String, Object> properties = new LinkedHashMap<>();
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
 
     properties.put(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
 

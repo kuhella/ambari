@@ -107,9 +107,7 @@ public class QueryParser {
         if (keyObject != null) {
           String key = keyObject.toString();
           if (key.endsWith("/host_name")) {
-            if (expression.getRightOperand() != null) {
-              expression.setRightOperand(expression.getRightOperand().toString().toLowerCase());
-            }
+            expression.setRightOperand(expression.getRightOperand().toString().toLowerCase());
           }
         }
       }

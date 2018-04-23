@@ -76,7 +76,7 @@ public class UpgradeItemEntity {
   private String tasks = null;
 
   @Basic
-  @Column(name = "item_text")
+  @Column(name = "item_text", length = 1024)
   private String itemText = null;
 
   @Basic

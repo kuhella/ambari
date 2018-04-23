@@ -4,8 +4,7 @@
       "name": "HBASE",
       "identities": [
         {
-          "name": "hbase_spnego",
-          "reference": "/spnego"
+          "name": "/spnego"
         },
         {
           "name": "hbase",
@@ -29,8 +28,7 @@
           }
         },
         {
-          "name": "hbase_smokeuser",
-          "reference": "/smokeuser"
+          "name": "/smokeuser"
         }
       ],
       "configurations": [
@@ -69,8 +67,7 @@
           "name": "HBASE_MASTER",
           "identities": [
             {
-              "name": "hbase_hbase_master_hdfs",
-              "reference": "/HDFS/NAMENODE/hdfs"
+              "name": "/HDFS/NAMENODE/hdfs"
             },
             {
               "name": "hbase_master_hbase",
@@ -94,8 +91,7 @@
               }
             },
             {
-              "name": "hbase_hbase_master_spnego",
-              "reference": "/spnego",
+              "name": "/spnego",
               "principal": {
                 "configuration": "hbase-site/hbase.security.authentication.spnego.kerberos.principal"
               },
@@ -104,8 +100,7 @@
               }
             },
             {
-              "name": "hbase_hbase_master_hbase_master_hbase",
-              "reference": "/HBASE/HBASE_MASTER/hbase_master_hbase",
+              "name": "/HBASE/HBASE_MASTER/hbase_master_hbase",
               "principal": {
                 "configuration": "ranger-hbase-audit/xasecure.audit.jaas.Client.option.principal"
               },
@@ -140,8 +135,7 @@
               }
             },
             {
-              "name": "hbase_hbase_regionserver_spnego",
-              "reference": "/spnego",
+              "name": "/spnego",
               "principal": {
                 "configuration": "hbase-site/hbase.security.authentication.spnego.kerberos.principal"
               },
@@ -202,8 +196,7 @@
           "name": "PHOENIX_QUERY_SERVER",
           "identities": [
             {
-              "name": "hbase_phoenix_query_server_spnego",
-              "reference": "/spnego",
+              "name": "/spnego",
               "principal": {
                 "configuration": "hbase-site/phoenix.queryserver.kerberos.principal"
               },

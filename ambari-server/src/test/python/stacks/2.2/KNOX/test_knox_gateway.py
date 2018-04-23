@@ -145,11 +145,9 @@ class TestKnoxGateway(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertResourceCalled('Execute', ('tar',
-     '-zchf',
+     '-zcvhf',
      '/tmp/knox-upgrade-backup/knox-data-backup.tar',
-     '-C',
-     '/usr/hdp/current/knox-server/data',
-     '.'),
+     '/usr/hdp/current/knox-server/data'),
         sudo = True, tries = 3, try_sleep = 1,
     )
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'knox-server', '2.2.1.0-3242'),
@@ -181,19 +179,26 @@ class TestKnoxGateway(RMFTestCase):
                        config_dict = json_content,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalled('Execute', ('tar',
-     '-zchf',
+     '-zcvhf',
      '/tmp/knox-upgrade-backup/knox-data-backup.tar',
-     '-C',
-     '/usr/hdp/current/knox-server/data',
-     '.'),
+     '/usr/hdp/current/knox-server/data'),
         sudo = True,  tries = 3, try_sleep = 1,
     )
     self.assertResourceCalledIgnoreEarlier('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'knox-server', version),sudo = True)
     self.assertNoMoreResources()
 
+    self.assertEquals(1, mocks_dict['call'].call_count)
+    self.assertEquals(1, mocks_dict['checked_call'].call_count)
+    self.assertEquals(
+      ('ambari-python-wrap', '/usr/bin/conf-select', 'set-conf-dir', '--package', 'knox', '--stack-version', version, '--conf-version', '0'),
+       mocks_dict['checked_call'].call_args_list[0][0][0])
+    self.assertEquals(
+      ('ambari-python-wrap', '/usr/bin/conf-select', 'create-conf-dir', '--package', 'knox', '--stack-version', version, '--conf-version', '0'),
+       mocks_dict['call'].call_args_list[0][0][0])
 
   @patch("os.remove")
   @patch("os.path.exists")
@@ -212,23 +217,7 @@ class TestKnoxGateway(RMFTestCase):
     version = "2.3.2.0-5678"
     # This is an RU from 2.3.0.0 to 2.3.2.0
     json_content['commandParams']['version'] = version
-
-    json_content["upgradeSummary"] = {
-      "services":{
-        "KNOX":{
-          "sourceRepositoryId":1,
-          "sourceStackId":"HDP-2.2",
-          "sourceVersion":source_version,
-          "targetRepositoryId":2,
-          "targetStackId":"HDP-2.3",
-          "targetVersion":version
-        }
-      },
-      "direction":"UPGRADE",
-      "type":"nonrolling_upgrade",
-      "isRevert":False,
-      "orchestration":"STANDARD"
-    }
+    json_content['hostLevelParams']['current_version'] = source_version
 
     path_exists_mock.return_value = True
     mocks_dict = {}
@@ -239,14 +228,13 @@ class TestKnoxGateway(RMFTestCase):
                        config_dict = json_content,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalled('Execute', ('tar',
-     '-zchf',
+     '-zcvhf',
      '/tmp/knox-upgrade-backup/knox-data-backup.tar',
-     '-C',
-     '/usr/hdp/current/knox-server/data',
-     '.'),
+     '/usr/hdp/current/knox-server/data'),
         sudo = True, tries = 3, try_sleep = 1,
     )
     self.assertResourceCalledIgnoreEarlier('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'knox-server', version),sudo = True)
@@ -255,6 +243,14 @@ class TestKnoxGateway(RMFTestCase):
 
     self.assertNoMoreResources()
 
+    self.assertEquals(1, mocks_dict['call'].call_count)
+    self.assertEquals(1, mocks_dict['checked_call'].call_count)
+    self.assertEquals(
+      ('ambari-python-wrap', '/usr/bin/conf-select', 'set-conf-dir', '--package', 'knox', '--stack-version', version, '--conf-version', '0'),
+       mocks_dict['checked_call'].call_args_list[0][0][0])
+    self.assertEquals(
+      ('ambari-python-wrap', '/usr/bin/conf-select', 'create-conf-dir', '--package', 'knox', '--stack-version', version, '--conf-version', '0'),
+       mocks_dict['call'].call_args_list[0][0][0])
 
   @patch("os.remove")
   @patch("os.path.exists")
@@ -273,23 +269,7 @@ class TestKnoxGateway(RMFTestCase):
     version = "2.3.2.0-1001"
     # This is an RU from 2.3.2.0 to 2.3.2.1
     json_content['commandParams']['version'] = version
-
-    json_content["upgradeSummary"] = {
-      "services":{
-        "KNOX":{
-          "sourceRepositoryId":1,
-          "sourceStackId":"HDP-2.2",
-          "sourceVersion":source_version,
-          "targetRepositoryId":2,
-          "targetStackId":"HDP-2.3",
-          "targetVersion":version
-        }
-      },
-      "direction":"UPGRADE",
-      "type":"rolling_upgrade",
-      "isRevert":False,
-      "orchestration":"STANDARD"
-    }
+    json_content['hostLevelParams']['current_version'] = source_version
 
     path_exists_mock.return_value = True
     mocks_dict = {}
@@ -304,11 +284,9 @@ class TestKnoxGateway(RMFTestCase):
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalled('Execute', ('tar',
-     '-zchf',
+     '-zcvhf',
      '/tmp/knox-upgrade-backup/knox-data-backup.tar',
-     '-C',
-     "/usr/hdp/current/knox-server/data",
-     '.'),
+     "/usr/hdp/current/knox-server/data"),
         sudo = True,  tries = 3, try_sleep = 1,
     )
 
@@ -322,11 +300,10 @@ class TestKnoxGateway(RMFTestCase):
         sudo = True,
     )
     self.assertResourceCalled('Execute', ('tar',
-     '-xf',
+     '-xvf',
      '/tmp/knox-upgrade-backup/knox-conf-backup.tar',
      '-C',
-     '/usr/hdp/current/knox-server/conf/',
-     '.'),
+     '/usr/hdp/current/knox-server/conf/'),
         sudo = True,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/knox-server/conf/knox-conf-backup.tar',
@@ -334,6 +311,14 @@ class TestKnoxGateway(RMFTestCase):
     )
     self.assertNoMoreResources()
 
+    self.assertEquals(1, mocks_dict['call'].call_count)
+    self.assertEquals(1, mocks_dict['checked_call'].call_count)
+    self.assertEquals(
+      ('ambari-python-wrap', '/usr/bin/conf-select', 'set-conf-dir', '--package', 'knox', '--stack-version', version, '--conf-version', '0'),
+       mocks_dict['checked_call'].call_args_list[0][0][0])
+    self.assertEquals(
+      ('ambari-python-wrap', '/usr/bin/conf-select', 'create-conf-dir', '--package', 'knox', '--stack-version', version, '--conf-version', '0'),
+       mocks_dict['call'].call_args_list[0][0][0])
     '''
 
   @patch("os.path.islink")

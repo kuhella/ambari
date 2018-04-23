@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -49,6 +49,7 @@ import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
@@ -83,6 +84,7 @@ public class CompatibleRepositoryVersionResourceProviderTest {
   @Before
   public void before() throws Exception {
     final AmbariMetaInfo ambariMetaInfo = EasyMock.createMock(AmbariMetaInfo.class);
+    final ClusterVersionDAO clusterVersionDAO = EasyMock.createMock(ClusterVersionDAO.class);
 
     StackEntity hdp11Stack = new StackEntity();
     hdp11Stack.setStackName("HDP");
@@ -115,7 +117,7 @@ public class CompatibleRepositoryVersionResourceProviderTest {
     final StackInfo stack1 = new StackInfo() {
       @Override
       public Map<String, UpgradePack> getUpgradePacks() {
-        Map<String, UpgradePack> map = new HashMap<>();
+        Map<String, UpgradePack> map = new HashMap<String, UpgradePack>();
 
         UpgradePack pack1 = new UpgradePack() {
 
@@ -189,7 +191,7 @@ public class CompatibleRepositoryVersionResourceProviderTest {
     final StackInfo stack2 = new StackInfo() {
       @Override
       public Map<String, UpgradePack> getUpgradePacks() {
-        Map<String, UpgradePack> map = new HashMap<>();
+        Map<String, UpgradePack> map = new HashMap<String, UpgradePack>();
 
         UpgradePack pack = new UpgradePack() {
           @Override
@@ -219,6 +221,7 @@ public class CompatibleRepositoryVersionResourceProviderTest {
       protected void configure() {
         super.configure();
         bind(AmbariMetaInfo.class).toInstance(ambariMetaInfo);
+        bind(ClusterVersionDAO.class).toInstance(clusterVersionDAO);
         bind(RepositoryVersionDAO.class).toInstance(repoVersionDAO);
         requestStaticInjection(CompatibleRepositoryVersionResourceProvider.class);
       }

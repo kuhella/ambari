@@ -19,10 +19,8 @@ limitations under the License.
 """
 from resource_management.libraries.functions import format
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions import upgrade_summary
 from resource_management.libraries.functions.version import format_stack_version, compare_versions
 from resource_management.libraries.functions.default import default
-from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from utils import get_bare_principal
 
 from resource_management.libraries.functions.get_stack_version import get_stack_version
@@ -42,7 +40,8 @@ tmp_dir = Script.get_tmp_dir()
 stack_name = default("/hostLevelParams/stack_name", None)
 
 version = default("/commandParams/version", None)
-version_for_stack_feature_checks = get_stack_feature_version(config)
+# Version that is CURRENT.
+current_version = default("/hostLevelParams/current_version", None)
 
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
@@ -50,9 +49,9 @@ stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 iop_stack_version = format_stack_version(stack_version_unformatted)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 
-# When downgrading the 'version' is pointing to the downgrade-target version
+# When downgrading the 'version' and 'current_version' are both pointing to the downgrade-target version
 # downgrade_from_version provides the source-version the downgrade is happening from
-downgrade_from_version = upgrade_summary.get_downgrade_from_version("KAFKA")
+downgrade_from_version = default("/commandParams/downgrade_from_version", None)
 
 # default kafka parameters
 kafka_home = '/usr/iop/current/kafka-broker'

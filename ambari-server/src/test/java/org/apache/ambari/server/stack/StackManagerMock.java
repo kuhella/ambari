@@ -26,7 +26,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.Nullable;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.AmbariManagementHelper;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.ExtensionDAO;
 import org.apache.ambari.server.orm.dao.ExtensionLinkDAO;
@@ -134,8 +133,8 @@ public class StackManagerMock extends StackManager {
       File commonServicesRoot, @Assisted("extensionRoot") @Nullable File extensionRoot,
                           @Assisted OsFamily osFamily, @Assisted boolean validate, MetainfoDAO metaInfoDAO,
                           ActionMetadata actionMetadata, StackDAO stackDao, ExtensionDAO extensionDao,
-                          ExtensionLinkDAO linkDao, AmbariManagementHelper helper) throws AmbariException {
-    super(stackRoot, commonServicesRoot, extensionRoot, osFamily, validate, metaInfoDAO, actionMetadata, stackDao, extensionDao, linkDao, helper);
+                          ExtensionLinkDAO linkDao) throws AmbariException {
+    super(stackRoot, commonServicesRoot, extensionRoot, osFamily, validate, metaInfoDAO, actionMetadata, stackDao, extensionDao, linkDao);
     currentStackRoot = stackRoot;
     currentCommonServicesRoot = commonServicesRoot;
     currentExtensionRoot = extensionRoot;

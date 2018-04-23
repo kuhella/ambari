@@ -42,7 +42,9 @@ class HCatClient(Script):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HCatClientDefault(HCatClient):
-  pass
+  def get_component_name(self):
+    return "hadoop-client"
+
 
 if __name__ == "__main__":
   HCatClient().execute()

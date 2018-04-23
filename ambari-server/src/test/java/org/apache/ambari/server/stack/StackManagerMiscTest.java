@@ -32,7 +32,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.AmbariManagementHelper;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.ExtensionDAO;
 import org.apache.ambari.server.orm.dao.ExtensionLinkDAO;
@@ -70,13 +69,12 @@ public class StackManagerMiscTest  {
             EasyMock.anyObject(String.class))).andReturn(list).atLeastOnce();
 
     replay(actionMetadata, stackDao, extensionDao, linkDao, metaInfoDao, osFamily);
-    AmbariManagementHelper helper = new AmbariManagementHelper(stackDao, extensionDao, linkDao);
 
     try {
       String stacksCycle1 = ClassLoader.getSystemClassLoader().getResource("stacks_with_cycle").getPath();
 
       StackManager stackManager = new StackManager(new File(stacksCycle1), null, null, osFamily, false,
-          metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao, helper);
+          metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao);
 
       fail("Expected exception due to cyclic stack");
     } catch (AmbariException e) {
@@ -88,7 +86,7 @@ public class StackManagerMiscTest  {
           "stacks_with_cycle2").getPath();
 
       StackManager stackManager = new StackManager(new File(stacksCycle2),
-          null, null, osFamily, true, metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao, helper);
+          null, null, osFamily, true, metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao);
 
       fail("Expected exception due to cyclic stack");
     } catch (AmbariException e) {
@@ -126,11 +124,10 @@ public class StackManagerMiscTest  {
     replay(metaInfoDao, stackDao, extensionDao, linkDao, actionMetadata, osFamily);
 
     String singleStack = ClassLoader.getSystemClassLoader().getResource("single_stack").getPath();
-    AmbariManagementHelper helper = new AmbariManagementHelper(stackDao, extensionDao, linkDao);
 
     StackManager stackManager = new StackManager(new File(singleStack.replace(
         StackManager.PATH_DELIMITER, File.separator)), null, null, osFamily, false, metaInfoDao,
-        actionMetadata, stackDao, extensionDao, linkDao, helper);
+        actionMetadata, stackDao, extensionDao, linkDao);
 
     Collection<StackInfo> stacks = stackManager.getStacks();
     assertEquals(1, stacks.size());
@@ -164,13 +161,11 @@ public class StackManagerMiscTest  {
 
     replay(metaInfoDao, stackDao, extensionDao, linkDao, actionMetadata, osFamily);
 
-    AmbariManagementHelper helper = new AmbariManagementHelper(stackDao, extensionDao, linkDao);
-
     try {
       String upgradeCycle = ClassLoader.getSystemClassLoader().getResource("stacks_with_upgrade_cycle").getPath();
 
       StackManager stackManager = new StackManager(new File(upgradeCycle), null, null, osFamily, false,
-          metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao, helper);
+          metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao);
 
       fail("Expected exception due to cyclic service upgrade xml");
     } catch (AmbariException e) {

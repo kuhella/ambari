@@ -18,32 +18,11 @@
 
 package org.apache.ambari.server.notifications.dispatchers;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import org.apache.ambari.server.notifications.TargetConfigurationResult;
 import org.apache.ambari.server.notifications.DispatchCallback;
 import org.apache.ambari.server.notifications.Notification;
 import org.apache.ambari.server.notifications.NotificationDispatcher;
 import org.apache.ambari.server.notifications.Recipient;
-import org.apache.ambari.server.notifications.TargetConfigurationResult;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.state.AlertState;
@@ -59,6 +38,16 @@ import org.snmp4j.smi.Integer32;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.VariableBinding;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 public class AmbariSNMPDispatcherTest {
 
@@ -92,7 +81,7 @@ public class AmbariSNMPDispatcherTest {
         Notification notification = mock(AlertNotification.class);
         notification.Callback = mock(DispatchCallback.class);
         notification.CallbackIds = mock(List.class);
-        Map<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<String, String>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "3");
         properties.put(AmbariSNMPDispatcher.COMMUNITY_PROPERTY, "4");
         properties.put(AmbariSNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv1");
@@ -111,7 +100,7 @@ public class AmbariSNMPDispatcherTest {
         Notification notification = mock(AlertNotification.class);
         notification.Callback = mock(DispatchCallback.class);
         notification.CallbackIds = mock(List.class);
-        notification.DispatchProperties = new HashMap<>();
+        notification.DispatchProperties = new HashMap<String, String>();
         dispatcher.dispatch(notification);
         verify(notification.Callback).onFailure(notification.CallbackIds);
         verify(notification.Callback, never()).onSuccess(notification.CallbackIds);
@@ -123,7 +112,7 @@ public class AmbariSNMPDispatcherTest {
         Notification notification = getAlertNotification(true);
         notification.Callback = mock(DispatchCallback.class);
         notification.CallbackIds = mock(List.class);
-        Map<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<String, String>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "3");
         properties.put(AmbariSNMPDispatcher.COMMUNITY_PROPERTY, "4");
         properties.put(AmbariSNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv1");
@@ -139,12 +128,12 @@ public class AmbariSNMPDispatcherTest {
         Notification notification = getAlertNotification(true);
         notification.Callback = mock(DispatchCallback.class);
         notification.CallbackIds = mock(List.class);
-        Map<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<String, String>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "3");
         properties.put(AmbariSNMPDispatcher.COMMUNITY_PROPERTY, "4");
         properties.put(AmbariSNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv1");
         notification.DispatchProperties = properties;
-        notification.Recipients = new ArrayList<>();
+        notification.Recipients = new ArrayList<Recipient>();
         dispatcher.dispatch(notification);
         verify(notification.Callback).onFailure(notification.CallbackIds);
         verify(notification.Callback, never()).onSuccess(notification.CallbackIds);
@@ -156,7 +145,7 @@ public class AmbariSNMPDispatcherTest {
         Notification notification = mock(AlertNotification.class);
         notification.Callback = mock(DispatchCallback.class);
         notification.CallbackIds = mock(List.class);
-        Map<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<String, String>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "3");
         properties.put(AmbariSNMPDispatcher.COMMUNITY_PROPERTY, "4");
         properties.put(AmbariSNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv1");
@@ -174,7 +163,7 @@ public class AmbariSNMPDispatcherTest {
         Notification notification = mock(AlertNotification.class);
         notification.Callback = mock(DispatchCallback.class);
         notification.CallbackIds = mock(List.class);
-        Map<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<String, String>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "3");
         properties.put(AmbariSNMPDispatcher.COMMUNITY_PROPERTY, "4");
         properties.put(AmbariSNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv11");
@@ -192,7 +181,7 @@ public class AmbariSNMPDispatcherTest {
         Notification notification = mock(AlertNotification.class);
         notification.Callback = mock(DispatchCallback.class);
         notification.CallbackIds = mock(List.class);
-        Map<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<String, String>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "3");
         properties.put(AmbariSNMPDispatcher.COMMUNITY_PROPERTY, "4");
         properties.put(AmbariSNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv1");
@@ -211,7 +200,7 @@ public class AmbariSNMPDispatcherTest {
         Notification notification = mock(AlertNotification.class);
         notification.Callback = mock(DispatchCallback.class);
         notification.CallbackIds = mock(List.class);
-        Map<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<String, String>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "3");
         properties.put(AmbariSNMPDispatcher.COMMUNITY_PROPERTY, "4");
         properties.put(AmbariSNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv2c");
@@ -229,7 +218,7 @@ public class AmbariSNMPDispatcherTest {
         Notification notification = getAlertNotification(true);
         notification.Callback = mock(DispatchCallback.class);
         notification.CallbackIds = mock(List.class);
-        Map<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<String, String>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "162");
         properties.put(AmbariSNMPDispatcher.COMMUNITY_PROPERTY, "public");
         properties.put(AmbariSNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv3");
@@ -253,11 +242,11 @@ public class AmbariSNMPDispatcherTest {
         Notification notification = getAlertNotification(true);
         PDU pdu = dispatcher.prepareTrap(notification, snmpVersion);
         assertEquals(PDU.V1TRAP, pdu.getType());
-        Map<String, VariableBinding> variableBindings = new HashMap<>();
+        Map<String, VariableBinding> variableBindings = new HashMap<String, VariableBinding>();
         for (VariableBinding variableBinding : pdu.toArray()) {
             variableBindings.put(variableBinding.getOid().toString(), variableBinding);
         }
-    assertEquals(11, variableBindings.size());
+        assertEquals(10, variableBindings.size());
         assertEquals(AmbariSNMPDispatcher.AMBARI_ALERT_TRAP_OID, variableBindings.get(SnmpConstants.snmpTrapOID.toString()).toValueString());
         assertTrue(variableBindings.get(SnmpConstants.snmpTrapOID.toString()).getVariable() instanceof OID);
         assertEquals(String.valueOf(DEFINITION_ID), variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_DEFINITION_ID_OID).toValueString());
@@ -285,11 +274,11 @@ public class AmbariSNMPDispatcherTest {
         AlertNotification notification = (AlertNotification) getAlertNotification(false);
         PDU pdu = dispatcher.prepareTrap(notification, snmpVersion);
         assertEquals(PDU.V1TRAP, pdu.getType());
-        Map<String, VariableBinding> variableBindings = new HashMap<>();
+        Map<String, VariableBinding> variableBindings = new HashMap<String, VariableBinding>();
         for (VariableBinding variableBinding : pdu.toArray()) {
             variableBindings.put(variableBinding.getOid().toString(), variableBinding);
         }
-    assertEquals(11, variableBindings.size());
+        assertEquals(10, variableBindings.size());
         assertEquals("null", variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_COMPONENT_NAME_OID).toValueString());
     }
 
@@ -301,12 +290,12 @@ public class AmbariSNMPDispatcherTest {
         Notification notification = getAlertNotification(true);
         PDU pdu = dispatcher.prepareTrap(notification, snmpVersion);
         assertEquals(PDU.TRAP, pdu.getType());
-        Map<String, VariableBinding> variableBindings = new HashMap<>();
+        Map<String, VariableBinding> variableBindings = new HashMap<String, VariableBinding>();
         for (VariableBinding variableBinding : pdu.toArray()) {
             variableBindings.put(variableBinding.getOid().toString(), variableBinding);
         }
 
-    assertEquals(11, variableBindings.size());
+        assertEquals(10, variableBindings.size());
         assertEquals(AmbariSNMPDispatcher.AMBARI_ALERT_TRAP_OID, variableBindings.get(SnmpConstants.snmpTrapOID.toString()).toValueString());
         assertEquals(String.valueOf(DEFINITION_ID), variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_DEFINITION_ID_OID).toValueString());
         assertEquals(DEFINITION_NAME, variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_DEFINITION_NAME_OID).toValueString());
@@ -325,7 +314,7 @@ public class AmbariSNMPDispatcherTest {
         AmbariSNMPDispatcher dispatcher = spy(new AmbariSNMPDispatcher(snmp));
         PDU trap = mock(PDU.class);
         Notification notification = new AlertNotification();
-        Map<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<String, String>();
         properties.put(AmbariSNMPDispatcher.COMMUNITY_PROPERTY, "public");
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "162");
         notification.DispatchProperties = properties;
@@ -347,7 +336,7 @@ public class AmbariSNMPDispatcherTest {
         AmbariSNMPDispatcher dispatcher = spy(new AmbariSNMPDispatcher(snmp));
         PDU trap = mock(PDU.class);
         Notification notification = new AlertNotification();
-        Map<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<String, String>();
         properties.put(AmbariSNMPDispatcher.COMMUNITY_PROPERTY, "public");
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "162");
         notification.DispatchProperties = properties;
@@ -369,7 +358,7 @@ public class AmbariSNMPDispatcherTest {
         AmbariSNMPDispatcher dispatcher = spy(new AmbariSNMPDispatcher(snmp));
         PDU trap = mock(PDU.class);
         Notification notification = new AlertNotification();
-        Map<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<String, String>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "162");
         properties.put(AmbariSNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv3");
         properties.put(AmbariSNMPDispatcher.SECURITY_USERNAME_PROPERTY, "USER");
@@ -395,7 +384,7 @@ public class AmbariSNMPDispatcherTest {
         AmbariSNMPDispatcher dispatcher = spy(new AmbariSNMPDispatcher(snmp));
         PDU trap = mock(PDU.class);
         Notification notification = new AlertNotification();
-        Map<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<String, String>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "162");
         properties.put(AmbariSNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv3");
         properties.put(AmbariSNMPDispatcher.SECURITY_USERNAME_PROPERTY, "USER");
@@ -412,7 +401,7 @@ public class AmbariSNMPDispatcherTest {
 
     @Test
     public void testValidateAlertValidation_SNMPv1() throws Exception {
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, Object> properties = new HashMap<String, Object>();
         properties.put(SNMPDispatcher.PORT_PROPERTY, "162");
         properties.put(AmbariSNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv1");
         properties.put(AmbariSNMPDispatcher.COMMUNITY_PROPERTY, "public");
@@ -423,7 +412,7 @@ public class AmbariSNMPDispatcherTest {
 
     @Test
     public void testValidateAlertValidation_incorrectSNMPversion() throws Exception {
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, Object> properties = new HashMap<String, Object>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "162");
         properties.put(AmbariSNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv4");
         properties.put(AmbariSNMPDispatcher.COMMUNITY_PROPERTY, "public");
@@ -434,7 +423,7 @@ public class AmbariSNMPDispatcherTest {
 
     @Test
     public void testValidateAlertValidation_SNMPv1_invalid_noPort() throws Exception {
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, Object> properties = new HashMap<String, Object>();
         properties.put(AmbariSNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv1");
         properties.put(AmbariSNMPDispatcher.COMMUNITY_PROPERTY, "public");
         NotificationDispatcher dispatcher = new AmbariSNMPDispatcher(DEFAULT_SNMP_PORT);
@@ -444,7 +433,7 @@ public class AmbariSNMPDispatcherTest {
 
     @Test
     public void testValidateAlertValidation_SNMPv2c() throws Exception {
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, Object> properties = new HashMap<String, Object>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "162");
         properties.put(AmbariSNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv2c");
         properties.put(AmbariSNMPDispatcher.COMMUNITY_PROPERTY, "public");
@@ -455,7 +444,7 @@ public class AmbariSNMPDispatcherTest {
 
     @Test
     public void testValidateAlertValidation_SNMPv2c_invalid() throws Exception {
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, Object> properties = new HashMap<String, Object>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "162");
         properties.put(AmbariSNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv2c");
         NotificationDispatcher dispatcher = new AmbariSNMPDispatcher(DEFAULT_SNMP_PORT);
@@ -465,7 +454,7 @@ public class AmbariSNMPDispatcherTest {
 
     @Test
     public void testValidateAlertValidation_SNMPv3_incorrectSecurityLevel() throws Exception {
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, Object> properties = new HashMap<String, Object>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "162");
         properties.put(AmbariSNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv3");
         properties.put(AmbariSNMPDispatcher.SECURITY_USERNAME_PROPERTY, "USER");
@@ -479,7 +468,7 @@ public class AmbariSNMPDispatcherTest {
 
     @Test
     public void testValidateAlertValidation_SNMPv3_noAuthNoPriv() throws Exception {
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, Object> properties = new HashMap<String, Object>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "162");
         properties.put(AmbariSNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv3");
         properties.put(AmbariSNMPDispatcher.SECURITY_USERNAME_PROPERTY, "USER");
@@ -491,7 +480,7 @@ public class AmbariSNMPDispatcherTest {
 
     @Test
     public void testValidateAlertValidation_SNMPv3_AuthNoPriv_valid() throws Exception {
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, Object> properties = new HashMap<String, Object>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "162");
         properties.put(AmbariSNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv3");
         properties.put(AmbariSNMPDispatcher.SECURITY_USERNAME_PROPERTY, "USER");
@@ -504,7 +493,7 @@ public class AmbariSNMPDispatcherTest {
 
     @Test
     public void testValidateAlertValidation_SNMPv3_AuthNoPriv_invalid() throws Exception {
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, Object> properties = new HashMap<String, Object>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "162");
         properties.put(AmbariSNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv3");
         properties.put(AmbariSNMPDispatcher.SECURITY_USERNAME_PROPERTY, "USER");
@@ -516,7 +505,7 @@ public class AmbariSNMPDispatcherTest {
 
     @Test
     public void testValidateAlertValidation_SNMPv3_AuthPriv_valid() throws Exception {
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, Object> properties = new HashMap<String, Object>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "162");
         properties.put(AmbariSNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv3");
         properties.put(AmbariSNMPDispatcher.SECURITY_USERNAME_PROPERTY, "USER");
@@ -530,7 +519,7 @@ public class AmbariSNMPDispatcherTest {
 
     @Test
     public void testValidateAlertValidation_SNMPv3_AuthPriv_noPassphrases() throws Exception {
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, Object> properties = new HashMap<String, Object>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "162");
         properties.put(AmbariSNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv3");
         properties.put(AmbariSNMPDispatcher.SECURITY_USERNAME_PROPERTY, "USER");
@@ -542,7 +531,7 @@ public class AmbariSNMPDispatcherTest {
 
     @Test
     public void testValidateAlertValidation_SNMPv3_AuthPriv_onlyAuthPassphrase() throws Exception {
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, Object> properties = new HashMap<String, Object>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "162");
         properties.put(AmbariSNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv3");
         properties.put(AmbariSNMPDispatcher.SECURITY_USERNAME_PROPERTY, "USER");

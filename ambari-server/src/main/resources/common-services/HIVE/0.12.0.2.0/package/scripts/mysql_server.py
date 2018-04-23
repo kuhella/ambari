@@ -46,18 +46,18 @@ class MysqlServer(Script):
   def start(self, env, rolling_restart=False):
     import params
     env.set_params(params)
-    mysql_service(action='start')
+    mysql_service(daemon_name=params.daemon_name, action='start')
 
   def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
-    mysql_service(action='stop')
+    mysql_service(daemon_name=params.daemon_name, action='stop')
 
   def status(self, env):
     import status_params
     env.set_params(status_params)
 
-    mysql_service(action='status')
+    mysql_service(daemon_name=status_params.daemon_name, action='status')
 
 
 if __name__ == "__main__":

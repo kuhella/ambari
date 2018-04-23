@@ -18,6 +18,7 @@
 package org.apache.ambari.server.checks;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -32,6 +33,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
@@ -61,14 +63,15 @@ public class ComponentsInstallationCheck extends AbstractCheckDescriptor {
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
-    Set<String> failedServiceNames = new HashSet<>();
+    Set<String> failedServiceNames = new HashSet<String>();
+
+    StackId stackId = cluster.getCurrentStackVersion();
 
     // Preq-req check should fail if any service component is in INSTALL_FAILED state
-    Set<String> installFailedHostComponents = new HashSet<>();
+    Set<String> installFailedHostComponents = new HashSet<String>();
 
-    Set<String> servicesInUpgrade = getServicesInUpgrade(request);
-    for (String serviceName : servicesInUpgrade) {
-      final Service service = cluster.getService(serviceName);
+    for (Map.Entry<String, Service> serviceEntry : cluster.getServices().entrySet()) {
+      final Service service = serviceEntry.getValue();
       // Skip service if it is in maintenance mode
       if (service.getMaintenanceState() != MaintenanceState.ON) {
         Map<String, ServiceComponent> serviceComponents = service.getServiceComponents();
@@ -97,7 +100,7 @@ public class ComponentsInstallationCheck extends AbstractCheckDescriptor {
     if(!installFailedHostComponents.isEmpty()) {
       String message = MessageFormat.format("Service components in INSTALL_FAILED state: {0}.",
           StringUtils.join(installFailedHostComponents, ", "));
-      prerequisiteCheck.setFailedOn(new LinkedHashSet<>(failedServiceNames));
+      prerequisiteCheck.setFailedOn(new LinkedHashSet<String>(failedServiceNames));
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
       prerequisiteCheck.setFailReason(
           "Found service components in INSTALL_FAILED state. Please re-install these components. " + message);

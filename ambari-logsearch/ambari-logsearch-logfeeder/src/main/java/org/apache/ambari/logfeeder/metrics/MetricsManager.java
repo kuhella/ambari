@@ -47,9 +47,7 @@ public class MetricsManager {
 
   public void init() {
     LOG.info("Initializing MetricsManager()");
-    if (amsClient == null) {
-      amsClient = new LogFeederAMSClient();
-    }
+    amsClient = new LogFeederAMSClient();
 
     if (amsClient.getCollectorUri(null) != null) {
       findNodeHostName();
@@ -166,9 +164,5 @@ public class MetricsManager {
       LOG.info("Not publishing metrics. metrics.size()=" + metricsMap.size() + ", lastPublished=" +
           (currMS - lastPublishTimeMS) / 1000 + " seconds ago, intervalConfigured=" + publishIntervalMS / 1000);
     }
-  }
-
-  public void setAmsClient(LogFeederAMSClient amsClient) {
-    this.amsClient = amsClient;
   }
 }

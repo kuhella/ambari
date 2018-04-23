@@ -35,11 +35,11 @@ import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
-import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.HostRequest;
 import org.apache.ambari.server.controller.HostResponse;
+import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -74,7 +74,6 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
@@ -84,75 +83,86 @@ import com.google.inject.persist.Transactional;
 /**
  * Resource provider for host resources.
  */
-@StaticallyInject
 public class HostResourceProvider extends AbstractControllerResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
 
   // Hosts
-  public static final String RESPONSE_KEY = "Hosts";
-  public static final String ALL_PROPERTIES = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "*";
+  public static final String HOST_CLUSTER_NAME_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "cluster_name");
+  public static final String HOST_NAME_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "host_name");
+  public static final String HOST_PUBLIC_NAME_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "public_host_name");
+  public static final String HOST_IP_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "ip");
+  public static final String HOST_TOTAL_MEM_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "total_mem");
+  public static final String HOST_CPU_COUNT_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "cpu_count");
+  public static final String HOST_PHYSICAL_CPU_COUNT_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "ph_cpu_count");
+  public static final String HOST_OS_ARCH_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "os_arch");
+  public static final String HOST_OS_TYPE_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "os_type");
+  public static final String HOST_OS_FAMILY_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "os_family");
+  public static final String HOST_RACK_INFO_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "rack_info");
+  public static final String HOST_LAST_HEARTBEAT_TIME_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "last_heartbeat_time");
+  public static final String HOST_LAST_REGISTRATION_TIME_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "last_registration_time");
+  public static final String HOST_DISK_INFO_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "disk_info");
 
-  public static final String CLUSTER_NAME_PROPERTY_ID = "cluster_name";
-  public static final String CPU_COUNT_PROPERTY_ID = "cpu_count";
-  public static final String DESIRED_CONFIGS_PROPERTY_ID = "desired_configs";
-  public static final String DISK_INFO_PROPERTY_ID = "disk_info";
-  public static final String HOST_HEALTH_REPORT_PROPERTY_ID = "host_health_report";
-  public static final String HOST_NAME_PROPERTY_ID = "host_name";
-  public static final String HOST_STATUS_PROPERTY_ID = "host_status";
-  public static final String IP_PROPERTY_ID = "ip";
-  public static final String LAST_AGENT_ENV_PROPERTY_ID = "last_agent_env";
-  public static final String LAST_HEARTBEAT_TIME_PROPERTY_ID = "last_heartbeat_time";
-  public static final String LAST_REGISTRATION_TIME_PROPERTY_ID = "last_registration_time";
-  public static final String MAINTENANCE_STATE_PROPERTY_ID = "maintenance_state";
-  public static final String OS_ARCH_PROPERTY_ID = "os_arch";
-  public static final String OS_FAMILY_PROPERTY_ID = "os_family";
-  public static final String OS_TYPE_PROPERTY_ID = "os_type";
-  public static final String PHYSICAL_CPU_COUNT_PROPERTY_ID = "ph_cpu_count";
-  public static final String PUBLIC_NAME_PROPERTY_ID = "public_host_name";
-  public static final String RACK_INFO_PROPERTY_ID = "rack_info";
-  public static final String RECOVERY_REPORT_PROPERTY_ID = "recovery_report";
-  public static final String RECOVERY_SUMMARY_PROPERTY_ID = "recovery_summary";
-  public static final String STATE_PROPERTY_ID = "host_state";
-  public static final String TOTAL_MEM_PROPERTY_ID = "total_mem";
 
-  public static final String HOST_CLUSTER_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + CLUSTER_NAME_PROPERTY_ID;
-  public static final String HOST_CPU_COUNT_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + CPU_COUNT_PROPERTY_ID;
-  public static final String HOST_DESIRED_CONFIGS_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + DESIRED_CONFIGS_PROPERTY_ID;
-  public static final String HOST_DISK_INFO_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + DISK_INFO_PROPERTY_ID;
-  public static final String HOST_HOST_HEALTH_REPORT_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + HOST_HEALTH_REPORT_PROPERTY_ID;
-  public static final String HOST_HOST_STATUS_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + HOST_STATUS_PROPERTY_ID;
-  public static final String HOST_IP_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + IP_PROPERTY_ID;
-  public static final String HOST_LAST_AGENT_ENV_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + LAST_AGENT_ENV_PROPERTY_ID;
-  public static final String HOST_LAST_HEARTBEAT_TIME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + LAST_HEARTBEAT_TIME_PROPERTY_ID;
-  public static final String HOST_LAST_REGISTRATION_TIME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + LAST_REGISTRATION_TIME_PROPERTY_ID;
-  public static final String HOST_MAINTENANCE_STATE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + MAINTENANCE_STATE_PROPERTY_ID;
-  public static final String HOST_HOST_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + HOST_NAME_PROPERTY_ID;
-  public static final String HOST_OS_ARCH_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + OS_ARCH_PROPERTY_ID;
-  public static final String HOST_OS_FAMILY_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + OS_FAMILY_PROPERTY_ID;
-  public static final String HOST_OS_TYPE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + OS_TYPE_PROPERTY_ID;
-  public static final String HOST_PHYSICAL_CPU_COUNT_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + PHYSICAL_CPU_COUNT_PROPERTY_ID;
-  public static final String HOST_PUBLIC_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + PUBLIC_NAME_PROPERTY_ID;
-  public static final String HOST_RACK_INFO_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + RACK_INFO_PROPERTY_ID;
-  public static final String HOST_RECOVERY_REPORT_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + RECOVERY_REPORT_PROPERTY_ID;
-  public static final String HOST_RECOVERY_SUMMARY_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + RECOVERY_SUMMARY_PROPERTY_ID;
-  public static final String HOST_STATE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + STATE_PROPERTY_ID;
-  public static final String HOST_TOTAL_MEM_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + TOTAL_MEM_PROPERTY_ID;
+  public static final String HOST_HOST_STATUS_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "host_status");
+  public static final String HOST_MAINTENANCE_STATE_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "maintenance_state");
 
-  public static final String BLUEPRINT_PROPERTY_ID = "blueprint";
-  public static final String HOST_GROUP_PROPERTY_ID = "host_group";
-  public static final String HOST_COUNT_PROPERTY_ID = "host_count";
-  public static final String HOST_PREDICATE_PROPERTY_ID = "host_predicate";
+  public static final String HOST_HOST_HEALTH_REPORT_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "host_health_report");
+  public static final String HOST_RECOVERY_REPORT_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "recovery_report");
+  public static final String HOST_RECOVERY_SUMMARY_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "recovery_summary");
+  public static final String HOST_STATE_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "host_state");
+  public static final String HOST_LAST_AGENT_ENV_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "last_agent_env");
+  public static final String HOST_DESIRED_CONFIGS_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "desired_configs");
+
+  public static final String BLUEPRINT_PROPERTY_ID =
+      PropertyHelper.getPropertyId(null, "blueprint");
+  public static final String HOSTGROUP_PROPERTY_ID =
+      PropertyHelper.getPropertyId(null, "host_group");
+  public static final String HOST_NAME_NO_CATEGORY_PROPERTY_ID =
+      PropertyHelper.getPropertyId(null, "host_name");
+  public static final String HOST_COUNT_PROPERTY_ID =
+      PropertyHelper.getPropertyId(null, "host_count");
+  public static final String HOST_PREDICATE_PROPERTY_ID =
+      PropertyHelper.getPropertyId(null, "host_predicate");
 
   //todo use the same json structure for cluster host addition (cluster template and upscale)
+  public static final String HOST_RACK_INFO_NO_CATEGORY_PROPERTY_ID =
+      PropertyHelper.getPropertyId(null, "rack_info");
 
   protected static final String FORCE_DELETE_COMPONENTS = "force_delete_components";
 
 
-  private static final Set<String> PK_PROPERTY_IDS = ImmutableSet.of(HOST_HOST_NAME_PROPERTY_ID);
+  private static Set<String> pkPropertyIds =
+      new HashSet<String>(Arrays.asList(new String[]{
+          HOST_NAME_PROPERTY_ID}));
 
   @Inject
-  private static OsFamily osFamily;
+  private MaintenanceStateHelper maintenanceStateHelper;
+
+  @Inject
+  private OsFamily osFamily;
 
   @Inject
   private static TopologyManager topologyManager;
@@ -210,7 +220,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   protected Set<Resource> getResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<HostRequest> requests = new HashSet<>();
+    final Set<HostRequest> requests = new HashSet<HostRequest>();
 
     if (predicate == null) {
       requests.add(getRequest(null));
@@ -229,7 +239,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     });
 
     Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
-    Set<Resource> resources    = new HashSet<>();
+    Set<Resource> resources    = new HashSet<Resource>();
 
     for (HostResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.Host);
@@ -240,7 +250,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         setResourceProperty(resource, HOST_CLUSTER_NAME_PROPERTY_ID,
             response.getClusterName(), requestedIds);
       }
-      setResourceProperty(resource, HOST_HOST_NAME_PROPERTY_ID,
+      setResourceProperty(resource, HOST_NAME_PROPERTY_ID,
           response.getHostname(), requestedIds);
       setResourceProperty(resource, HOST_PUBLIC_NAME_PROPERTY_ID,
           response.getPublicHostName(), requestedIds);
@@ -249,15 +259,22 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       setResourceProperty(resource, HOST_TOTAL_MEM_PROPERTY_ID,
           response.getTotalMemBytes(), requestedIds);
       setResourceProperty(resource, HOST_CPU_COUNT_PROPERTY_ID,
-          response.getCpuCount(), requestedIds);
+          (long) response.getCpuCount(), requestedIds);
       setResourceProperty(resource, HOST_PHYSICAL_CPU_COUNT_PROPERTY_ID,
-          response.getPhCpuCount(), requestedIds);
+          (long) response.getPhCpuCount(), requestedIds);
       setResourceProperty(resource, HOST_OS_ARCH_PROPERTY_ID,
           response.getOsArch(), requestedIds);
       setResourceProperty(resource, HOST_OS_TYPE_PROPERTY_ID,
           response.getOsType(), requestedIds);
+
+      String hostOsFamily = osFamily.find(response.getOsType());
+      if (hostOsFamily == null) {
+        LOG.error("Can not find host OS family. For OS type = '{}' and host name = '{}'",
+            response.getOsType(), response.getHostname());
+      }
       setResourceProperty(resource, HOST_OS_FAMILY_PROPERTY_ID,
-          response.getOsFamily(), requestedIds);
+          hostOsFamily, requestedIds);
+
       setResourceProperty(resource, HOST_RACK_INFO_PROPERTY_ID,
           response.getRackInfo(), requestedIds);
       setResourceProperty(resource, HOST_LAST_HEARTBEAT_TIME_PROPERTY_ID,
@@ -269,7 +286,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       setResourceProperty(resource, HOST_HOST_STATUS_PROPERTY_ID,
           response.getStatus(),requestedIds);
       setResourceProperty(resource, HOST_HOST_HEALTH_REPORT_PROPERTY_ID,
-          response.getHealthReport(), requestedIds);
+          response.getHealthStatus().getHealthReport(), requestedIds);
       setResourceProperty(resource, HOST_RECOVERY_REPORT_PROPERTY_ID,
           response.getRecoveryReport(), requestedIds);
       setResourceProperty(resource, HOST_RECOVERY_SUMMARY_PROPERTY_ID,
@@ -296,7 +313,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   protected RequestStatus updateResourcesAuthorized(final Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<HostRequest> requests = new HashSet<>();
+    final Set<HostRequest> requests = new HashSet<HostRequest>();
     for (Map<String, Object> propertyMap : getPropertyMaps(request.getProperties().iterator().next(), predicate)) {
       requests.add(getRequest(propertyMap));
     }
@@ -346,11 +363,12 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     Set<String> baseUnsupported = super.checkPropertyIds(propertyIds);
 
     baseUnsupported.remove(BLUEPRINT_PROPERTY_ID);
-    baseUnsupported.remove(HOST_GROUP_PROPERTY_ID);
-    baseUnsupported.remove(HOST_NAME_PROPERTY_ID);
+    baseUnsupported.remove(HOSTGROUP_PROPERTY_ID);
+    baseUnsupported.remove(HOST_NAME_NO_CATEGORY_PROPERTY_ID);
+    //todo: constants
     baseUnsupported.remove(HOST_COUNT_PROPERTY_ID);
     baseUnsupported.remove(HOST_PREDICATE_PROPERTY_ID);
-    baseUnsupported.remove(RACK_INFO_PROPERTY_ID);
+    baseUnsupported.remove(HOST_RACK_INFO_NO_CATEGORY_PROPERTY_ID);
 
     return checkConfigPropertyIds(baseUnsupported, "Hosts");
   }
@@ -360,7 +378,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return PK_PROPERTY_IDS;
+    return pkPropertyIds;
   }
 
 
@@ -379,7 +397,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     Set<Map<String, Object>> properties = request.getProperties();
     if (properties != null && ! properties.isEmpty()) {
       //todo: for now, either all or none of the hosts need to specify a hg.  Unable to mix.
-      String hgName = (String) properties.iterator().next().get(HOST_GROUP_PROPERTY_ID);
+      String hgName = (String) properties.iterator().next().get(HOSTGROUP_PROPERTY_ID);
       isHostGroupRequest = hgName != null && ! hgName.isEmpty();
     }
     return isHostGroupRequest;
@@ -395,21 +413,21 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   private HostRequest getRequest(Map<String, Object> properties) {
 
     if (properties == null) {
-      return new HostRequest(null, null);
+      return  new HostRequest(null, null, null);
     }
 
     HostRequest hostRequest = new HostRequest(
         getHostNameFromProperties(properties),
-        (String) properties.get(HOST_CLUSTER_NAME_PROPERTY_ID)
-    );
+        (String) properties.get(HOST_CLUSTER_NAME_PROPERTY_ID),
+        null);
     hostRequest.setPublicHostName((String) properties.get(HOST_PUBLIC_NAME_PROPERTY_ID));
 
     String rackInfo = (String) ((null != properties.get(HOST_RACK_INFO_PROPERTY_ID))? properties.get(HOST_RACK_INFO_PROPERTY_ID):
-            properties.get(RACK_INFO_PROPERTY_ID));
+            properties.get(HOST_RACK_INFO_NO_CATEGORY_PROPERTY_ID));
 
     hostRequest.setRackInfo(rackInfo);
     hostRequest.setBlueprintName((String) properties.get(BLUEPRINT_PROPERTY_ID));
-    hostRequest.setHostGroupName((String) properties.get(HOST_GROUP_PROPERTY_ID));
+    hostRequest.setHostGroupName((String) properties.get(HOSTGROUP_PROPERTY_ID));
 
     Object o = properties.get(HOST_MAINTENANCE_STATE_PROPERTY_ID);
     if (null != o) {
@@ -428,6 +446,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
    * Accepts a request with registered hosts and if the request contains a cluster name then will map all of the
    * hosts onto that cluster.
    * @param request Request that must contain registered hosts, and optionally a cluster.
+   * @throws AmbariException
    */
   public synchronized void createHosts(Request request)
       throws AmbariException {
@@ -441,16 +460,16 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     AmbariManagementController controller = getManagementController();
     Clusters                   clusters   = controller.getClusters();
 
-    Set<String> duplicates = new HashSet<>();
-    Set<String> unknowns = new HashSet<>();
-    Set<String> allHosts = new HashSet<>();
+    Set<String> duplicates = new HashSet<String>();
+    Set<String> unknowns = new HashSet<String>();
+    Set<String> allHosts = new HashSet<String>();
 
 
-    Set<HostRequest> hostRequests = new HashSet<>();
+    Set<HostRequest> hostRequests = new HashSet<HostRequest>();
     for (Map<String, Object> propertyMap : propertySet) {
       HostRequest hostRequest = getRequest(propertyMap);
       hostRequests.add(hostRequest);
-      if (! propertyMap.containsKey(HOST_GROUP_PROPERTY_ID)) {
+      if (! propertyMap.containsKey(HOSTGROUP_PROPERTY_ID)) {
         createHostResource(clusters, duplicates, unknowns, allHosts, hostRequest);
       }
     }
@@ -467,7 +486,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       }
       throw new IllegalArgumentException("Invalid request contains"
           + " duplicate hostnames"
-          + ", hostnames=" + names);
+          + ", hostnames=" + names.toString());
     }
 
     if (!unknowns.isEmpty()) {
@@ -482,12 +501,12 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       }
 
       throw new IllegalArgumentException("Attempted to add unknown hosts to a cluster.  " +
-          "These hosts have not been registered with the server: " + names);
+          "These hosts have not been registered with the server: " + names.toString());
     }
 
-    Map<String, Set<String>> hostClustersMap = new HashMap<>();
-    Map<String, Map<String, String>> hostAttributes = new HashMap<>();
-    Set<String> allClusterSet = new HashSet<>();
+    Map<String, Set<String>> hostClustersMap = new HashMap<String, Set<String>>();
+    Map<String, Map<String, String>> hostAttributes = new HashMap<String, Map<String, String>>();
+    Set<String> allClusterSet = new HashSet<String>();
 
     for (HostRequest hostRequest : hostRequests) {
       if (hostRequest.getHostname() != null &&
@@ -495,14 +514,20 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
           hostRequest.getClusterName() != null &&
           !hostRequest.getClusterName().isEmpty()){
 
-        Set<String> clusterSet = new HashSet<>();
+        Set<String> clusterSet = new HashSet<String>();
         clusterSet.add(hostRequest.getClusterName());
         allClusterSet.add(hostRequest.getClusterName());
         hostClustersMap.put(hostRequest.getHostname(), clusterSet);
+        if (hostRequest.getHostAttributes() != null) {
+          hostAttributes.put(hostRequest.getHostname(), hostRequest.getHostAttributes());
+        }
       }
     }
     clusters.updateHostWithClusterAndAttributes(hostClustersMap, hostAttributes);
 
+    for (String clusterName : allClusterSet) {
+      clusters.getCluster(clusterName).recalculateAllClusterVersionStates();
+    }
   }
 
   private void createHostResource(Clusters clusters, Set<String> duplicates,
@@ -518,7 +543,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     }
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Received a createHost request, hostname={}, request={}", request.getHostname(), request);
+      LOG.debug("Received a createHost request"
+          + ", hostname=" + request.getHostname()
+          + ", request=" + request);
     }
 
     if (allHosts.contains(request.getHostname())) {
@@ -570,7 +597,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   }
 
   protected Set<HostResponse> getHosts(Set<HostRequest> requests) throws AmbariException {
-    Set<HostResponse> response = new HashSet<>();
+    Set<HostResponse> response = new HashSet<HostResponse>();
 
     AmbariManagementController controller = getManagementController();
 
@@ -588,9 +615,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     return response;
   }
 
-  /**
-   * @param osFamily provides OS to OS family lookup; may be null if OS family is ignored anyway (eg. for liveness check)
-   */
   protected static Set<HostResponse> getHosts(AmbariManagementController controller, HostRequest request)
       throws AmbariException {
 
@@ -598,7 +622,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     //TODO/FIXME what is the requirement for filtering on host attributes?
 
     List<Host> hosts;
-    Set<HostResponse> response = new HashSet<>();
+    Set<HostResponse> response = new HashSet<HostResponse>();
     Cluster           cluster  = null;
 
     Clusters                   clusters   = controller.getClusters();
@@ -618,7 +642,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     if (hostName == null) {
       hosts = clusters.getHosts();
     } else {
-      hosts = new ArrayList<>();
+      hosts = new ArrayList<Host>();
       try {
         hosts.add(clusters.getHost(request.getHostname()));
       } catch (HostNotFoundException e) {
@@ -630,7 +654,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     // retrieve the cluster desired configs once instead of per host
     Map<String, DesiredConfig> desiredConfigs = null;
     if (null != cluster) {
-      desiredConfigs = cluster.getDesiredConfigs();
+      cluster.getDesiredConfigs();
     }
 
     for (Host h : hosts) {
@@ -641,13 +665,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
           r.setClusterName(clusterName);
           r.setDesiredHostConfigs(h.getDesiredHostConfigs(cluster, desiredConfigs));
           r.setMaintenanceState(h.getMaintenanceState(cluster.getClusterId()));
-          if (osFamily != null) {
-            String hostOsFamily = osFamily.find(r.getOsType());
-            if (hostOsFamily == null) {
-              LOG.error("Can not find host OS family. For OS type = '{}' and host name = '{}'", r.getOsType(), r.getHostname());
-            }
-            r.setOsFamily(hostOsFamily);
-          }
 
           response.add(r);
         } else if (hostName != null) {
@@ -661,7 +678,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         if (clustersForHost != null && clustersForHost.size() != 0) {
           Cluster clusterForHost = clustersForHost.iterator().next();
           r.setClusterName(clusterForHost.getClusterName());
-          r.setDesiredHostConfigs(h.getDesiredHostConfigs(clusterForHost, null));
+          r.setDesiredHostConfigs(h.getDesiredHostConfigs(clusterForHost, desiredConfigs));
           r.setMaintenanceState(h.getMaintenanceState(clusterForHost.getClusterId()));
         }
 
@@ -689,7 +706,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
     for (HostRequest request : requests) {
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Received an updateHost request, hostname={}, request={}", request.getHostname(), request);
+        LOG.debug("Received an updateHost request"
+            + ", hostname=" + request.getHostname()
+            + ", request=" + request);
       }
 
       Host host = clusters.getHost(request.getHostname());
@@ -705,6 +724,13 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         clusters.mapAndPublishHostsToCluster(new HashSet<>(Arrays.asList(request.getHostname())), clusterName);
       } catch (DuplicateResourceException e) {
         // do nothing
+      }
+
+      if (null != request.getHostAttributes()) {
+        if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, resourceId, RoleAuthorization.HOST_ADD_DELETE_HOSTS)) {
+          throw new AuthorizationException("The authenticated user is not authorized to update host attributes");
+        }
+        host.setHostAttributes(request.getHostAttributes());
       }
 
       String  rackInfo        = host.getRackInfo();
@@ -777,9 +803,12 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         }
       }
 
-      if (StringUtils.isNotBlank(clusterName) && rackChange) {
-        // Authorization check for this update was performed before we got to this point.
-        controller.registerRackChange(clusterName);
+      if (clusterName != null && !clusterName.isEmpty()) {
+        clusters.getCluster(clusterName).recalculateAllClusterVersionStates();
+        if (rackChange) {
+          // Authorization check for this update was performed before we got to this point.
+          controller.registerRackChange(clusterName);
+        }
       }
 
       //todo: if attempt was made to update a property other than those
@@ -902,6 +931,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       }
     }
     clusters.publishHostsDeletion(allClustersWithHosts, hostNames);
+    for (String clustername : hostsClusters) {
+      clusters.getCluster(clustername).recalculateAllClusterVersionStates();
+    }
   }
 
   private void validateHostInDeleteFriendlyState(HostRequest hostRequest, Clusters clusters, boolean forceDelete) throws AmbariException {
@@ -968,6 +1000,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
   /**
    * Removes hostname from the stateful cluster topology
+   * @param clusters
+   * @param hostRequest
+   * @throws AmbariException
    */
   private void removeHostFromClusterTopology(Clusters clusters, HostRequest hostRequest) throws AmbariException{
     if (hostRequest.getClusterName() == null) {
@@ -997,11 +1032,11 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
    *
    * @return the host name for the host request
    */
-  public static String getHostNameFromProperties(Map<String, Object> properties) {
-    String hostname = (String) properties.get(HOST_HOST_NAME_PROPERTY_ID);
+  private String getHostNameFromProperties(Map<String, Object> properties) {
+    String hostname = (String) properties.get(HOST_NAME_PROPERTY_ID);
 
     return hostname != null ? hostname :
-        (String) properties.get(HOST_NAME_PROPERTY_ID);
+        (String) properties.get(HOST_NAME_NO_CATEGORY_PROPERTY_ID);
   }
 
   //todo: for api/v1/hosts we also end up here so we need to ensure proper 400 response

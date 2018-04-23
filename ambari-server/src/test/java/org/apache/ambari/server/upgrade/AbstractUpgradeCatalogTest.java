@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
@@ -42,7 +41,6 @@ import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.PropertyUpgradeBehavior;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.StackId;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -131,7 +129,7 @@ public class AbstractUpgradeCatalogTest {
     mergedProperties.put("prop1", "v1-old");
     mergedProperties.put("prop4", "v4");
 
-    expect(amc.createConfig(eq(cluster), anyObject(StackId.class), eq("hdfs-site"), eq(mergedProperties), anyString(), eq(tags))).andReturn(null);
+    expect(amc.createConfig(eq(cluster), eq("hdfs-site"), eq(mergedProperties), anyString(), eq(tags))).andReturn(null);
 
     replay(injector, configHelper, amc, cluster, clusters, serviceInfo, oldConfig);
 
@@ -153,7 +151,7 @@ public class AbstractUpgradeCatalogTest {
     mergedProperties.put("prop2", "v2");
     mergedProperties.put("prop3", "v3-old");
 
-    expect(amc.createConfig(eq(cluster), anyObject(StackId.class), eq("hdfs-site"), eq(mergedProperties), anyString(), eq(tags))).andReturn(null);
+    expect(amc.createConfig(eq(cluster), eq("hdfs-site"), eq(mergedProperties), anyString(), eq(tags))).andReturn(null);
 
     replay(injector, configHelper, amc, cluster, clusters, serviceInfo, oldConfig);
 
@@ -172,7 +170,7 @@ public class AbstractUpgradeCatalogTest {
     Map<String, String> mergedProperties = new HashMap<>();
     mergedProperties.put("prop1", "v1-old");
 
-    expect(amc.createConfig(eq(cluster), anyObject(StackId.class), eq("hdfs-site"), eq(mergedProperties), anyString(), eq(tags))).andReturn(null);
+    expect(amc.createConfig(eq(cluster), eq("hdfs-site"), eq(mergedProperties), anyString(), eq(tags))).andReturn(null);
 
     replay(injector, configHelper, amc, cluster, clusters, serviceInfo, oldConfig);
 

@@ -128,11 +128,9 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
 
       boolean processPrincipal;
       boolean regenerateKeytabs = "true".equalsIgnoreCase(getCommandParameterValue(getCommandParameters(), REGENERATE_ALL));
-      boolean onlyWrite = !identityRecord.containsKey(KerberosIdentityDataFileReader.ONLY_KEYTAB_WRITE) ||
-          "true".equals(identityRecord.get(KerberosIdentityDataFileReader.ONLY_KEYTAB_WRITE).toLowerCase());
 
       if (regenerateKeytabs) {
-        processPrincipal = !onlyWrite;
+        processPrincipal = true;
       } else {
         KerberosPrincipalEntity kerberosPrincipalEntity = kerberosPrincipalDAO.find(evaluatedPrincipal);
 

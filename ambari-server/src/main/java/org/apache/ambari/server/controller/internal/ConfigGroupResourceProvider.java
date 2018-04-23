@@ -62,7 +62,6 @@ import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,8 +84,6 @@ public class ConfigGroupResourceProvider extends
     .getPropertyId("ConfigGroup", "group_name");
   protected static final String CONFIGGROUP_TAG_PROPERTY_ID = PropertyHelper
     .getPropertyId("ConfigGroup", "tag");
-  protected static final String CONFIGGROUP_SERVICENAME_PROPERTY_ID = PropertyHelper
-    .getPropertyId("ConfigGroup", "service_name");
   protected static final String CONFIGGROUP_DESC_PROPERTY_ID = PropertyHelper
     .getPropertyId("ConfigGroup", "description");
   protected static final String CONFIGGROUP_SCV_NOTE_ID = PropertyHelper
@@ -497,18 +494,20 @@ public class ConfigGroupResourceProvider extends
     }
   }
 
-  private synchronized Set<ConfigGroupResponse> createConfigGroups(Set<ConfigGroupRequest> requests)
-      throws AmbariException, AuthorizationException {
+  private synchronized Set<ConfigGroupResponse> createConfigGroups
+    (Set<ConfigGroupRequest> requests) throws AmbariException, AuthorizationException {
 
     if (requests.isEmpty()) {
       LOG.warn("Received an empty requests set");
       return null;
     }
 
-    Set<ConfigGroupResponse> configGroupResponses = new HashSet<ConfigGroupResponse>();
+    Set<ConfigGroupResponse> configGroupResponses = new
+      HashSet<ConfigGroupResponse>();
 
     Clusters clusters = getManagementController().getClusters();
-    ConfigGroupFactory configGroupFactory = getManagementController().getConfigGroupFactory();
+    ConfigGroupFactory configGroupFactory = getManagementController()
+      .getConfigGroupFactory();
 
     for (ConfigGroupRequest request : requests) {
 
@@ -551,8 +550,8 @@ public class ConfigGroupResourceProvider extends
 
       verifyHostList(cluster, hosts, request);
 
-      String serviceName = request.getServiceName();
-      if (serviceName == null && !MapUtils.isEmpty(request.getConfigs())) {
+      String serviceName = null;
+      if (request.getConfigs() != null && !request.getConfigs().isEmpty()) {
         try {
           serviceName = cluster.getServiceForConfigTypes(request.getConfigs().keySet());
         } catch (IllegalArgumentException e) {
@@ -580,10 +579,10 @@ public class ConfigGroupResourceProvider extends
 
       ConfigGroup configGroup = configGroupFactory.createNew(cluster,
         request.getGroupName(),
-        request.getTag(),
-        serviceName,
-        request.getDescription(),
+        request.getTag(), request.getDescription(),
         request.getConfigs(), hosts);
+
+      configGroup.setServiceName(serviceName);
 
       cluster.addConfigGroup(configGroup);
       if (serviceName != null) {
@@ -705,7 +704,6 @@ public class ConfigGroupResourceProvider extends
       configGroup.setName(request.getGroupName());
       configGroup.setDescription(request.getDescription());
       configGroup.setTag(request.getTag());
-      configGroup.setServiceName(request.getServiceName());
 
       if (serviceName != null) {
         cluster.createServiceConfigVersion(serviceName, getManagementController().getAuthName(),
@@ -732,7 +730,6 @@ public class ConfigGroupResourceProvider extends
       (String) properties.get(CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID),
       (String) properties.get(CONFIGGROUP_NAME_PROPERTY_ID),
       (String) properties.get(CONFIGGROUP_TAG_PROPERTY_ID),
-      (String) properties.get(CONFIGGROUP_SERVICENAME_PROPERTY_ID),
       (String) properties.get(CONFIGGROUP_DESC_PROPERTY_ID),
       null,
       null);

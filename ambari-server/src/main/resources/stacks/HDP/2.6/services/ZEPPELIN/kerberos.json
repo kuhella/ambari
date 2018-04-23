@@ -4,8 +4,7 @@
       "name": "ZEPPELIN",
       "identities": [
         {
-          "name": "zeppelin_smokeuser",
-          "reference": "/smokeuser"
+          "name": "/smokeuser"
         },
         {
           "name": "zeppelin_user",
@@ -43,7 +42,9 @@
         {
           "core-site": {
             "hadoop.proxyuser.${zeppelin-env/zeppelin_user}.groups": "*",
-            "hadoop.proxyuser.${zeppelin-env/zeppelin_user}.hosts": "*"
+            "hadoop.proxyuser.${zeppelin-env/zeppelin_user}.hosts": "*",
+            "hadoop.proxyuser.${zeppelin-env/zeppelin_user}-${cluster_name|toLower()}.groups": "*",
+            "hadoop.proxyuser.${zeppelin-env/zeppelin_user}-${cluster_name|toLower()}.hosts": "*"
           }
         }
       ]

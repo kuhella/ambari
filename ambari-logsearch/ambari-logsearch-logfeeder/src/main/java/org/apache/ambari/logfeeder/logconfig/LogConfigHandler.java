@@ -200,7 +200,7 @@ public class LogConfigHandler extends Thread {
       try {
         Thread.sleep(RETRY_INTERVAL * 1000);
       } catch (InterruptedException e) {
-        LOG.warn(e);
+        LOG.error(e);
       }
       
       LOG.info("Checking if config is available");

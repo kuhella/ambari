@@ -399,8 +399,6 @@ public class ExtensionModule extends BaseModule<ExtensionModule, ExtensionInfo> 
       extensionInfo.setParentExtensionVersion(emx.getExtends());
       extensionInfo.setStacks(emx.getStacks());
       extensionInfo.setExtensions(emx.getExtensions());
-      extensionInfo.setActive(emx.getVersion().isActive());
-      extensionInfo.setAutoLink(emx.isAutoLink());
     }
 
     try {

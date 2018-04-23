@@ -42,10 +42,13 @@ App.showConfigValidationPopup = function (configErrors, primary, secondary) {
       this._super();
       secondary();
     },
-    disablePrimary: !!configErrors.get('criticalIssues.length'),
     bodyClass: Em.View.extend({
       templateName: require('templates/common/modal_popups/config_recommendation_popup'),
-      configErrors: configErrors
+      configErrors: configErrors,
+      configValidationError: Em.computed.someBy('configErrors', 'isError', true),
+      messageBody: Em.I18n.t(this.get('configValidationError')
+        ? 'installer.step7.popup.validation.error.body'
+        : 'installer.step7.popup.validation.warning.body')
     })
   });
 };

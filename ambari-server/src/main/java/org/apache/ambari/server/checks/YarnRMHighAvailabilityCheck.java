@@ -17,15 +17,17 @@
  */
 package org.apache.ambari.server.checks;
 
-import java.util.Set;
+import java.util.Arrays;
+import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.commons.lang.BooleanUtils;
 
-import com.google.common.collect.Sets;
 import com.google.inject.Singleton;
 
 /**
@@ -47,9 +49,10 @@ public class YarnRMHighAvailabilityCheck extends AbstractCheckDescriptor {
    * {@inheritDoc}
    */
   @Override
-  public Set<String> getApplicableServices() {
-    return Sets.newHashSet("YARN");
+  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
+    return super.isApplicable(request, Arrays.asList("YARN"), true);
   }
+
   /**
    * {@inheritDoc}
    */

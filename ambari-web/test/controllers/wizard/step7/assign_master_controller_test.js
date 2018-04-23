@@ -19,7 +19,6 @@
 var App = require('app');
 var stringUtils = require('utils/string_utils');
 var numberUtils = require('utils/number_utils');
-var testHelpers = require('test/helpers');
 require('models/stack_service_component');
 
 describe('App.AssignMasterOnStep7Controller', function () {
@@ -222,33 +221,45 @@ describe('App.AssignMasterOnStep7Controller', function () {
   describe("#renderHostInfo()", function () {
 
     beforeEach(function() {
-      sinon.stub(view, 'getHosts').returns([]);
+      sinon.stub(App.Host, 'find').returns([
+        Em.Object.create({
+          hostName: 'host1',
+          cpu: 1,
+          memory: 1,
+          diskInfo: {}
+        })
+      ]);
+      sinon.stub(view, 'sortHosts');
+      sinon.stub(numberUtils, 'bytesToSize').returns(1);
     });
 
     afterEach(function() {
-      view.getHosts.restore();
+      App.Host.find.restore();
+      view.sortHosts.restore();
+      numberUtils.bytesToSize.restore();
     });
 
-    it("should make general request to get hosts", function() {
+    it("should set hosts", function() {
       view.reopen({
         content: Em.Object.create({
-          controllerName: 'name'
+          controllerName: null
         })
       });
       view.renderHostInfo();
-      var args = testHelpers.findAjaxRequest('name', 'hosts.high_availability.wizard');
-      expect(args).exists;
-    });
-
-    it("should make request for installer to get hosts", function() {
-      view.reopen({
-        content: Em.Object.create({
-          controllerName: 'installerController'
-        })
-      });
-      view.renderHostInfo();
-      var args = testHelpers.findAjaxRequest('name', 'hosts.info.install');
-      expect(args).exists;
+      expect(view.get('hosts')).to.be.eql([Em.Object.create({
+        host_name: 'host1',
+        cpu: 1,
+        memory: 1,
+        disk_info: {},
+        host_info: Em.I18n.t('installer.step5.hostInfo').fmt('host1', 1, 1)
+      })]);
+      expect(view.sortHosts.calledWith([Em.Object.create({
+        host_name: 'host1',
+        cpu: 1,
+        memory: 1,
+        disk_info: {},
+        host_info: Em.I18n.t('installer.step5.hostInfo').fmt('host1', 1, 1)
+      })])).to.be.true;
     });
   });
 

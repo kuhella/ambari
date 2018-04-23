@@ -1036,7 +1036,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
         
         recommendedMinShards = len(infraSolrHosts)
         recommendedShards = 2 * len(infraSolrHosts)
-        recommendedMaxShards = max(3 * len(infraSolrHosts), 5)
+        recommendedMaxShards = 3 * len(infraSolrHosts)
       else:
         recommendedReplicationFactor = 2
         

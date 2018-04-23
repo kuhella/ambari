@@ -42,10 +42,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
    *
    * @type {Object[]}
    */
-  configErrorList: Em.Object.create({
-    issues: [],
-    criticalIssues: []
-  }),
+  configErrorList: [],
 
   /**
    * Map with allowed error types
@@ -53,7 +50,6 @@ App.ServerValidatorMixin = Em.Mixin.create({
    * @type {Object}
    */
   errorTypes: {
-    CRITICAL_ERROR: 'NOT_APPLICABLE',
     ERROR: 'ERROR',
     WARN: 'WARN',
     GENERAL: 'GENERAL'
@@ -102,13 +98,10 @@ App.ServerValidatorMixin = Em.Mixin.create({
       self = this,
       primary = function() { deferred.resolve(); },
       secondary = function() { deferred.reject('invalid_configs'); };
-    this.set('configErrorList', Em.Object.create({
-      issues: [],
-      criticalIssues: []
-    }));
+    this.set('configErrorList', []);
 
     this.runServerSideValidation().done(function() {
-      if (self.get('configErrorList.issues.length') || self.get('configErrorList.criticalIssues.length')) {
+      if (self.get('configErrorList.length')) {
         App.showConfigValidationPopup(self.get('configErrorList'), primary, secondary);
       } else {
         deferred.resolve();
@@ -185,14 +178,13 @@ App.ServerValidatorMixin = Em.Mixin.create({
     var errorTypes = this.get('errorTypes');
     var error = {
       type: type,
-      isCriticalError: type === errorTypes.CRITICAL_ERROR,
       isError: type === errorTypes.ERROR,
       isWarn: type === errorTypes.WARN,
       isGeneral: type === errorTypes.GENERAL,
       messages: Em.makeArray(messages)
     };
 
-    Em.assert('Unknown config error type ' + type, error.isError || error.isWarn || error.isGeneral || error.isCriticalError);
+    Em.assert('Unknown config error type ' + type, error.isError || error.isWarn || error.isGeneral);
     if (property) {
       error.id = Em.get(property, 'id');
       error.serviceName = Em.get(property, 'serviceDisplayName') || App.StackService.find(Em.get(property, 'serviceName')).get('displayName');
@@ -256,33 +248,29 @@ App.ServerValidatorMixin = Em.Mixin.create({
    */
   collectAllIssues: function(configErrorsMap, generalErrors)  {
     var errorTypes = this.get('errorTypes');
-    var configErrorList = {};
-    configErrorList[errorTypes.WARN] = [];
-    configErrorList[errorTypes.ERROR] = [];
-    configErrorList[errorTypes.CRITICAL_ERROR] = [];
-    configErrorList[errorTypes.GENERAL] = [];
+    var configErrorList = [];
 
     this.get('stepConfigs').forEach(function(service) {
       service.get('configs').forEach(function(property) {
         if (property.get('isVisible') && !property.get('hiddenBySection')) {
           var serverIssue = configErrorsMap[property.get('id')];
           if (serverIssue) {
-            configErrorList[serverIssue.type].push(this.createErrorMessage(serverIssue.type, property, serverIssue.messages));
+            configErrorList.push(this.createErrorMessage(serverIssue.type, property, serverIssue.messages));
           } else if (property.get('warnMessage')) {
-            configErrorList[errorTypes.WARN].push(this.createErrorMessage(errorTypes.WARN, property, [property.get('warnMessage')]));
+            configErrorList.push(this.createErrorMessage(errorTypes.WARN, property, [property.get('warnMessage')]));
           }
         }
       }, this);
     }, this);
 
     generalErrors.forEach(function(serverIssue) {
-      configErrorList[errorTypes.GENERAL].push(this.createErrorMessage(errorTypes.GENERAL, null, serverIssue.messages));
+      configErrorList.push(this.createErrorMessage(errorTypes.GENERAL, null, serverIssue.messages));
     }, this);
 
     Em.keys(configErrorsMap).forEach(function (id) {
-      var serverIssue = configErrorsMap[id];
-      if (!configErrorList[serverIssue.type].someProperty('id', id)) {
-        var filename = Em.get(serverIssue, 'filename'),
+      if (!configErrorList.someProperty('id', id)) {
+        var serverIssue = configErrorsMap[id],
+          filename = Em.get(serverIssue, 'filename'),
           service = App.config.get('serviceByConfigTypeMap')[filename],
           property = {
             id: id,
@@ -290,14 +278,11 @@ App.ServerValidatorMixin = Em.Mixin.create({
             filename: App.config.getOriginalFileName(filename),
             serviceDisplayName: service && Em.get(service, 'displayName')
           };
-        configErrorList[serverIssue.type].push(this.createErrorMessage(serverIssue.type, property, serverIssue.messages));
+        configErrorList.push(this.createErrorMessage(serverIssue.type, property, serverIssue.messages));
       }
     }, this);
 
-    return Em.Object.create({
-      criticalIssues: configErrorList[errorTypes.CRITICAL_ERROR],
-      issues: configErrorList[errorTypes.ERROR].concat(configErrorList[errorTypes.WARN], configErrorList[errorTypes.GENERAL])
-    });
+    return configErrorList;
   },
 
   /**

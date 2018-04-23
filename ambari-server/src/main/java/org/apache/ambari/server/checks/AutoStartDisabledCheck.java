@@ -17,9 +17,6 @@
  */
 package org.apache.ambari.server.checks;
 
-import java.util.Collections;
-import java.util.Set;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
@@ -49,14 +46,6 @@ public class AutoStartDisabledCheck extends AbstractCheckDescriptor {
    */
   public AutoStartDisabledCheck() {
     super(CheckDescription.AUTO_START_DISABLED);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Set<String> getApplicableServices() {
-    return Collections.emptySet();
   }
 
   /**

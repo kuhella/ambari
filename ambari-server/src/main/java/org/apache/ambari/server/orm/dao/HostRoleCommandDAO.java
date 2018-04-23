@@ -39,7 +39,6 @@ import javax.persistence.metamodel.SingularAttribute;
 import org.apache.ambari.annotations.TransactionalLock;
 import org.apache.ambari.annotations.TransactionalLock.LockArea;
 import org.apache.ambari.annotations.TransactionalLock.LockType;
-import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
@@ -225,7 +224,7 @@ public class HostRoleCommandDAO {
    */
   @RequiresSession
   private Map<Long, HostRoleCommandStatusSummaryDTO> loadAggregateCounts(Long requestId) {
-    Map<Long, HostRoleCommandStatusSummaryDTO> map = new HashMap<>();
+    Map<Long, HostRoleCommandStatusSummaryDTO> map = new HashMap<Long, HostRoleCommandStatusSummaryDTO>();
 
     EntityManager entityManager = entityManagerProvider.get();
     TypedQuery<HostRoleCommandStatusSummaryDTO> query = entityManager.createQuery(SUMMARY_DTO,
@@ -283,9 +282,9 @@ public class HostRoleCommandDAO {
       HostRoleCommandEntity.class);
 
     if (taskIds.size() > configuration.getTaskIdListLimit()) {
-      List<HostRoleCommandEntity> result = new ArrayList<>();
+      List<HostRoleCommandEntity> result = new ArrayList<HostRoleCommandEntity>();
 
-      List<List<Long>> lists = Lists.partition(new ArrayList<>(taskIds), configuration.getTaskIdListLimit());
+      List<List<Long>> lists = Lists.partition(new ArrayList<Long>(taskIds), configuration.getTaskIdListLimit());
       for (List<Long> list : lists) {
         result.addAll(daoUtils.selectList(query, list));
       }
@@ -353,9 +352,9 @@ public class HostRoleCommandDAO {
     );
 
     if (taskIds.size() > configuration.getTaskIdListLimit()) {
-      List<Long> result = new ArrayList<>();
+      List<Long> result = new ArrayList<Long>();
 
-      List<List<Long>> lists = Lists.partition(new ArrayList<>(taskIds), configuration.getTaskIdListLimit());
+      List<List<Long>> lists = Lists.partition(new ArrayList<Long>(taskIds), configuration.getTaskIdListLimit());
       for (List<Long> taskIdList : lists) {
         result.addAll(daoUtils.selectList(query, requestIds, taskIdList));
       }
@@ -413,7 +412,7 @@ public class HostRoleCommandDAO {
         "ORDER BY hostRoleCommand.hostEntity.hostName, hostRoleCommand.taskId", HostRoleCommandEntity.class);
     List<HostRoleCommandEntity> commandEntities = daoUtils.selectList(query, stageEntity);
 
-    Map<String, List<HostRoleCommandEntity>> hostCommands = new HashMap<>();
+    Map<String, List<HostRoleCommandEntity>> hostCommands = new HashMap<String, List<HostRoleCommandEntity>>();
 
     for (HostRoleCommandEntity commandEntity : commandEntities) {
       if (!hostCommands.containsKey(commandEntity.getHostName())) {
@@ -652,7 +651,7 @@ public class HostRoleCommandDAO {
   @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.WRITE)
   public List<HostRoleCommandEntity> mergeAll(Collection<HostRoleCommandEntity> entities) {
     Set<Long> requestsToInvalidate = new LinkedHashSet<>();
-    List<HostRoleCommandEntity> managedList = new ArrayList<>(entities.size());
+    List<HostRoleCommandEntity> managedList = new ArrayList<HostRoleCommandEntity>(entities.size());
     for (HostRoleCommandEntity entity : entities) {
       EntityManager entityManager = entityManagerProvider.get();
       entity = entityManager.merge(entity);
@@ -838,7 +837,7 @@ public class HostRoleCommandDAO {
     // sorting
     SortRequest sortRequest = request.getSortRequest();
     if (null != sortRequest) {
-      JpaSortBuilder<HostRoleCommandEntity> sortBuilder = new JpaSortBuilder<>();
+      JpaSortBuilder<HostRoleCommandEntity> sortBuilder = new JpaSortBuilder<HostRoleCommandEntity>();
       List<Order> sortOrders = sortBuilder.buildSortOrders(sortRequest, visitor);
       query.orderBy(sortOrders);
     }
@@ -904,24 +903,6 @@ public class HostRoleCommandDAO {
   }
 
   /**
-   * Gets the most recently run service check grouped by the command's role
-   * (which is the only way to identify the service it was for!?)
-   *
-   * @param clusterId
-   *          the ID of the cluster to get the service checks for.
-   */
-  @RequiresSession
-  public List<LastServiceCheckDTO> getLatestServiceChecksByRole(long clusterId) {
-    TypedQuery<LastServiceCheckDTO> query = entityManagerProvider.get().createNamedQuery(
-        "HostRoleCommandEntity.findLatestServiceChecksByRole", LastServiceCheckDTO.class);
-
-    query.setParameter("clusterId", clusterId);
-    query.setParameter("roleCommand", RoleCommand.SERVICE_CHECK);
-
-    return daoUtils.selectList(query);
-  }
-
-  /**
    * The {@link HostRoleCommandPredicateVisitor} is used to convert an Ambari
    * {@link Predicate} into a JPA {@link javax.persistence.criteria.Predicate}.
    */
@@ -967,33 +948,5 @@ public class HostRoleCommandDAO {
     }
 
     return Sets.newHashSet(taskIds);
-  }
-
-  /**
-   * A simple DTO for storing the most recent service check time for a given
-   * {@link Role}.
-   */
-  public static class LastServiceCheckDTO {
-
-    /**
-     * The role.
-     */
-    public final String role;
-
-    /**
-     * The time that the service check ended.
-     */
-    public final long endTime;
-
-    /**
-     * Constructor.
-     *
-     * @param role
-     * @param endTime
-     */
-    public LastServiceCheckDTO(String role, long endTime) {
-      this.role = role;
-      this.endTime = endTime;
-    }
   }
 }

@@ -52,6 +52,9 @@
             <package>
               <name>hive_4_1_*-webhcat</name>
             </package>
+            <package>
+              <name>mysql-connector-java</name>
+            </package>
           </packages>
         </osSpecific>
         <osSpecific>

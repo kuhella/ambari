@@ -23,7 +23,6 @@ from resource_management import *
 import os
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
-from resource_management.libraries.functions.lzo_utils import install_lzo_if_needed
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def hdfs(name=None):
@@ -134,7 +133,10 @@ def hdfs(name=None):
        content=Template("slaves.j2")
   )
   
-  install_lzo_if_needed()
+  if params.lzo_enabled and len(params.lzo_packages) > 0:
+      Package(params.lzo_packages,
+              retry_on_repo_unavailability=params.agent_stack_retry_on_unavailability,
+              retry_count=params.agent_stack_retry_count)
       
 def install_snappy():
   import params

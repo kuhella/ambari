@@ -4,8 +4,7 @@
       "name": "GRUMPY",
       "identities": [
         {
-          "name": "grumpy_spnego",
-          "reference": "/spnego"
+          "name": "/spnego"
         },
         {
           "name": "grumpy",
@@ -29,8 +28,7 @@
           }
         },
         {
-          "name": "grumpy_smokeuser",
-          "reference": "/smokeuser"
+          "name": "/smokeuser"
         }
       ],
       "configurations": [
@@ -40,8 +38,7 @@
           "name": "GRUMPY",
           "identities": [
             {
-              "name": "grumpy_grumpy_hdfs",
-              "reference": "/FAKEHDFS/FAKENAMENODE/hdfs"
+              "name": "/FAKEHDFS/FAKENAMENODE/hdfs"
             },
             {
               "name": "grumpy_grumpy",
@@ -65,8 +62,7 @@
               }
             },
             {
-              "name": "grumpy_grumpy_spnego",
-              "reference": "/spnego",
+              "name": "/spnego",
               "principal": {
                 "configuration": "grumpy-site/grumpy.security.authentication.spnego.kerberos.principal"
               },

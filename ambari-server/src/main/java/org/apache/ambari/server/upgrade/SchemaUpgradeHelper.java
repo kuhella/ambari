@@ -26,9 +26,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -43,8 +41,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.support.JdbcUtils;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -60,7 +56,6 @@ public class SchemaUpgradeHelper {
   private DBAccessor dbAccessor;
   private Configuration configuration;
   private static final String[] rcaTableNames = {"workflow", "job", "task", "taskAttempt", "hdfsEvent", "mapreduceEvent", "clusterEvent"};
-  static final Gson gson = new GsonBuilder().create();
 
   @Inject
   public SchemaUpgradeHelper(Set<UpgradeCatalog> allUpgradeCatalogs,
@@ -183,14 +178,21 @@ public class SchemaUpgradeHelper {
       // Add binding to each newly created catalog
       Multibinder<UpgradeCatalog> catalogBinder =
         Multibinder.newSetBinder(binder(), UpgradeCatalog.class);
+      catalogBinder.addBinding().to(UpgradeCatalog200.class);
+      catalogBinder.addBinding().to(UpgradeCatalog210.class);
+      catalogBinder.addBinding().to(UpgradeCatalog211.class);
+      catalogBinder.addBinding().to(UpgradeCatalog212.class);
+      catalogBinder.addBinding().to(UpgradeCatalog2121.class);
+      catalogBinder.addBinding().to(UpgradeCatalog220.class);
+      catalogBinder.addBinding().to(UpgradeCatalog221.class);
+      catalogBinder.addBinding().to(UpgradeCatalog222.class);
+      catalogBinder.addBinding().to(UpgradeCatalog230.class);
+      catalogBinder.addBinding().to(UpgradeCatalog240.class);
       catalogBinder.addBinding().to(UpgradeCatalog2402.class);
       catalogBinder.addBinding().to(UpgradeCatalog242.class);
       catalogBinder.addBinding().to(UpgradeCatalog250.class);
       catalogBinder.addBinding().to(UpgradeCatalog251.class);
       catalogBinder.addBinding().to(UpgradeCatalog252.class);
-      catalogBinder.addBinding().to(UpgradeCatalog260.class);
-      catalogBinder.addBinding().to(UpgradeCatalog261.class);
-      catalogBinder.addBinding().to(UpgradeCatalog262.class);
       catalogBinder.addBinding().to(UpdateAlertScriptPaths.class);
       catalogBinder.addBinding().to(FinalUpgradeCatalog.class);
 
@@ -261,26 +263,6 @@ public class SchemaUpgradeHelper {
     }
   }
 
-  public void outputUpgradeJsonOutput(List<UpgradeCatalog> upgradeCatalogs)
-      throws AmbariException {
-    LOG.info("Combining upgrade json output.");
-    Map<String,String> combinedUpgradeJsonOutput = new HashMap<>();
-
-    if (upgradeCatalogs != null && !upgradeCatalogs.isEmpty()) {
-      for (UpgradeCatalog upgradeCatalog : upgradeCatalogs) {
-        try {
-          combinedUpgradeJsonOutput.putAll(upgradeCatalog.getUpgradeJsonOutput());
-
-        } catch (Exception e) {
-          LOG.error("Upgrade failed. ", e);
-          throw new AmbariException(e.getMessage(), e);
-        }
-      }
-    }
-    String content = gson.toJson(combinedUpgradeJsonOutput);
-    System.out.println(content);
-  }
-
   public void resetUIState() throws AmbariException {
     LOG.info("Resetting UI state.");
     try {
@@ -334,11 +316,11 @@ public class SchemaUpgradeHelper {
   }
 
   /**
-   * Returns minimal source version of available {@link UpgradeCatalog}
+   * Returns minimal version of available {@link UpgradeCatalog}
    *
-   * @return string representation of minimal source version of {@link UpgradeCatalog}
+   * @return string representation of minimal version of {@link UpgradeCatalog}
    */
-  private String getMinimalUpgradeCatalogSourceVersion(){
+  private String getMinimalUpgradeCatalogVersion(){
     List<UpgradeCatalog> candidateCatalogs = new ArrayList<>(allUpgradeCatalogs);
     Collections.sort(candidateCatalogs, new AbstractUpgradeCatalog.VersionComparator());
 
@@ -346,13 +328,13 @@ public class SchemaUpgradeHelper {
       return null;
     }
 
-    return candidateCatalogs.iterator().next().getSourceVersion();
+    return candidateCatalogs.iterator().next().getTargetVersion();
   }
 
   /**
    * Checks if source version meets minimal requirements for upgrade
    *
-   * @param minUpgradeVersion min allowed version for the upgrade, could be obtained via {@link #getMinimalUpgradeCatalogSourceVersion()}
+   * @param minUpgradeVersion min allowed version for the upgrade, could be obtained via {@link #getMinimalUpgradeCatalogVersion()}
    * @param sourceVersion current version of the Database, which need to be upgraded
    *
    * @return  true if upgrade is allowed or false if not
@@ -429,7 +411,7 @@ public class SchemaUpgradeHelper {
       String sourceVersion = schemaUpgradeHelper.readSourceVersion();
       LOG.info("Upgrading schema from source version = " + sourceVersion);
 
-      String minimalRequiredUpgradeVersion = schemaUpgradeHelper.getMinimalUpgradeCatalogSourceVersion();
+      String minimalRequiredUpgradeVersion = schemaUpgradeHelper.getMinimalUpgradeCatalogVersion();
 
       if (!schemaUpgradeHelper.verifyUpgradePath(minimalRequiredUpgradeVersion, sourceVersion)){
         throw new AmbariException(String.format("Database version does not meet minimal upgrade requirements. Expected version should be not less than %s, current version is %s",
@@ -451,7 +433,6 @@ public class SchemaUpgradeHelper {
       schemaUpgradeHelper.executeDMLUpdates(upgradeCatalogs, ambariUpgradeConfigUpdatesFileName);
 
       schemaUpgradeHelper.executeOnPostUpgrade(upgradeCatalogs);
-      schemaUpgradeHelper.outputUpgradeJsonOutput(upgradeCatalogs);
 
       schemaUpgradeHelper.resetUIState();
 

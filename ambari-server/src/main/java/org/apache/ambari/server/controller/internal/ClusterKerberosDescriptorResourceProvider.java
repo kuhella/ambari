@@ -158,8 +158,7 @@ public class ClusterKerberosDescriptorResourceProvider extends ReadOnlyResourceP
           kerberosDescriptor = kerberosHelper.getKerberosDescriptor(kerberosDescriptorType,
               cluster,
               getEvaluateWhen(requestInfoProperties),
-               getAdditionalServices(requestInfoProperties),
-              false);
+              getAdditionalServices(requestInfoProperties));
         } catch (AmbariException e) {
           throw new SystemException("An unexpected error occurred building the cluster's composite Kerberos Descriptor", e);
         }

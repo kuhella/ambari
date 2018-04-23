@@ -51,21 +51,15 @@ describe('App.RepositoryVersion', function () {
       App.get.restore();
     });
 
-    it("all states empty", function() {
-      model.set('stackVersion', Em.Object.create({
-        installedHosts: [],
-        notInstalledHosts: [],
-        currentHosts: []
-      }));
+    it("stackVersion is null", function() {
+      model.set('stackVersion', null);
       model.propertyDidChange('notInstalledHosts');
       expect(model.get('notInstalledHosts')).to.eql(['host1']);
     });
 
     it("stackVersion has notInstalledHosts array", function() {
       model.set('stackVersion', Em.Object.create({
-        installedHosts: [],
-        notInstalledHosts: ['host2'],
-        currentHosts: []
+        notInstalledHosts: ['host2']
       }));
       model.propertyDidChange('notInstalledHosts');
       expect(model.get('notInstalledHosts')).to.eql(['host2']);

@@ -1838,7 +1838,6 @@
   <!--
      <queryParser name="myparser" class="com.mycompany.MyQParserPlugin"/>
     -->
-  <queryParser name="xmlparser" class="solr.ExtendedDismaxQParserPlugin" />
 
   <!-- Function Parsers
 

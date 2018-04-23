@@ -29,8 +29,7 @@ App.Repository = DS.Model.extend({
   repoName : DS.attr('string'),
   stackName : DS.attr('string'),
   stackVersion : DS.attr('string'),
-  operatingSystem: DS.belongsTo('App.OS'),
-  tags: DS.attr('array')
+  operatingSystem: DS.belongsTo('App.OS')
 });
 
 App.Repository.FIXTURES = [];

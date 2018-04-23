@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.server.checks.CheckDescription;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
@@ -32,14 +31,15 @@ import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
  */
 public class PrereqCheckRequest {
   private String m_clusterName;
+  private String m_repositoryVersion;
   private StackId m_sourceStackId;
-  private RepositoryVersionEntity m_targetRepositoryVersion;
+  private StackId m_targetStackId;
   private PrerequisiteCheckConfig m_prereqCheckConfig;
 
   private UpgradeType m_upgradeType;
 
-  private Map<CheckDescription, PrereqCheckStatus> m_results = new HashMap<>();
-  private boolean m_revert = false;
+  private Map<CheckDescription, PrereqCheckStatus> m_results =
+      new HashMap<CheckDescription, PrereqCheckStatus>();
 
 
   public PrereqCheckRequest(String clusterName, UpgradeType upgradeType) {
@@ -62,6 +62,14 @@ public class PrereqCheckRequest {
 
   public UpgradeType getUpgradeType() {
     return m_upgradeType;
+  }
+
+  public String getRepositoryVersion() {
+    return m_repositoryVersion;
+  }
+
+  public void setRepositoryVersion(String repositoryVersion) {
+    m_repositoryVersion = repositoryVersion;
   }
 
   /**
@@ -102,52 +110,33 @@ public class PrereqCheckRequest {
   }
 
   /**
-   * Gets the target repository of the upgrade.
+   * Gets the target stack of the upgrade.
    *
-   * @return the target repository.
+   * @return the targetStackId
    */
-  public RepositoryVersionEntity getTargetRepositoryVersion() {
-    return m_targetRepositoryVersion;
+  public StackId getTargetStackId() {
+    return m_targetStackId;
   }
 
   /**
-   * Sets the target of the upgrade.
+   * Sets the target stack of the upgrade.
    *
-   * @param targetRepositoryVersion
-   *          the target repository version
+   * @param targetStackId
+   *          the targetStackId to set
    */
-  public void setTargetRepositoryVersion(RepositoryVersionEntity targetRepositoryVersion) {
-    m_targetRepositoryVersion = targetRepositoryVersion;
+  public void setTargetStackId(StackId targetStackId) {
+    m_targetStackId = targetStackId;
   }
 
   /**
    * Gets the prerequisite check config
    * @return the prereqCheckConfig
    */
-  public PrerequisiteCheckConfig getPrerequisiteCheckConfig() {
-    return m_prereqCheckConfig;
-  }
+  public PrerequisiteCheckConfig getPrerequisiteCheckConfig() { return m_prereqCheckConfig; }
 
   /**
    * Sets the prerequisite check config obtained from the upgrade pack
    * @param prereqCheckConfig The prereqCheckConfig
    */
-  public void setPrerequisiteCheckConfig(PrerequisiteCheckConfig prereqCheckConfig) {
-    m_prereqCheckConfig = prereqCheckConfig;
-  }
-
-  /**
-   * @param revert
-   *          {@code true} if the check is for a patch reversion
-   */
-  public void setRevert(boolean revert) {
-    m_revert = revert;
-  }
-
-  /**
-   * @return if the check is for a patch reversion
-   */
-  public boolean isRevert() {
-    return m_revert;
-  }
+  public void setPrerequisiteCheckConfig(PrerequisiteCheckConfig prereqCheckConfig) { m_prereqCheckConfig = prereqCheckConfig;}
 }

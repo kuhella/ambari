@@ -21,7 +21,7 @@ import re
 import os
 import sys
 import logging
-from ambari_commons import subprocess32
+import subprocess
 from optparse import OptionParser
 import ConfigParser
 
@@ -52,13 +52,13 @@ class Utils:
     print_output = logoutput==True or (logoutput==None and Utils.verbose)
     
     if not print_output:
-      stdout = subprocess32.PIPE
-      stderr = subprocess32.STDOUT
+      stdout = subprocess.PIPE
+      stderr = subprocess.STDOUT
     else:
       stdout = stderr = None
     
     logger.info("Running '{0}'".format(command))
-    proc = subprocess32.Popen(command, shell=shell, stdout=stdout, stderr=stderr, env=env)
+    proc = subprocess.Popen(command, shell=shell, stdout=stdout, stderr=stderr, env=env)
       
     if not print_output:
       out = proc.communicate()[0].strip('\n')

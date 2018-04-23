@@ -17,12 +17,10 @@
  */
 package org.apache.ambari.server.testing;
 
-import java.util.Collection;
-import java.util.List;
-
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -48,10 +46,10 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+import java.util.Collection;
+import java.util.List;
 
 public class DBInconsistencyTests {
 
@@ -97,8 +95,6 @@ public class DBInconsistencyTests {
     Assert.assertNotNull(cluster);
 
     helper.addHost(clusters, cluster, "h1");
-
-    helper.initializeClusterWithStack(cluster);
 
     helper.installHdfsService(cluster, serviceFactory,
       serviceComponentFactory, serviceComponentHostFactory, "h1");

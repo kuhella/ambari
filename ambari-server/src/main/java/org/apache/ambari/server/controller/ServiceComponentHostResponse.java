@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -35,19 +35,21 @@ public class ServiceComponentHostResponse {
   // type -> desired config
   private Map<String, HostConfig> actualConfigs;
   private String liveState;
-  private String version;
+  private String stackVersion;
   private String desiredStackVersion;
-  private String desiredRepositoryVersion;
   private String desiredState;
   private boolean staleConfig = false;
   private String adminState = null;
   private String maintenanceState = null;
   private UpgradeState upgradeState = UpgradeState.NONE;
 
-  public ServiceComponentHostResponse(String clusterName, String serviceName, String componentName,
-      String displayName, String hostname, String publicHostname, String liveState, String version,
-      String desiredState, String desiredStackVersion, String desiredRepositoryVersion,
-      HostComponentAdminState adminState) {
+
+  public ServiceComponentHostResponse(String clusterName, String serviceName,
+                                      String componentName, String displayName,
+                                      String hostname, String publicHostname,
+                                      String liveState, String stackVersion,
+                                      String desiredState, String desiredStackVersion,
+                                      HostComponentAdminState adminState) {
     this.clusterName = clusterName;
     this.serviceName = serviceName;
     this.componentName = componentName;
@@ -55,10 +57,9 @@ public class ServiceComponentHostResponse {
     this.hostname = hostname;
     this.publicHostname = publicHostname;
     this.liveState = liveState;
-    this.version = version;
+    this.stackVersion = stackVersion;
     this.desiredState = desiredState;
     this.desiredStackVersion = desiredStackVersion;
-    this.desiredRepositoryVersion = desiredRepositoryVersion;
     if (adminState != null) {
       this.adminState = adminState.name();
     }
@@ -142,10 +143,17 @@ public class ServiceComponentHostResponse {
   }
 
   /**
-   * @return the version
+   * @return the stackVersion
    */
-  public String getVersion() {
-    return version;
+  public String getStackVersion() {
+    return stackVersion;
+  }
+
+  /**
+   * @param stackVersion the stackVersion to set
+   */
+  public void setStackVersion(String stackVersion) {
+    this.stackVersion = stackVersion;
   }
 
   /**
@@ -174,15 +182,6 @@ public class ServiceComponentHostResponse {
    */
   public void setDesiredStackVersion(String desiredStackVersion) {
     this.desiredStackVersion = desiredStackVersion;
-  }
-
-  /**
-   * Gets the desired repository of the component.
-   *
-   * @return the desired repository.
-   */
-  public String getDesiredRepositoryVersion() {
-    return desiredRepositoryVersion;
   }
 
   /**

@@ -19,9 +19,6 @@
 package org.apache.ambari.server.metadata;
 
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
@@ -51,6 +48,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 import junit.framework.Assert;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class RoleGraphTest {
 
@@ -77,9 +76,7 @@ public class RoleGraphTest {
   public void testValidateOrder() throws AmbariException {
     ClusterImpl cluster = mock(ClusterImpl.class);
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
-    when(cluster.getDesiredStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
     when(cluster.getClusterId()).thenReturn(1L);
-    when(cluster.getClusterName()).thenReturn("c1");
 
     RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
 
@@ -166,9 +163,7 @@ public class RoleGraphTest {
   public void testGetOrderedHostRoleCommands() throws AmbariException {
     ClusterImpl cluster = mock(ClusterImpl.class);
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
-    when(cluster.getDesiredStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
     when(cluster.getClusterId()).thenReturn(1L);
-    when(cluster.getClusterName()).thenReturn("c1");
 
     RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
     RoleGraph roleGraph = roleGraphFactory.createNew(rco);

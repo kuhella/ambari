@@ -4,8 +4,7 @@
       "name": "LOGSEARCH",
       "identities": [
         {
-          "name": "logsearch_smokeuser",
-          "reference": "/smokeuser"
+          "name": "/smokeuser"
         }
       ],
       "components": [
@@ -33,8 +32,7 @@
               }
             },
             {
-              "name": "logsearch_logsearch_server_infra-solr",
-              "reference": "/AMBARI_INFRA/INFRA_SOLR/infra-solr",
+              "name": "/AMBARI_INFRA/INFRA_SOLR/infra-solr",
               "when" : {
                 "contains" : ["services", "AMBARI_INFRA"]
               }

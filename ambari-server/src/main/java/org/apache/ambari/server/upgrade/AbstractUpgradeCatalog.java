@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.server.upgrade;
 
+import javax.persistence.EntityManager;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.StringReader;
@@ -37,10 +41,6 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
-
-import javax.persistence.EntityManager;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -102,6 +102,8 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   protected DBAccessor dbAccessor;
   @Inject
   protected Configuration configuration;
+  @Inject
+  protected StackUpgradeUtil stackUpgradeUtil;
 
   protected Injector injector;
 
@@ -137,10 +139,9 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   private static final Logger LOG = LoggerFactory.getLogger
     (AbstractUpgradeCatalog.class);
   private static final Map<String, UpgradeCatalog> upgradeCatalogMap =
-    new HashMap<>();
+    new HashMap<String, UpgradeCatalog>();
 
   protected String ambariUpgradeConfigUpdatesFileName;
-  private Map<String,String> upgradeJsonOutput = new HashMap<>();
 
   @Inject
   public AbstractUpgradeCatalog(Injector injector) {
@@ -259,13 +260,6 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   }
 
   /**
-   * {@inheritDoc}
-   */
-  public Map<String,String> getUpgradeJsonOutput() {
-    return upgradeJsonOutput;
-  }
-
-  /**
    * Update metainfo to new version.
    */
   @Transactional
@@ -380,9 +374,9 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
     if (clusterMap != null && !clusterMap.isEmpty()) {
       for (Cluster cluster : clusterMap.values()) {
-        Map<String, Set<String>> toAddProperties = new HashMap<>();
-        Map<String, Set<String>> toUpdateProperties = new HashMap<>();
-        Map<String, Set<String>> toRemoveProperties = new HashMap<>();
+        Map<String, Set<String>> toAddProperties = new HashMap<String, Set<String>>();
+        Map<String, Set<String>> toUpdateProperties = new HashMap<String, Set<String>>();
+        Map<String, Set<String>> toRemoveProperties = new HashMap<String, Set<String>>();
 
 
         Set<PropertyInfo> stackProperties = configHelper.getStackProperties(cluster);
@@ -500,7 +494,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
     if (clusterMap != null && !clusterMap.isEmpty()) {
       for (Cluster cluster : clusterMap.values()) {
-        Map<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<String, String>();
 
         for(String propertyName:propertyNames) {
           String propertyValue = configHelper.getPropertyValueFromStackDefinitions(cluster, configType, propertyName);
@@ -554,7 +548,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
               "Skipping configuration properties update");
           return;
         } else if (oldConfig == null) {
-          oldConfigProperties = new HashMap<>();
+          oldConfigProperties = new HashMap<String, String>();
         } else {
           oldConfigProperties = oldConfig.getProperties();
         }
@@ -592,7 +586,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
             propertiesAttributes = Collections.emptyMap();
           }
 
-          controller.createConfig(cluster, cluster.getDesiredStackVersion(), configType, mergedProperties, newTag, propertiesAttributes);
+          controller.createConfig(cluster, configType, mergedProperties, newTag, propertiesAttributes);
 
           Config baseConfig = cluster.getConfig(configType, newTag);
           if (baseConfig != null) {
@@ -661,7 +655,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
                                Map<String, String> newProperties,
                                boolean updateIfExists, Multimap<AbstractUpgradeCatalog.ConfigUpdateType, Entry<String, String>> propertiesToLog) {
 
-    Map<String, String> properties = new HashMap<>(originalProperties);
+    Map<String, String> properties = new HashMap<String, String>(originalProperties);
     for (Map.Entry<String, String> entry : newProperties.entrySet()) {
       if (!properties.containsKey(entry.getKey())) {
         properties.put(entry.getKey(), entry.getValue());
@@ -677,12 +671,12 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
   private Map<String, String> removeProperties(Map<String, String> originalProperties,
                                                Set<String> removeList, Multimap<AbstractUpgradeCatalog.ConfigUpdateType, Entry<String, String>> propertiesToLog){
-    Map<String, String> properties = new HashMap<>();
+    Map<String, String> properties = new HashMap<String, String>();
     properties.putAll(originalProperties);
     for (String removeProperty: removeList){
       if (originalProperties.containsKey(removeProperty)){
         properties.remove(removeProperty);
-        propertiesToLog.put(ConfigUpdateType.REMOVED, new AbstractMap.SimpleEntry<>(removeProperty, ""));
+        propertiesToLog.put(ConfigUpdateType.REMOVED, new AbstractMap.SimpleEntry<String, String>(removeProperty, ""));
       }
     }
     return properties;
@@ -780,13 +774,13 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     // Get the Stack-defined Kerberos Descriptor (aka default Kerberos Descriptor)
     AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
     StackId stackId = cluster.getCurrentStackVersion();
-    KerberosDescriptor defaultDescriptor = ambariMetaInfo.getKerberosDescriptor(stackId.getStackName(), stackId.getStackVersion(), false);
+    KerberosDescriptor defaultDescriptor = ambariMetaInfo.getKerberosDescriptor(stackId.getStackName(), stackId.getStackVersion());
 
     // Get the User-set Kerberos Descriptor
     ArtifactDAO artifactDAO = injector.getInstance(ArtifactDAO.class);
     KerberosDescriptor artifactDescriptor = null;
     ArtifactEntity artifactEntity = artifactDAO.findByNameAndForeignKeys("kerberos_descriptor",
-        new TreeMap<>(Collections.singletonMap("cluster", String.valueOf(cluster.getClusterId()))));
+        new TreeMap<String, String>(Collections.singletonMap("cluster", String.valueOf(cluster.getClusterId()))));
     if (artifactEntity != null) {
       Map<String, Object> data = artifactEntity.getArtifactData();
 

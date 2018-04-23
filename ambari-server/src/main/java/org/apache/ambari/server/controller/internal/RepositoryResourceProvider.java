@@ -26,8 +26,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.resources.RepositoryResourceDefinition;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -54,8 +52,6 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
   public static final String REPOSITORY_CLUSTER_STACK_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("Repositories", "cluster_version_id");
   public static final String REPOSITORY_OS_TYPE_PROPERTY_ID               = PropertyHelper.getPropertyId("Repositories", "os_type");
   public static final String REPOSITORY_BASE_URL_PROPERTY_ID              = PropertyHelper.getPropertyId("Repositories", "base_url");
-  public static final String REPOSITORY_DISTRIBUTION_PROPERTY_ID          = PropertyHelper.getPropertyId("Repositories", "distribution");
-  public static final String REPOSITORY_COMPONENTS_PROPERTY_ID            = PropertyHelper.getPropertyId("Repositories", "components");
   public static final String REPOSITORY_REPO_ID_PROPERTY_ID               = PropertyHelper.getPropertyId("Repositories", "repo_id");
   public static final String REPOSITORY_MIRRORS_LIST_PROPERTY_ID          = PropertyHelper.getPropertyId("Repositories", "mirrors_list");
   public static final String REPOSITORY_DEFAULT_BASE_URL_PROPERTY_ID      = PropertyHelper.getPropertyId("Repositories", "default_base_url");
@@ -64,10 +60,6 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
   public static final String REPOSITORY_REPOSITORY_VERSION_ID_PROPERTY_ID = PropertyHelper.getPropertyId("Repositories", "repository_version_id");
   public static final String REPOSITORY_VERSION_DEFINITION_ID_PROPERTY_ID = PropertyHelper.getPropertyId("Repositories", "version_definition_id");
   public static final String REPOSITORY_UNIQUE_PROPERTY_ID                = PropertyHelper.getPropertyId("Repositories", "unique");
-  public static final String REPOSITORY_TAGS_PROPERTY_ID                  = PropertyHelper.getPropertyId("Repositories", "tags");
-  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
-    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
-  public static final String REPOSITORY_APPLICABLE_SERVICES_PROPERTY_ID   = PropertyHelper.getPropertyId("Repositories", "applicable_services");
 
   @SuppressWarnings("serial")
   private static Set<String> pkPropertyIds = new HashSet<String>() {
@@ -83,8 +75,6 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
   public static Set<String> propertyIds = new HashSet<String>() {
     {
       add(REPOSITORY_REPO_NAME_PROPERTY_ID);
-      add(REPOSITORY_DISTRIBUTION_PROPERTY_ID);
-      add(REPOSITORY_COMPONENTS_PROPERTY_ID);
       add(REPOSITORY_STACK_NAME_PROPERTY_ID);
       add(REPOSITORY_STACK_VERSION_PROPERTY_ID);
       add(REPOSITORY_OS_TYPE_PROPERTY_ID);
@@ -98,8 +88,6 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
       add(REPOSITORY_VERSION_DEFINITION_ID_PROPERTY_ID);
       add(REPOSITORY_CLUSTER_STACK_VERSION_PROPERTY_ID);
       add(REPOSITORY_UNIQUE_PROPERTY_ID);
-      add(REPOSITORY_APPLICABLE_SERVICES_PROPERTY_ID);
-      add(REPOSITORY_TAGS_PROPERTY_ID);
     }
   };
 
@@ -125,7 +113,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<RepositoryRequest> requests = new HashSet<>();
+    final Set<RepositoryRequest> requests = new HashSet<RepositoryRequest>();
 
     Iterator<Map<String,Object>> iterator = request.getProperties().iterator();
     if (iterator.hasNext()) {
@@ -150,7 +138,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<RepositoryRequest> requests = new HashSet<>();
+    final Set<RepositoryRequest> requests = new HashSet<RepositoryRequest>();
 
     if (predicate == null) {
       requests.add(getRequest(Collections.<String, Object>emptyMap()));
@@ -168,7 +156,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
       }
     });
 
-    Set<Resource> resources = new HashSet<>();
+    Set<Resource> resources = new HashSet<Resource>();
 
     for (RepositoryResponse response : responses) {
         Resource resource = new ResourceImpl(Resource.Type.Repository);
@@ -176,8 +164,6 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
         setResourceProperty(resource, REPOSITORY_STACK_NAME_PROPERTY_ID, response.getStackName(), requestedIds);
         setResourceProperty(resource, REPOSITORY_STACK_VERSION_PROPERTY_ID, response.getStackVersion(), requestedIds);
         setResourceProperty(resource, REPOSITORY_REPO_NAME_PROPERTY_ID, response.getRepoName(), requestedIds);
-        setResourceProperty(resource, REPOSITORY_DISTRIBUTION_PROPERTY_ID, response.getDistribution(), requestedIds);
-        setResourceProperty(resource, REPOSITORY_COMPONENTS_PROPERTY_ID, response.getComponents(), requestedIds);
         setResourceProperty(resource, REPOSITORY_BASE_URL_PROPERTY_ID, response.getBaseUrl(), requestedIds);
         setResourceProperty(resource, REPOSITORY_OS_TYPE_PROPERTY_ID, response.getOsType(), requestedIds);
         setResourceProperty(resource, REPOSITORY_REPO_ID_PROPERTY_ID, response.getRepoId(), requestedIds);
@@ -185,8 +171,6 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
         setResourceProperty(resource, REPOSITORY_DEFAULT_BASE_URL_PROPERTY_ID, response.getDefaultBaseUrl(), requestedIds);
         setResourceProperty(resource, REPOSITORY_LATEST_BASE_URL_PROPERTY_ID, response.getLatestBaseUrl(), requestedIds);
         setResourceProperty(resource, REPOSITORY_UNIQUE_PROPERTY_ID, response.isUnique(), requestedIds);
-        setResourceProperty(resource, REPOSITORY_APPLICABLE_SERVICES_PROPERTY_ID, response.getApplicableServices(), requestedIds);
-        setResourceProperty(resource, REPOSITORY_TAGS_PROPERTY_ID, response.getTags(), requestedIds);
         if (null != response.getClusterVersionId()) {
           setResourceProperty(resource, REPOSITORY_CLUSTER_STACK_VERSION_PROPERTY_ID, response.getClusterVersionId(), requestedIds);
         }
@@ -210,7 +194,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
   public RequestStatus createResources(Request request) throws SystemException, UnsupportedPropertyException, ResourceAlreadyExistsException, NoSuchParentResourceException {
     final String validateOnlyProperty = request.getRequestInfoProperties().get(RepositoryResourceDefinition.VALIDATE_ONLY_DIRECTIVE);
     if (BooleanUtils.toBoolean(validateOnlyProperty)) {
-      final Set<RepositoryRequest> requests = new HashSet<>();
+      final Set<RepositoryRequest> requests = new HashSet<RepositoryRequest>();
       final Iterator<Map<String,Object>> iterator = request.getProperties().iterator();
       if (iterator.hasNext()) {
         for (Map<String, Object> propertyMap : request.getProperties()) {
@@ -244,8 +228,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
         (String) properties.get(REPOSITORY_STACK_NAME_PROPERTY_ID),
         (String) properties.get(REPOSITORY_STACK_VERSION_PROPERTY_ID),
         (String) properties.get(REPOSITORY_OS_TYPE_PROPERTY_ID),
-        (String) properties.get(REPOSITORY_REPO_ID_PROPERTY_ID),
-        (String) properties.get(REPOSITORY_REPO_NAME_PROPERTY_ID));
+        (String) properties.get(REPOSITORY_REPO_ID_PROPERTY_ID));
 
     if (properties.containsKey(REPOSITORY_REPOSITORY_VERSION_ID_PROPERTY_ID)) {
       request.setRepositoryVersionId(Long.parseLong(properties.get(REPOSITORY_REPOSITORY_VERSION_ID_PROPERTY_ID).toString()));

@@ -18,7 +18,6 @@
 
 package org.apache.ambari.view.hive20.resources.uploads;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
@@ -47,12 +46,9 @@ import org.apache.ambari.view.hive20.resources.uploads.query.InsertFromQueryInpu
 import org.apache.ambari.view.hive20.utils.ServiceFormattedException;
 import org.apache.ambari.view.hive20.utils.SharedObjectsFactory;
 import org.apache.ambari.view.utils.ambari.AmbariApi;
-import org.apache.commons.io.ByteOrderMark;
-import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.parquet.Strings;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.json.simple.JSONObject;
@@ -199,19 +195,6 @@ public class UploadService extends BaseService {
     }
   }
 
-  private Reader getInputStreamReader(InputStream is) throws IOException {
-    BOMInputStream bomInputStream = new BOMInputStream(is,
-        ByteOrderMark.UTF_8, ByteOrderMark.UTF_16LE, ByteOrderMark.UTF_16BE,
-        ByteOrderMark.UTF_32LE, ByteOrderMark.UTF_32BE
-    );
-    if (bomInputStream.hasBOM()) {
-      String charSetName = bomInputStream.getBOMCharsetName();
-      return new InputStreamReader(bomInputStream, charSetName); // return with the encoded charset encoding.
-    } else {
-      return new InputStreamReader(bomInputStream); //return with default charset
-    }
-  }
-
   private CSVParams getCsvParams(String csvDelimiter, String csvQuote, String csvEscape) {
     char csvq =  CSVParams.DEFAULT_QUOTE_CHAR;
     char csvd =  CSVParams.DEFAULT_DELIMITER_CHAR;
@@ -318,16 +301,7 @@ public class UploadService extends BaseService {
     try {
       String insertQuery = generateInsertFromQuery(input);
       LOG.info("insertQuery : {}", insertQuery);
-      if( null != input.getGlobalSettings() && !Strings.isNullOrEmpty(input.getGlobalSettings().trim())){
-        String globalSettings = input.getGlobalSettings().trim();
-        if(!globalSettings.endsWith(";")){
-          globalSettings += ";\n";
-        }else{
-          globalSettings += "\n";
-        }
-        insertQuery = globalSettings + insertQuery;
-      }
-      LOG.info("creating job for query : {}", insertQuery);
+
       Job job = createJob(insertQuery, input.getFromDatabase(), "Insert from " +
               input.getFromDatabase() + "." + input.getFromTable() + " to " +
               input.getToDatabase() + "." + input.getToTable());
@@ -481,8 +455,7 @@ public class UploadService extends BaseService {
     else return e.getMessage();
   }
 
-  @VisibleForTesting
-  PreviewData generatePreview(Boolean isFirstRowHeader, String inputFileType, CSVParams csvParams, InputStream uploadedInputStream) throws Exception {
+  private PreviewData generatePreview(Boolean isFirstRowHeader, String inputFileType, CSVParams csvParams, InputStream uploadedInputStream) throws Exception {
     ParseOptions parseOptions = new ParseOptions();
     parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, inputFileType);
     if (inputFileType.equals(ParseOptions.InputFileType.CSV.toString())){
@@ -500,8 +473,7 @@ public class UploadService extends BaseService {
 
     LOG.info("isFirstRowHeader : {}, inputFileType : {}", isFirstRowHeader, inputFileType);
 
-    Reader reader = getInputStreamReader(uploadedInputStream);
-    DataParser dataParser = new DataParser(reader, parseOptions);
+    DataParser dataParser = new DataParser(new InputStreamReader(uploadedInputStream), parseOptions);
 
     return dataParser.parsePreview();
   }
@@ -547,8 +519,7 @@ public class UploadService extends BaseService {
       parseOptions.setOption(ParseOptions.OPTIONS_CSV_QUOTE, csvParams.getCsvQuote());
     }
 
-    Reader reader = getInputStreamReader(uploadedInputStream);
-    DataParser dataParser = new DataParser(reader, parseOptions);
+    DataParser dataParser = new DataParser(new InputStreamReader(uploadedInputStream), parseOptions);
 
     Reader csvReader = new TableDataReader(dataParser.iterator(), header, containsEndlines); // encode column values into HEX so that \n etc dont appear in the hive table data
     String path = uploadIntoTable(csvReader, databaseName, tableName);

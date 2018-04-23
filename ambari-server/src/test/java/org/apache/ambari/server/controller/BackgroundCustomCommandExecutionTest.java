@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -41,16 +41,12 @@ import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.internal.ServiceResourceProviderTest;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.SecurityType;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.StageUtils;
@@ -81,11 +77,6 @@ public class BackgroundCustomCommandExecutionTest {
   @Captor ArgumentCaptor<Request> requestCapture;
   @Mock ActionManager am;
 
-  private final String STACK_VERSION = "2.0.6";
-  private final String REPO_VERSION = "2.0.6-1234";
-  private final StackId STACK_ID = new StackId("HDP", STACK_VERSION);
-  private RepositoryVersionEntity m_repositoryVersion;
-
   @Before
   public void setup() throws Exception {
     Configuration configuration;
@@ -109,7 +100,6 @@ public class BackgroundCustomCommandExecutionTest {
     clusters = injector.getInstance(Clusters.class);
     configuration = injector.getInstance(Configuration.class);
     topologyManager = injector.getInstance(TopologyManager.class);
-    OrmTestHelper ormTestHelper = injector.getInstance(OrmTestHelper.class);
 
     Assert.assertEquals("src/main/resources/custom_action_definitions", configuration.getCustomActionDefinitionPath());
 
@@ -121,9 +111,6 @@ public class BackgroundCustomCommandExecutionTest {
     // Set the authenticated user
     // TODO: remove this or replace the authenticated user to test authorization rules
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
-
-    m_repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(STACK_ID, REPO_VERSION);
-    Assert.assertNotNull(m_repositoryVersion);
   }
   @After
   public void teardown() throws AmbariException, SQLException {
@@ -197,7 +184,7 @@ public class BackgroundCustomCommandExecutionTest {
     }
   }
   private void setOsFamily(Host host, String osFamily, String osVersion) {
-    Map<String, String> hostAttributes = new HashMap<>();
+    Map<String, String> hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", osFamily);
     hostAttributes.put("os_release_version", osVersion);
 
@@ -205,9 +192,7 @@ public class BackgroundCustomCommandExecutionTest {
   }
 
   private void createCluster(String clusterName) throws AmbariException, AuthorizationException {
-    ClusterRequest r = new ClusterRequest(null, clusterName, State.INSTALLED.name(),
-        SecurityType.NONE, STACK_ID.getStackId(), null);
-
+    ClusterRequest r = new ClusterRequest(null, clusterName, State.INSTALLED.name(), SecurityType.NONE, "HDP-2.0.6", null);
     controller.createCluster(r);
   }
 
@@ -217,14 +202,11 @@ public class BackgroundCustomCommandExecutionTest {
     if (desiredState != null) {
       dStateStr = desiredState.toString();
     }
-    ServiceRequest r1 = new ServiceRequest(clusterName, serviceName,
-        m_repositoryVersion.getId(), dStateStr);
-
-    Set<ServiceRequest> requests = new HashSet<>();
+    ServiceRequest r1 = new ServiceRequest(clusterName, serviceName, dStateStr);
+    Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
     requests.add(r1);
 
-    ServiceResourceProviderTest.createServices(controller,
-        injector.getInstance(RepositoryVersionDAO.class), requests);
+    ServiceResourceProviderTest.createServices(controller, requests);
   }
 
   private void createServiceComponent(String clusterName,
@@ -237,7 +219,7 @@ public class BackgroundCustomCommandExecutionTest {
     ServiceComponentRequest r = new ServiceComponentRequest(clusterName,
         serviceName, componentName, dStateStr);
     Set<ServiceComponentRequest> requests =
-      new HashSet<>();
+        new HashSet<ServiceComponentRequest>();
     requests.add(r);
     ComponentResourceProviderTest.createComponents(controller, requests);
   }
@@ -251,7 +233,7 @@ public class BackgroundCustomCommandExecutionTest {
     ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName,
         serviceName, componentName, hostname, dStateStr);
     Set<ServiceComponentHostRequest> requests =
-      new HashSet<>();
+        new HashSet<ServiceComponentHostRequest>();
     requests.add(r);
     controller.createHostComponents(requests);
   }

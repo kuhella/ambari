@@ -26,7 +26,6 @@ App.StatusIconView = Em.View.extend({
    * @type {object}
    */
   statusIconMap: {
-    'INIT': 'icon-cogs in_progress',
     'COMPLETED': 'icon-ok completed',
     'WARNING': 'icon-warning-sign',
     'FAILED': 'icon-exclamation-sign failed',

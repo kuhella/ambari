@@ -34,7 +34,6 @@ from resource_management.core.shell import as_user
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.lzo_utils import install_lzo_if_needed
 from resource_management.core.exceptions import Fail
 from resource_management.core.shell import as_sudo
 from resource_management.core.shell import quote_bash_args
@@ -49,8 +48,6 @@ from ambari_commons import OSConst
 def hive(name=None):
   import params
 
-  install_lzo_if_needed()
-  
   XmlConfig("hive-site.xml",
             conf_dir = params.hive_conf_dir,
             configurations = params.config['configurations']['hive-site'],

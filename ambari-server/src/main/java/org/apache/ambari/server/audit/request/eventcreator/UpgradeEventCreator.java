@@ -83,7 +83,7 @@ public class UpgradeEventCreator implements RequestAuditEventCreator {
       .withResultStatus(result.getStatus())
       .withUrl(request.getURI())
       .withRemoteIp(request.getRemoteAddress())
-      .withRepositoryVersionId(RequestAuditEventCreatorHelper.getProperty(request, UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID))
+      .withRepositoryVersion(RequestAuditEventCreatorHelper.getProperty(request, UpgradeResourceProvider.UPGRADE_REPO_VERSION))
       .withUpgradeType(RequestAuditEventCreatorHelper.getProperty(request, UpgradeResourceProvider.UPGRADE_TYPE))
       .withClusterName(RequestAuditEventCreatorHelper.getProperty(request, UpgradeResourceProvider.UPGRADE_CLUSTER_NAME))
       .build();

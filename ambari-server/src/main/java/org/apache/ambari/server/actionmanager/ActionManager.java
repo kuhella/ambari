@@ -142,7 +142,7 @@ public class ActionManager {
         return (int) (o1.getTaskId()-o2.getTaskId());
       }
     });
-    List<CommandReport> reportsToProcess = new ArrayList<>();
+    List<CommandReport> reportsToProcess = new ArrayList<CommandReport>();
     //persist the action response into the db.
     for (CommandReport report : reports) {
       HostRoleCommand command = commands.get(report.getTaskId());
@@ -254,16 +254,8 @@ public class ActionManager {
     ActionManager.topologyManager = topologyManager;
   }
 
-  /**
-   * Resubmits tasks for execution if they were aborted.
-   *
-   * @param requestId
-   *          the ID of the request for the tasks
-   * @param taskIds
-   *          the tasks to resubmit.
-   */
-  public void resubmitTasks(long requestId, List<Long> taskIds) {
-    db.resubmitTasks(requestId, taskIds);
+  public void resubmitTasks(List<Long> taskIds) {
+    db.resubmitTasks(taskIds);
   }
 
 }

@@ -24,7 +24,7 @@ import os
 import re
 import shlex
 import socket
-from ambari_commons import subprocess32
+import subprocess
 import time
 
 from ambari_commons import OSCheck, OSConst
@@ -55,9 +55,6 @@ class HostInfo(object):
   def __init__(self, config=None):
     self.config = config
     self.reportFileHandler = HostCheckReportFileHandler(config)
-
-  def register(self, dict_obj, componentsMapped=True, commandsInProgress=True):
-    raise NotImplementedError()
 
   def dirType(self, path):
     if not os.path.exists(path):
@@ -232,20 +229,21 @@ class HostInfoLinux(HostInfo):
         cmd = cmd.replace('\0', ' ')
         if not 'AmbariServer' in cmd:
           if 'java' in cmd:
-            metrics = {}
-            metrics['pid'] = int(pid)
-            metrics['hadoop'] = False
+            dict = {}
+            dict['pid'] = int(pid)
+            dict['hadoop'] = False
             for filter in self.PROC_FILTER:
               if filter in cmd:
-                metrics['hadoop'] = True
-            metrics['command'] = unicode(cmd.strip(), errors='ignore')
+                dict['hadoop'] = True
+            dict['command'] = unicode(cmd.strip(), errors='ignore')
             for line in open(os.path.join('/proc', pid, 'status')):
               if line.startswith('Uid:'):
                 uid = int(line.split()[1])
-                metrics['user'] = pwd.getpwuid(uid).pw_name
-            list.append(metrics)
+                dict['user'] = pwd.getpwuid(uid).pw_name
+            list.append(dict)
     except:
       logger.exception("Checking java processes failed")
+    pass
 
   def getTransparentHugePage(self):
     thp_regex = "\[(.+)\]"
@@ -298,54 +296,54 @@ class HostInfoLinux(HostInfo):
       logger.exception('Unable to get information about JCE')
       return None
 
-  def register(self, metrics, componentsMapped=True, commandsInProgress=True):
+  def register(self, dict, componentsMapped=True, commandsInProgress=True):
     """ Return various details about the host
     componentsMapped: indicates if any components are mapped to this host
     commandsInProgress: indicates if any commands are in progress
     """
 
-    metrics['hostHealth'] = {}
+    dict['hostHealth'] = {}
 
     java = []
     self.javaProcs(java)
-    metrics['hostHealth']['activeJavaProcs'] = java
+    dict['hostHealth']['activeJavaProcs'] = java
 
     liveSvcs = []
     self.checkLiveServices(self.DEFAULT_LIVE_SERVICES, liveSvcs)
-    metrics['hostHealth']['liveServices'] = liveSvcs
+    dict['hostHealth']['liveServices'] = liveSvcs
 
-    metrics['umask'] = str(self.getUMask())
+    dict['umask'] = str(self.getUMask())
 
-    metrics['transparentHugePage'] = self.getTransparentHugePage()
-    metrics['firewallRunning'] = self.checkFirewall()
-    metrics['firewallName'] = self.getFirewallName()
-    metrics['reverseLookup'] = self.checkReverseLookup()
-    metrics['hasUnlimitedJcePolicy'] = self.checkUnlimitedJce()
+    dict['transparentHugePage'] = self.getTransparentHugePage()
+    dict['firewallRunning'] = self.checkFirewall()
+    dict['firewallName'] = self.getFirewallName()
+    dict['reverseLookup'] = self.checkReverseLookup()
+    dict['hasUnlimitedJcePolicy'] = self.checkUnlimitedJce()
     # If commands are in progress or components are already mapped to this host
     # Then do not perform certain expensive host checks
     if componentsMapped or commandsInProgress:
-      metrics['alternatives'] = []
-      metrics['stackFoldersAndFiles'] = []
-      metrics['existingUsers'] = []
+      dict['alternatives'] = []
+      dict['stackFoldersAndFiles'] = []
+      dict['existingUsers'] = []
 
     else:
       etcs = []
       self.etcAlternativesConf(self.DEFAULT_PROJECT_NAMES, etcs)
-      metrics['alternatives'] = etcs
+      dict['alternatives'] = etcs
 
       existingUsers = []
       self.checkUsers(self.DEFAULT_USERS, existingUsers)
-      metrics['existingUsers'] = existingUsers
+      dict['existingUsers'] = existingUsers
 
       dirs = []
       self.checkFolders(self.DEFAULT_BASEDIRS, self.DEFAULT_PROJECT_NAMES, self.EXACT_DIRECTORIES, existingUsers, dirs)
-      metrics['stackFoldersAndFiles'] = dirs
+      dict['stackFoldersAndFiles'] = dirs
 
-      self.reportFileHandler.writeHostCheckFile(metrics)
+      self.reportFileHandler.writeHostCheckFile(dict)
       pass
 
     # The time stamp must be recorded at the end
-    metrics['hostHealth']['agentTimeStampAtReporting'] = int(time.time() * 1000)
+    dict['hostHealth']['agentTimeStampAtReporting'] = int(time.time() * 1000)
 
     pass
 
@@ -353,7 +351,7 @@ class HostInfoLinux(HostInfo):
     service_check_live = list(self.SERVICE_STATUS_CMD_LIST)
     service_check_live[1] = service_name
     try:
-      code, out, err = shell.call(service_check_live, stdout = subprocess32.PIPE, stderr = subprocess32.PIPE, timeout = 5, quiet = True)
+      code, out, err = shell.call(service_check_live, stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = 5, quiet = True)
       return out, err, code
     except Exception as ex:
       logger.warn("Checking service {0} status failed".format(service_name))
@@ -374,7 +372,7 @@ class HostInfoWindows(HostInfo):
   def checkUsers(self, user_mask, results):
     get_users_cmd = ["powershell", '-noProfile', '-NonInteractive', '-nologo', "-Command", self.GET_USERS_CMD.format(user_mask)]
     try:
-      osStat = subprocess32.Popen(get_users_cmd, stdout=subprocess32.PIPE, stderr=subprocess32.PIPE)
+      osStat = subprocess.Popen(get_users_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
       out, err = osStat.communicate()
     except:
       raise Exception("Failed to get users.")
@@ -420,42 +418,43 @@ class HostInfoWindows(HostInfo):
     code, out, err = run_powershell_script(self.SERVICE_STATUS_CMD.format(serivce_name))
     return out, err, code
 
-  def register(self, metrics, componentsMapped=True, commandsInProgress=True):
+  def register(self, dict, componentsMapped=True, commandsInProgress=True):
     """ Return various details about the host
     componentsMapped: indicates if any components are mapped to this host
     commandsInProgress: indicates if any commands are in progress
     """
-    metrics['hostHealth'] = {}
+    dict['hostHealth'] = {}
 
     java = []
     self.javaProcs(java)
-    metrics['hostHealth']['activeJavaProcs'] = java
+    dict['hostHealth']['activeJavaProcs'] = java
 
     liveSvcs = []
     self.checkLiveServices(self.DEFAULT_LIVE_SERVICES, liveSvcs)
-    metrics['hostHealth']['liveServices'] = liveSvcs
+    dict['hostHealth']['liveServices'] = liveSvcs
 
-    metrics['umask'] = str(self.getUMask())
+    dict['umask'] = str(self.getUMask())
 
-    metrics['firewallRunning'] = self.checkFirewall()
-    metrics['firewallName'] = self.getFirewallName()
-    metrics['reverseLookup'] = self.checkReverseLookup()
+    dict['firewallRunning'] = self.checkFirewall()
+    dict['firewallName'] = self.getFirewallName()
+    dict['reverseLookup'] = self.checkReverseLookup()
     # If commands are in progress or components are already mapped to this host
     # Then do not perform certain expensive host checks
     if componentsMapped or commandsInProgress:
-      metrics['alternatives'] = []
-      metrics['stackFoldersAndFiles'] = []
-      metrics['existingUsers'] = []
+      dict['alternatives'] = []
+      dict['stackFoldersAndFiles'] = []
+      dict['existingUsers'] = []
     else:
       existingUsers = []
       self.checkUsers(self.DEFAULT_USERS, existingUsers)
-      metrics['existingUsers'] = existingUsers
+      dict['existingUsers'] = existingUsers
       # TODO check HDP stack and folders here
-      self.reportFileHandler.writeHostCheckFile(metrics)
+      self.reportFileHandler.writeHostCheckFile(dict)
       pass
 
     # The time stamp must be recorded at the end
-    metrics['hostHealth']['agentTimeStampAtReporting'] = int(time.time() * 1000)
+    dict['hostHealth']['agentTimeStampAtReporting'] = int(time.time() * 1000)
+
 
 
 def main(argv=None):

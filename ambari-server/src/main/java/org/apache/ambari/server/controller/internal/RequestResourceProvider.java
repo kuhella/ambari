@@ -23,6 +23,7 @@ import static org.apache.ambari.server.controller.internal.HostComponentResource
 import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -71,8 +72,6 @@ import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.SecretReference;
 import org.apache.commons.lang.StringUtils;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
@@ -128,9 +127,11 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   protected static final String HOSTS_PREDICATE = "hosts_predicate";
   protected static final String ACTION_ID = "action";
   protected static final String INPUTS_ID = "parameters";
-  protected static final String EXCLUSIVE_ID = "exclusive";
+  protected static final String EXLUSIVE_ID = "exclusive";
   public static final String HAS_RESOURCE_FILTERS = "HAS_RESOURCE_FILTERS";
-  private static final Set<String> PK_PROPERTY_IDS = ImmutableSet.of(REQUEST_ID_PROPERTY_ID);
+  private static Set<String> pkPropertyIds =
+      new HashSet<String>(Arrays.asList(new String[]{
+        REQUEST_ID_PROPERTY_ID}));
 
   private PredicateCompiler predicateCompiler = new PredicateCompiler();
 
@@ -248,13 +249,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
                 ? null
                 : actionDefinition.getPermissions();
 
-            // here goes ResourceType handling for some specific custom actions
-            ResourceType customActionResourceType = resourceType;
-            if (actionName.contains("check_host")) { // check_host custom action
-              customActionResourceType = ResourceType.CLUSTER;
-            }
-
-            if (!AuthorizationHelper.isAuthorized(customActionResourceType, resourceId, permissions)) {
+            if (!AuthorizationHelper.isAuthorized(resourceType, resourceId, permissions)) {
               throw new AuthorizationException(String.format("The authenticated user is not authorized to execute the action %s.", actionName));
             }
           }
@@ -417,7 +412,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return PK_PROPERTY_IDS;
+    return pkPropertyIds;
   }
 
 
@@ -475,8 +470,8 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     }
 
     boolean exclusive = false;
-    if (requestInfoProperties.containsKey(EXCLUSIVE_ID)) {
-      exclusive = Boolean.valueOf(requestInfoProperties.get(EXCLUSIVE_ID).trim());
+    if (requestInfoProperties.containsKey(EXLUSIVE_ID)) {
+      exclusive = Boolean.valueOf(requestInfoProperties.get(EXLUSIVE_ID).trim());
     }
 
     return new ExecuteActionRequest(
@@ -750,8 +745,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     }
 
     setResourceProperty(resource, REQUEST_ID_PROPERTY_ID, entity.getRequestId(), requestedPropertyIds);
-    String requestContext = entity.getRequestContext();
-    setResourceProperty(resource, REQUEST_CONTEXT_ID, requestContext, requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_CONTEXT_ID, entity.getRequestContext(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_TYPE_ID, entity.getRequestType(), requestedPropertyIds);
 
     // Mask any sensitive data fields in the inputs data structure
@@ -802,13 +796,15 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     final CalculatedStatus status;
     LogicalRequest logicalRequest = topologyManager.getRequest(entity.getRequestId());
     if (summary.isEmpty() && null != logicalRequest) {
-      status = logicalRequest.calculateStatus();
-      if (status == CalculatedStatus.ABORTED) {
-        Optional<String> failureReason = logicalRequest.getFailureReason();
-        if (failureReason.isPresent()) {
-          requestContext += "\nFAILED: " + failureReason.get();
-          setResourceProperty(resource, REQUEST_CONTEXT_ID, requestContext, requestedPropertyIds);
-        }
+      // In this case, it appears that there are no tasks but this is a logical
+      // topology request, so it's a matter of hosts simply not registering yet
+      // for tasks to be created ==> status = PENDING.
+      // For a new LogicalRequest there should be at least one HostRequest,
+      // while if they were removed already ==> status = COMPLETED.
+      if (logicalRequest.getHostRequests().isEmpty()) {
+        status = CalculatedStatus.COMPLETED;
+      } else {
+        status = CalculatedStatus.PENDING;
       }
     } else {
       // there are either tasks or this is not a logical request, so do normal

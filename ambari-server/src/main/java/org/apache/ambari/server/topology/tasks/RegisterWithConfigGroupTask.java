@@ -43,11 +43,8 @@ public class RegisterWithConfigGroupTask extends TopologyHostTask {
   @Override
   public void runTask() {
     LOG.info("HostRequest: Executing CONFIGURE task for host: {}", hostRequest.getHostName());
-
     clusterTopology.getAmbariContext().registerHostWithConfigGroup(hostRequest.getHostName(), clusterTopology,
       hostRequest.getHostgroupName());
-
-    LOG.info("HostRequest: Exiting CONFIGURE task for host: {}", hostRequest.getHostName());
   }
 }
 

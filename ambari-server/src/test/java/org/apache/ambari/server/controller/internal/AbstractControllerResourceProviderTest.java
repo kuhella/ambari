@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,6 +18,19 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import junit.framework.Assert;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.MaintenanceStateHelper;
+import org.apache.ambari.server.controller.ResourceProviderFactory;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
@@ -25,44 +38,40 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.MaintenanceStateHelper;
-import org.apache.ambari.server.controller.ResourceProviderFactory;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.junit.Test;
-
-import junit.framework.Assert;
-
 /**
  * Abstract controller resource provider test.
  */
 public class AbstractControllerResourceProviderTest {
   @Test
   public void testGetResourceProvider() throws Exception {
+    Set<String> propertyIds = new HashSet<String>();
+    propertyIds.add("foo");
+    propertyIds.add("cat1/foo");
+    propertyIds.add("cat2/bar");
+    propertyIds.add("cat2/baz");
+    propertyIds.add("cat3/sub1/bam");
+    propertyIds.add("cat4/sub2/sub3/bat");
+    propertyIds.add("cat5/subcat5/map");
+
+    Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
+
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
     ResourceProviderFactory factory = createMock(ResourceProviderFactory.class);
 
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
-    RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
-
-    ResourceProvider serviceResourceProvider = new ServiceResourceProvider(managementController,
-        maintenanceStateHelper, repositoryVersionDAO);
-
-    expect(factory.getServiceResourceProvider(managementController)).andReturn(
-        serviceResourceProvider);
+    ResourceProvider serviceResourceProvider = new ServiceResourceProvider(propertyIds, keyPropertyIds, managementController, maintenanceStateHelper);
+    expect(factory.getServiceResourceProvider(propertyIds, keyPropertyIds, managementController)).andReturn(serviceResourceProvider);
 
     AbstractControllerResourceProvider.init(factory);
 
-    replay(managementController, factory, maintenanceStateHelper, repositoryVersionDAO);
+    replay(managementController, factory, maintenanceStateHelper);
 
     AbstractResourceProvider provider =
         (AbstractResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
             Resource.Type.Service,
-            null,
-            null,
+            propertyIds,
+            keyPropertyIds,
             managementController);
 
     Assert.assertTrue(provider instanceof ServiceResourceProvider);

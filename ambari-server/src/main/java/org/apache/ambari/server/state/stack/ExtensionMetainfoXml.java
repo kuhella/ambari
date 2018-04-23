@@ -77,9 +77,6 @@ public class ExtensionMetainfoXml implements Validable{
   @XmlTransient
   private boolean valid = true;
 
-  @XmlElement(name="auto-link")
-  private boolean autoLink = false;
-
   /**
    *
    * @return valid xml flag
@@ -202,14 +199,6 @@ public class ExtensionMetainfoXml implements Validable{
     public String getVersion() {
       return version;
     }
-  }
-
-  public boolean isAutoLink() {
-    return autoLink;
-  }
-
-  public void setAutoLink(boolean autoLink) {
-    this.autoLink = autoLink;
   }
 
 }

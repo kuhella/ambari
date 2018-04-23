@@ -4,8 +4,7 @@
       "name": "KAFKA",
       "identities": [
         {
-          "name": "kafka_smokeuser",
-          "reference": "/smokeuser"
+          "name": "/smokeuser"
         }
       ],
       "configurations": [
@@ -55,8 +54,7 @@
               }
             },
             {
-              "name": "kafka_kafka_broker_kafka_broker",
-              "reference": "/KAFKA/KAFKA_BROKER/kafka_broker",
+              "name": "/KAFKA/KAFKA_BROKER/kafka_broker",
               "principal": {
                 "configuration": "ranger-kafka-audit/xasecure.audit.jaas.Client.option.principal"
               },

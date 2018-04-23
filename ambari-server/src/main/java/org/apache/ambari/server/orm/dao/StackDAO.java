@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -25,7 +25,6 @@ import javax.persistence.TypedQuery;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.StackEntity;
-import org.apache.ambari.server.state.StackId;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -92,19 +91,6 @@ public class StackDAO {
     query.setParameter("stackVersion", stackVersion);
 
     return daoUtils.selectOne(query);
-  }
-
-  /**
-   * Gets the stack that matches the specified stack ID by name and version.
-   *
-   * @param stackId
-   *          the stack ID to find (not {@code null}).
-   * @return the stack matching the specified name and version or {@code null}
-   *         if none.
-   */
-  @RequiresSession
-  public StackEntity find(StackId stackId) {
-    return find(stackId.getStackName(), stackId.getStackVersion());
   }
 
   /**

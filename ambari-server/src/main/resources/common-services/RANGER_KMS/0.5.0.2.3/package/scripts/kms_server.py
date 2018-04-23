@@ -29,8 +29,12 @@ from resource_management.core import shell
 from resource_management.libraries.functions.default import default
 from kms import kms, setup_kms_db, setup_java_patch, enable_kms_plugin, setup_kms_jce, update_password_configs
 from kms_service import kms_service
+import upgrade
 
 class KmsServer(Script):
+
+  def get_component_name(self):
+    return "ranger-kms"
 
   def install(self, env):
     self.install_packages(env)
@@ -93,7 +97,7 @@ class KmsServer(Script):
     import params
     env.set_params(params)
 
-    stack_select.select_packages(params.version)
+    upgrade.prestart(env, "ranger-kms")
     kms(upgrade_type=upgrade_type)
     setup_java_patch()
 

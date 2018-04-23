@@ -15,7 +15,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from ambari_commons import subprocess32
+import subprocess
 import time
 
 from resource_management import *
@@ -33,14 +33,13 @@ class SparkServiceCheck(Script):
       spark_kinit_cmd = format("{kinit_path_local} -kt {spark_kerberos_keytab} {spark_principal}; ")
       Execute(spark_kinit_cmd, user=params.spark_user)
       if (params.has_livyserver):
-        smokeruser_kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal}; ")
-        Execute(smokeruser_kinit_cmd, user=params.smoke_user)
+        livy_kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal}; ")
+        Execute(livy_kinit_cmd, user=params.livy_user)
 
     Execute(format("curl -s -o /dev/null -w'%{{http_code}}' --negotiate -u: -k http://{spark_history_server_host}:{spark_history_ui_port} | grep 200"),
       tries=5,
       try_sleep=3,
-      logoutput=True,
-      user=params.spark_user
+      logoutput=True
     )
     if params.has_livyserver:
       live_livyserver_host = "";
@@ -50,7 +49,7 @@ class SparkServiceCheck(Script):
               tries=3,
               try_sleep=1,
               logoutput=True,
-              user=params.smoke_user
+              user=params.livy_user
               )
           live_livyserver_host = livyserver_host
           break

@@ -17,10 +17,11 @@
  */
 package org.apache.ambari.server.checks;
 
+import java.util.Arrays;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
@@ -28,7 +29,6 @@ import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 
-import com.google.common.collect.Sets;
 import com.google.inject.Singleton;
 
 /**
@@ -45,14 +45,10 @@ public class ServicesNamenodeHighAvailabilityCheck extends AbstractCheckDescript
     super(CheckDescription.SERVICES_NAMENODE_HA);
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
-  public Set<String> getApplicableServices() {
-    return Sets.newHashSet("HDFS");
+  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
+    return super.isApplicable(request, Arrays.asList("HDFS"), true);
   }
-
 
   @Override
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {

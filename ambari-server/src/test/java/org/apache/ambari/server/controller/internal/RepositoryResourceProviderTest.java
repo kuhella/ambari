@@ -23,7 +23,6 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -38,7 +37,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.state.stack.RepoTag;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
@@ -51,19 +49,16 @@ public class RepositoryResourceProviderTest {
   private static final String VAL_REPO_ID = "HDP-0.2";
   private static final String VAL_REPO_NAME = "HDP1";
   private static final String VAL_BASE_URL = "http://foo.com";
-  private static final String VAL_DISTRIBUTION = "mydist";
-  private static final String VAL_COMPONENT_NAME = "mycomponentname";
 
   @Test
   public void testGetResources() throws Exception{
     AmbariManagementController managementController = EasyMock.createMock(AmbariManagementController.class);
 
     RepositoryResponse rr = new RepositoryResponse(VAL_BASE_URL, VAL_OS,
-        VAL_REPO_ID, VAL_REPO_NAME, VAL_DISTRIBUTION, VAL_COMPONENT_NAME, null, null, null, null,
-        Collections.<RepoTag>emptySet());
+        VAL_REPO_ID, VAL_REPO_NAME, null, null, null);
     rr.setStackName(VAL_STACK_NAME);
     rr.setStackVersion(VAL_STACK_VERSION);
-    Set<RepositoryResponse> allResponse = new HashSet<>();
+    Set<RepositoryResponse> allResponse = new HashSet<RepositoryResponse>();
     allResponse.add(rr);
 
     // set expectations
@@ -74,7 +69,7 @@ public class RepositoryResourceProviderTest {
 
     ResourceProvider provider = new RepositoryResourceProvider(managementController);
 
-    Set<String> propertyIds = new HashSet<>();
+    Set<String> propertyIds = new HashSet<String>();
     propertyIds.add(RepositoryResourceProvider.REPOSITORY_STACK_NAME_PROPERTY_ID);
     propertyIds.add(RepositoryResourceProvider.REPOSITORY_STACK_VERSION_PROPERTY_ID);
     propertyIds.add(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID);
@@ -82,8 +77,6 @@ public class RepositoryResourceProviderTest {
     propertyIds.add(RepositoryResourceProvider.REPOSITORY_OS_TYPE_PROPERTY_ID);
     propertyIds.add(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID);
     propertyIds.add(RepositoryResourceProvider.REPOSITORY_CLUSTER_STACK_VERSION_PROPERTY_ID);
-    propertyIds.add(RepositoryResourceProvider.REPOSITORY_DISTRIBUTION_PROPERTY_ID);
-    propertyIds.add(RepositoryResourceProvider.REPOSITORY_COMPONENTS_PROPERTY_ID);
 
     Predicate predicate =
         new PredicateBuilder().property(RepositoryResourceProvider.REPOSITORY_STACK_NAME_PROPERTY_ID).equals(VAL_STACK_NAME)
@@ -119,12 +112,6 @@ public class RepositoryResourceProviderTest {
 
       o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_CLUSTER_STACK_VERSION_PROPERTY_ID);
       Assert.assertNull(o);
-
-      o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_DISTRIBUTION_PROPERTY_ID);
-      Assert.assertEquals(o, VAL_DISTRIBUTION);
-
-      o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_COMPONENTS_PROPERTY_ID);
-      Assert.assertEquals(o, VAL_COMPONENT_NAME);
     }
 
     // !!! check that the stack version id is returned
@@ -153,12 +140,6 @@ public class RepositoryResourceProviderTest {
 
       o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_CLUSTER_STACK_VERSION_PROPERTY_ID);
       Assert.assertEquals(525L, o);
-
-      o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_DISTRIBUTION_PROPERTY_ID);
-      Assert.assertEquals(o, VAL_DISTRIBUTION);
-
-      o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_COMPONENTS_PROPERTY_ID);
-      Assert.assertEquals(o, VAL_COMPONENT_NAME);
     }
 
     // verify
@@ -172,8 +153,8 @@ public class RepositoryResourceProviderTest {
     AmbariManagementController managementController = EasyMock.createMock(AmbariManagementController.class);
 
     RepositoryResponse rr = new RepositoryResponse(VAL_BASE_URL, VAL_OS,
-        VAL_REPO_ID, VAL_REPO_NAME, null, null, null, null ,null, null, Collections.<RepoTag>emptySet());
-    Set<RepositoryResponse> allResponse = new HashSet<>();
+        VAL_REPO_ID, VAL_REPO_NAME, null, null ,null);
+    Set<RepositoryResponse> allResponse = new HashSet<RepositoryResponse>();
     allResponse.add(rr);
 
     // set expectations
@@ -186,7 +167,7 @@ public class RepositoryResourceProviderTest {
     ResourceProvider provider = new RepositoryResourceProvider(managementController);
 
     // add the property map to a set for the request.
-    Map<String, Object> properties = new LinkedHashMap<>();
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
     properties.put(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID, "http://garbage.eu.co");
 
     // create the request

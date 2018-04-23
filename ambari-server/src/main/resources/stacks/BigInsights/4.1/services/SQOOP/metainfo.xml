@@ -33,6 +33,9 @@
             <package>
               <name>sqoop_4_1_*</name>
             </package>
+            <package>
+              <name>mysql-connector-java</name>
+            </package>
           </packages>
         </osSpecific>
       </osSpecifics>

@@ -17,22 +17,16 @@
  */
 package org.apache.ambari.server.state.kerberos;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import java.util.*;
 
-import junit.framework.Assert;
-
-@Category({category.KerberosTest.class})
+@Category({ category.KerberosTest.class})
 public class KerberosConfigurationDescriptorTest {
   private static final String JSON_SINGLE_VALUE =
       "{ \"configuration-type\": {" +
@@ -58,22 +52,22 @@ public class KerberosConfigurationDescriptorTest {
 
 
   static {
-    TreeMap<String, Object> configuration_data = new TreeMap<>();
+    TreeMap<String, Object> configuration_data = new TreeMap<String, Object>();
     configuration_data.put("property1", "black");
     configuration_data.put("property2", "white");
 
-    MAP_SINGLE_VALUE = new TreeMap<>();
+    MAP_SINGLE_VALUE = new TreeMap<String, Map<String, Object>>();
     MAP_SINGLE_VALUE.put("configuration-type", configuration_data);
 
-    TreeMap<String, Object> configurationType2Properties = new TreeMap<>();
+    TreeMap<String, Object> configurationType2Properties = new TreeMap<String, Object>();
     configurationType2Properties.put("property1", "red");
     configurationType2Properties.put("property2", "yellow");
     configurationType2Properties.put("property3", "green");
 
-    Map<String, Map<String, Object>> configurationType2 = new TreeMap<>();
+    Map<String, Map<String, Object>> configurationType2 = new TreeMap<String, Map<String, Object>>();
     configurationType2.put("configuration-type2", configurationType2Properties);
 
-    TreeMap<String, Map<String, Map<String, Object>>> multipleValuesMap = new TreeMap<>();
+    TreeMap<String, Map<String, Map<String, Object>>> multipleValuesMap = new TreeMap<String, Map<String, Map<String, Object>>>();
     multipleValuesMap.put("configuration-type", MAP_SINGLE_VALUE);
     multipleValuesMap.put("configuration-type2", configurationType2);
 
@@ -106,7 +100,8 @@ public class KerberosConfigurationDescriptorTest {
         new TypeToken<List<Map<String, Object>>>() {
         }.getType());
 
-    List<KerberosConfigurationDescriptor> configurations = new ArrayList<>();
+
+    List<KerberosConfigurationDescriptor> configurations = new ArrayList<KerberosConfigurationDescriptor>();
 
     for (Map<String, Object> item : jsonData) {
       configurations.add(new KerberosConfigurationDescriptor(item));
@@ -160,7 +155,7 @@ public class KerberosConfigurationDescriptorTest {
   @Test
   public void testMapDeserializeMultiple() {
 
-    List<KerberosConfigurationDescriptor> configurations = new ArrayList<>();
+    List<KerberosConfigurationDescriptor> configurations = new ArrayList<KerberosConfigurationDescriptor>();
 
     for (Map<String, Map<String, Object>> item : MAP_MULTIPLE_VALUES) {
       configurations.add(new KerberosConfigurationDescriptor(item));

@@ -36,7 +36,6 @@ public class LogsearchLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
       throws IOException, ServletException {
       logger.debug("LogsearchLogoutSuccessHandler ::: onLogoutSuccess");
-      setUseReferer(true);
-      super.onLogoutSuccess(request, response, authentication);
+      response.sendRedirect("/index.html");
   }
 }

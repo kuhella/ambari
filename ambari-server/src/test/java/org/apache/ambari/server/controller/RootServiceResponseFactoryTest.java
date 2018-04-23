@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -20,8 +20,6 @@ package org.apache.ambari.server.controller;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
-import static org.apache.ambari.server.controller.RootServiceResponseFactory.Components.AMBARI_SERVER;
-import static org.apache.ambari.server.controller.RootServiceResponseFactory.Services.AMBARI;
 
 import java.sql.SQLException;
 import java.util.Collections;
@@ -31,7 +29,6 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Components;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -45,16 +42,12 @@ import com.google.inject.Injector;
 
 public class RootServiceResponseFactoryTest {
 
+  @Inject
+  private RootServiceResponseFactory responseFactory;
   private Injector injector;
 
   @Inject
-  private RootServiceResponseFactory responseFactory;
-
-  @Inject
   private AmbariMetaInfo ambariMetaInfo;
-
-  @Inject
-  private Configuration config;
 
   @Before
   public void setUp() throws Exception {
@@ -69,102 +62,117 @@ public class RootServiceResponseFactoryTest {
   }
 
   @Test
-  public void getReturnsAllServicesForNullServiceName() throws Exception {
+  public void testGetRootServices() throws Exception {
     // Request a null service name
     RootServiceRequest request = new RootServiceRequest(null);
     Set<RootServiceResponse> rootServices = responseFactory.getRootServices(request);
-    assertEquals(RootServiceResponseFactory.Services.values().length, rootServices.size());
-  }
+    assertEquals(RootServiceResponseFactory.Services.values().length,
+        rootServices.size());
 
-  @Test
-  public void getReturnsAllServicesForNullRequest() throws Exception {
     // null request
-    Set<RootServiceResponse> rootServices = responseFactory.getRootServices(null);
-    assertEquals(RootServiceResponseFactory.Services.values().length, rootServices.size());
-  }
+    request = null;
+    rootServices = responseFactory.getRootServices(request);
+    assertEquals(RootServiceResponseFactory.Services.values().length,
+        rootServices.size());
 
-  @Test(expected = ObjectNotFoundException.class)
-  public void getThrowsForNonExistentService() throws Exception {
     // Request nonexistent service
-    RootServiceRequest request = new RootServiceRequest("XXX");
-    responseFactory.getRootServices(request);
-  }
+    try {
+      request = new RootServiceRequest("XXX");
+      rootServices = responseFactory.getRootServices(request);
+    } catch (Exception e) {
+      assertTrue(e instanceof ObjectNotFoundException);
+    }
 
-  @Test
-  public void getReturnsSingleServiceForValidServiceName() throws Exception {
     // Request existent service
-    RootServiceRequest request = new RootServiceRequest(AMBARI.name());
-    Set<RootServiceResponse> rootServices = responseFactory.getRootServices(request);
-    assertEquals(Collections.singleton(new RootServiceResponse(AMBARI.name())), rootServices);
-  }
+    request = new RootServiceRequest(
+        RootServiceResponseFactory.Services.AMBARI.name());
 
-  @Test(expected = ObjectNotFoundException.class)
-  public void getThrowsForNullServiceNameNullComponentName() throws Exception {
-    // Request null service name, null component name
-    RootServiceComponentRequest request = new RootServiceComponentRequest(null, null);
-
-    responseFactory.getRootServiceComponents(request);
-  }
-
-  @Test(expected = ObjectNotFoundException.class)
-  public void getThrowsForNullServiceNameValidComponentName() throws Exception {
-    // Request null service name, not-null component name
-    RootServiceComponentRequest request = new RootServiceComponentRequest(null, AMBARI_SERVER.name());
-
-    responseFactory.getRootServiceComponents(request);
+    rootServices = responseFactory.getRootServices(request);
+    assertEquals(1, rootServices.size());
+    assertTrue(rootServices.contains(new RootServiceResponse(
+        RootServiceResponseFactory.Services.AMBARI.name())));
   }
 
   @Test
-  public void getReturnsAllComponentsForValidServiceNameNullComponentName() throws Exception {
+  public void testGetRootServiceComponents() throws Exception {
+    // Request null service name, null component name
+    RootServiceComponentRequest request = new RootServiceComponentRequest(null,
+        null);
+
+    Set<RootServiceComponentResponse> rootServiceComponents;
+    try {
+      rootServiceComponents = responseFactory.getRootServiceComponents(request);
+    } catch (Exception e) {
+      assertTrue(e instanceof ObjectNotFoundException);
+    }
+
+    RootServiceResponseFactory.Components ambariServerComponent = RootServiceResponseFactory.Components.AMBARI_SERVER;
+
+    // Request null service name, not-null component name
+    request = new RootServiceComponentRequest(null,
+        ambariServerComponent.name());
+
+    try {
+      rootServiceComponents = responseFactory.getRootServiceComponents(request);
+    } catch (Exception e) {
+      assertTrue(e instanceof ObjectNotFoundException);
+    }
+
     // Request existent service name, null component name
-    RootServiceComponentRequest request = new RootServiceComponentRequest(AMBARI.name(), null);
+    request = new RootServiceComponentRequest(
+        RootServiceResponseFactory.Services.AMBARI.name(), null);
 
-    Set<RootServiceComponentResponse> rootServiceComponents = responseFactory.getRootServiceComponents(request);
-    assertEquals(AMBARI.getComponents().length, rootServiceComponents.size());
+    rootServiceComponents = responseFactory.getRootServiceComponents(request);
+    assertEquals(
+        RootServiceResponseFactory.Services.AMBARI.getComponents().length,
+        rootServiceComponents.size());
 
-    for (int i = 0; i < AMBARI.getComponents().length; i++) {
-      Components component = AMBARI.getComponents()[i];
+    String ambariVersion = ambariMetaInfo.getServerVersion();
 
-      if (component.name().equals(AMBARI_SERVER.name())) {
+    for (int i = 0; i < RootServiceResponseFactory.Services.AMBARI.getComponents().length; i++) {
+      Components component = RootServiceResponseFactory.Services.AMBARI.getComponents()[i];
+
+      if (component.name().equals(ambariServerComponent.name())) {
         for (RootServiceComponentResponse response : rootServiceComponents) {
-          if (response.getComponentName().equals(AMBARI_SERVER.name())) {
-            verifyResponseForAmbariServer(response);
+          if (response.getComponentName().equals(ambariServerComponent.name())) {
+            assertEquals(ambariVersion, response.getComponentVersion());
+            assertEquals(1, response.getProperties().size(), 1);
+            assertTrue(response.getProperties().containsKey("jdk_location"));
           }
         }
       } else {
         assertTrue(rootServiceComponents.contains(new RootServiceComponentResponse(
-            AMBARI.name(), component.name(), RootServiceResponseFactory.NOT_APPLICABLE,
+            component.name(), RootServiceResponseFactory.NOT_APPLICABLE,
             Collections.<String, String> emptyMap())));
       }
     }
-  }
 
-  @Test
-  public void getReturnsSingleComponentForValidServiceAndComponentName() throws Exception {
     // Request existent service name, existent component name
-    RootServiceComponentRequest request = new RootServiceComponentRequest(AMBARI.name(), Components.AMBARI_SERVER.name());
+    request = new RootServiceComponentRequest(
+        RootServiceResponseFactory.Services.AMBARI.name(),
+        RootServiceResponseFactory.Services.AMBARI.getComponents()[0].name());
 
-    Set<RootServiceComponentResponse> rootServiceComponents = responseFactory.getRootServiceComponents(request);
-
+    rootServiceComponents = responseFactory.getRootServiceComponents(request);
     assertEquals(1, rootServiceComponents.size());
     for (RootServiceComponentResponse response : rootServiceComponents) {
-      verifyResponseForAmbariServer(response);
+      if (response.getComponentName().equals(
+          RootServiceResponseFactory.Services.AMBARI.getComponents()[0].name())) {
+        assertEquals(ambariVersion, response.getComponentVersion());
+        assertEquals(2, response.getProperties().size());
+        assertTrue(response.getProperties().containsKey("jdk_location"));
+        assertTrue(response.getProperties().containsKey("java.version"));
+      }
     }
-  }
 
-  @Test(expected = ObjectNotFoundException.class)
-  public void getThrowsForNonexistentComponent() throws Exception {
-    // Request existent service name, and component, not belongs to requested service
-    RootServiceComponentRequest request = new RootServiceComponentRequest(AMBARI.name(), "XXX");
-    responseFactory.getRootServiceComponents(request);
-  }
-
-  private void verifyResponseForAmbariServer(RootServiceComponentResponse response) {
-    assertEquals(ambariMetaInfo.getServerVersion(), response.getComponentVersion());
-    // all properties from config + "jdk_location" + "java.version"
-    int expectedPropertyCount = config.getAmbariProperties().size() + 2;
-    assertEquals(response.getProperties().toString(), expectedPropertyCount, response.getProperties().size());
-    assertTrue(response.getProperties().containsKey("jdk_location"));
-    assertTrue(response.getProperties().containsKey("java.version"));
+    // Request existent service name, and component, not belongs to requested
+    // service
+    request = new RootServiceComponentRequest(
+        RootServiceResponseFactory.Services.AMBARI.name(), "XXX");
+    
+    try {
+      rootServiceComponents = responseFactory.getRootServiceComponents(request);
+    } catch (Exception e) {
+      assertTrue(e instanceof ObjectNotFoundException);
+    }
   }
 }

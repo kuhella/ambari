@@ -130,27 +130,23 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
   configGroupFilterView: filters.createSelectView({
     column: 2,
     fieldType: 'filter-input-width',
-    content: [],
-    observeContent: function() {
+    content: function () {
       var groupName = App.ServiceConfigVersion.find().mapProperty('groupName').uniq();
       if (groupName.indexOf(null) > -1) {
         groupName.splice(groupName.indexOf(null), 1);
       }
-      // list of group names can only grow since config versions not removable
-      if (groupName.length >= this.get('content.length')) {
-        this.set('content', [
-          {
-            value: '',
-            label: Em.I18n.t('common.all')
-          }
-        ].concat(groupName.map(function (item) {
-            return {
-              value: item,
-              label: item
-            }
-          })));
-      }
-    }.observes('parentView.isInitialRendering', 'parentView.pageContent'),
+      return [
+        {
+          value: '',
+          label: Em.I18n.t('common.all')
+        }
+      ].concat(groupName.map(function (item) {
+        return {
+          value: item,
+          label: item
+        }
+      }));
+    }.property('parentView.isInitialRendering', 'parentView.pageContent'),
     onChangeValue: function () {
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'select');
     }

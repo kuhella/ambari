@@ -18,6 +18,7 @@ limitations under the License.
 """
 
 from resource_management import *
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
@@ -27,6 +28,9 @@ from utils import service
 
 
 class HdfsClient(Script):
+
+  def get_component_name(self):
+    return "hadoop-client"
 
   def install(self, env):
     import params
@@ -39,7 +43,8 @@ class HdfsClient(Script):
     import params
     env.set_params(params)
     if params.version and compare_versions(format_stack_version(params.version), '4.0.0.0') >= 0:
-      stack_select.select_packages(params.version)
+      conf_select.select(params.stack_name, "hadoop", params.version)
+      stack_select.select("hadoop-client", params.version)
 
   def start(self, env, upgrade_type=None):
     import params

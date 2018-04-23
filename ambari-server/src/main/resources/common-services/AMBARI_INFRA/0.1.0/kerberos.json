@@ -4,12 +4,10 @@
       "name": "AMBARI_INFRA",
       "identities": [
         {
-          "name": "ambari_infra_smokeuser",
-          "reference": "/smokeuser"
+          "name": "/smokeuser"
         },
         {
-          "name": "ambari_infra_spnego",
-          "reference": "/spnego",
+          "name": "/spnego",
           "principal": {
             "configuration": "infra-solr-env/infra_solr_web_kerberos_principal"
           },

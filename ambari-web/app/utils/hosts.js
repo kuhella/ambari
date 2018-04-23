@@ -126,7 +126,6 @@ module.exports = {
 
         didInsertElement: function() {
           var defaultFilterColumn = this.get('filterColumns').findProperty('selected');
-          this.get('filterComponents').setEach('selected', false);
           this.set('filterColumn', defaultFilterColumn);
           initialHosts.setEach('filtered', true);
           this.set('parentView.availableHosts', initialHosts);
@@ -156,12 +155,12 @@ module.exports = {
               skip = true;
             }
             if (!skip && filterComponent && hostComponentNames.length > 0) {
-              skip = !hostComponentNames.contains(filterComponent.get('componentName'));
+                skip = !hostComponentNames.contains(filterComponent.get('componentName'));
             }
             host.set('filtered', !skip);
           }, this);
 
-          this.set('startIndex', this.get('parentView.availableHosts').someProperty('filtered') ? 1 : 0);
+          this.set('startIndex', 1);
         }.observes('parentView.availableHosts', 'filterColumn', 'filterText', 'filterComponent', 'filterComponent.componentName', 'showOnlySelectedHosts'),
 
         hostSelectMessage: function () {

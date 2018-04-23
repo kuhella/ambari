@@ -58,19 +58,14 @@ public class ServiceCheckGrouping extends Grouping {
    */
   @XmlElementWrapper(name="priority")
   @XmlElement(name="service")
-  private Set<String> priorityServices = new LinkedHashSet<>();
+  private Set<String> priorityServices = new LinkedHashSet<String>();
 
   /**
    * During a Rolling Upgrade, exclude certain services.
    */
   @XmlElementWrapper(name="exclude")
   @XmlElement(name="service")
-  private Set<String> excludeServices = new HashSet<>();
-
-  @Override
-  protected boolean serviceCheckAfterProcessing() {
-    return false;
-  }
+  private Set<String> excludeServices = new HashSet<String>();
 
   /**
    * {@inheritDoc}
@@ -130,20 +125,23 @@ public class ServiceCheckGrouping extends Grouping {
       m_cluster = upgradeContext.getCluster();
       m_metaInfo = upgradeContext.getAmbariMetaInfo();
 
-      List<StageWrapper> result = new ArrayList<>(stageWrappers);
+      List<StageWrapper> result = new ArrayList<StageWrapper>(stageWrappers);
       if (upgradeContext.getDirection().isDowngrade()) {
         return result;
       }
 
       Map<String, Service> serviceMap = m_cluster.getServices();
 
-      Set<String> clusterServices = new LinkedHashSet<>(serviceMap.keySet());
+      Set<String> clusterServices = new LinkedHashSet<String>(serviceMap.keySet());
 
       // create stages for the priorities
       for (String service : priorityServices) {
         if (checkServiceValidity(upgradeContext, service, serviceMap)) {
-          StageWrapper wrapper = new ServiceCheckStageWrapper(service,
-              upgradeContext.getServiceDisplay(service), true);
+          StageWrapper wrapper = new StageWrapper(
+            StageWrapper.Type.SERVICE_CHECK,
+            "Service Check " + upgradeContext.getServiceDisplay(service),
+            new TaskWrapper(service, "", Collections.<String>emptySet(),
+              new ServiceCheckTask()));
 
           result.add(wrapper);
           clusterServices.remove(service);
@@ -158,9 +156,11 @@ public class ServiceCheckGrouping extends Grouping {
           }
 
           if (checkServiceValidity(upgradeContext, service, serviceMap)) {
-            StageWrapper wrapper = new ServiceCheckStageWrapper(service,
-                upgradeContext.getServiceDisplay(service), false);
-
+            StageWrapper wrapper = new StageWrapper(
+              StageWrapper.Type.SERVICE_CHECK,
+              "Service Check " + upgradeContext.getServiceDisplay(service),
+              new TaskWrapper(service, "", Collections.<String>emptySet(),
+                new ServiceCheckTask()));
             result.add(wrapper);
           }
         }
@@ -201,7 +201,6 @@ public class ServiceCheckGrouping extends Grouping {
    * Attempts to merge all the service check groupings.  This merges the excluded list and
    * the priorities.  The priorities are merged in an order specific manner.
    */
-  @Override
   public void merge(Iterator<Grouping> iterator) throws AmbariException {
     List<String> priorities = new ArrayList<>();
     priorities.addAll(getPriorities());
@@ -266,44 +265,4 @@ public class ServiceCheckGrouping extends Grouping {
       }
     }
   }
-
-  /**
-   * Special type of stage wrapper that allows inspection of the service check for
-   * merging if required.  This prevents consecutive service checks from running, particularly
-   * for Patch or Maintenance types of upgrades.
-   */
-  public static class ServiceCheckStageWrapper extends StageWrapper {
-    public String service;
-    public boolean priority;
-
-    ServiceCheckStageWrapper(String service, String serviceDisplay, boolean priority) {
-      super(StageWrapper.Type.SERVICE_CHECK,
-          String.format("Service Check %s", serviceDisplay),
-          new TaskWrapper(service, "", Collections.<String>emptySet(), new ServiceCheckTask()));
-
-      this.service = service;
-      this.priority = priority;
-    }
-
-    @Override
-    public int hashCode() {
-      return service.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      if (!other.getClass().equals(getClass())) {
-        return false;
-      }
-
-      if (other == this) {
-        return true;
-      }
-
-      return ((ServiceCheckStageWrapper) other).service.equals(service);
-
-    }
-
-  }
-
 }

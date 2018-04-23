@@ -92,8 +92,7 @@ describe('App.InstallerController', function () {
                 isEmpty: false,
                 errorTitle: '1',
                 errorContent: '1',
-                validation: '',
-                showRepo: true
+                validation: ''
               })
             ])
           })
@@ -132,8 +131,7 @@ describe('App.InstallerController', function () {
                   "isEmpty": false,
                   "errorTitle": "",
                   "errorContent": "",
-                  "validation": "icon-repeat",
-                  "showRepo": true
+                  "validation": "icon-repeat"
                 }
               ]
             }
@@ -174,8 +172,7 @@ describe('App.InstallerController', function () {
                 isEmpty: false,
                 errorTitle: '1',
                 errorContent: '1',
-                validation: '',
-                showRepo: true
+                validation: ''
               })
             ])
           })
@@ -192,7 +189,7 @@ describe('App.InstallerController', function () {
         }
       }
     };
-    it ('Should check stacks for success', function() {
+    it ('Should check stacks for sucess', function() {
 
       installerController.set('content.stacks', stacks);
       installerController.checkRepoURLSuccessCallback(null,null,data);
@@ -223,8 +220,7 @@ describe('App.InstallerController', function () {
                   "isEmpty": false,
                   "errorTitle": "1",
                   "errorContent": "1",
-                  "validation": "icon-ok",
-                  "showRepo": true
+                  "validation": "icon-ok"
                 }
               ]
             }

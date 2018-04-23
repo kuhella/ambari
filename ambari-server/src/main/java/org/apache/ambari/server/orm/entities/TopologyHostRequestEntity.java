@@ -17,13 +17,11 @@
  */
 package org.apache.ambari.server.orm.entities;
 
-import java.util.Collection;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -31,8 +29,8 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-
-import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import javax.persistence.TableGenerator;
+import java.util.Collection;
 
 @Entity
 @Table(name = "topology_host_request")
@@ -50,13 +48,6 @@ public class TopologyHostRequestEntity {
 
   @Column(name = "host_name", length = 255)
   private String hostName;
-
-  @Column(name = "status")
-  @Enumerated(EnumType.STRING)
-  private HostRoleStatus status;
-
-  @Column(name = "status_message")
-  private String statusMessage;
 
   @ManyToOne
   @JoinColumn(name = "logical_request_id", referencedColumnName = "id", nullable = false)
@@ -99,22 +90,6 @@ public class TopologyHostRequestEntity {
 
   public void setHostName(String hostName) {
     this.hostName = hostName;
-  }
-
-  public HostRoleStatus getStatus() {
-    return status;
-  }
-
-  public void setStatus(HostRoleStatus status) {
-    this.status = status;
-  }
-
-  public String getStatusMessage() {
-    return statusMessage;
-  }
-
-  public void setStatusMessage(String statusMessage) {
-    this.statusMessage = statusMessage;
   }
 
   public TopologyLogicalRequestEntity getTopologyLogicalRequestEntity() {

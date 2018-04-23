@@ -20,19 +20,10 @@ Ambari Agent
 """
 import os
 
-from resource_management.core.resources import Directory
-from resource_management.core.resources import File
-from resource_management.libraries.functions import format
-from resource_management.libraries.functions import is_empty
-from resource_management.libraries.functions import lzo_utils
-from resource_management.libraries.resources import XmlConfig
-
+from resource_management import *
 
 def mahout():
   import params
-
-  # ensure that matching LZO libraries are installed for Mahout
-  lzo_utils.install_lzo_if_needed()
 
   Directory( params.mahout_conf_dir,
              create_parents = True,

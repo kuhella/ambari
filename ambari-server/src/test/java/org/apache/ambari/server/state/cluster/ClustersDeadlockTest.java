@@ -1,4 +1,4 @@
-/*
+/**
 * Licensed to the Apache Software Foundation (ASF) under one
 * or more contributor license agreements.  See the NOTICE file
 * distributed with this work for additional information
@@ -34,10 +34,10 @@ import org.apache.ambari.server.events.listeners.upgrade.HostVersionOutOfSyncLis
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -75,8 +75,7 @@ public class ClustersDeadlockTest {
   private CountDownLatch writerStoppedSignal;
   private CountDownLatch readerStoppedSignal;
 
-  private StackId stackId = new StackId("HDP-0.1");
-  private String REPO_VERSION = "0.1-1234";
+  private final StackId stackId = new StackId("HDP-0.1");
 
   @Inject
   private Injector injector;
@@ -107,12 +106,12 @@ public class ClustersDeadlockTest {
     injector.injectMembers(this);
 
     StackId stackId = new StackId("HDP-0.1");
-    helper.createStack(stackId);
-
     clusters.addCluster(CLUSTER_NAME, stackId);
 
     cluster = clusters.getCluster(CLUSTER_NAME);
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.INSTALLING);
 
     // install HDFS
     installService("HDFS");
@@ -140,7 +139,7 @@ public class ClustersDeadlockTest {
                           final int numberOfThreads,
                           CountDownLatch writerStoppedSignal,
                           CountDownLatch readerStoppedSignal) throws Exception {
-    List<Thread> writerThreads = new ArrayList<>();
+    List<Thread> writerThreads = new ArrayList<Thread>();
     for (int i = 0; i < numberOfThreads; i++) {
       Thread readerThread = readerProvider.get();
       Thread writerThread = writerProvider.get();
@@ -348,7 +347,7 @@ public class ClustersDeadlockTest {
      */
     @Override
     public void run() {
-      List<String> hostNames = new ArrayList<>(100);
+      List<String> hostNames = new ArrayList<String>(100);
       try {
         // pre-map the hosts
         for (int i = 0; i < NUMBER_OF_HOSTS; i++) {
@@ -373,7 +372,7 @@ public class ClustersDeadlockTest {
 
 
   private void setOsFamily(Host host, String osFamily, String osVersion) {
-    Map<String, String> hostAttributes = new HashMap<>(2);
+    Map<String, String> hostAttributes = new HashMap<String, String>(2);
     hostAttributes.put("os_family", osFamily);
     hostAttributes.put("os_release_version", osVersion);
     host.setHostAttributes(hostAttributes);
@@ -382,13 +381,10 @@ public class ClustersDeadlockTest {
   private Service installService(String serviceName) throws AmbariException {
     Service service = null;
 
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(
-        stackId, REPO_VERSION);
-
     try {
       service = cluster.getService(serviceName);
     } catch (ServiceNotFoundException e) {
-      service = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
+      service = serviceFactory.createNew(cluster, serviceName);
       cluster.addService(service);
     }
 
@@ -422,6 +418,8 @@ public class ClustersDeadlockTest {
     sc.addServiceComponentHost(sch);
     sch.setDesiredState(State.INSTALLED);
     sch.setState(State.INSTALLED);
+    sch.setDesiredStackVersion(stackId);
+    sch.setStackVersion(stackId);
 
     return sch;
   }

@@ -148,10 +148,6 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       App.StackService.find(this.get('content.serviceName')).get('dependentServiceNames') : [];
   }.property('content.serviceName', 'App.router.clusterController.isConfigsPropertiesLoaded'),
 
-  configDependentServiceNames: function() {
-    return this.get('dependentServiceNames').concat(App.StackService.find(this.get('content.serviceName')).get('requiredServices'))
-  }.property('dependentServiceNames'),
-
   /**
    * List of service names that could be deleted
    * Common case when there is only current service should be removed
@@ -175,7 +171,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    * @type {String[]}
    */
   sitesToLoad: function() {
-    var services = this.get('configDependentServiceNames'), configTypeList = [];
+    var services = this.get('dependentServiceNames'), configTypeList = [];
     if (services.length) {
       configTypeList = App.StackService.find().filter(function(s) {
         return services.contains(s.get('serviceName'));
@@ -229,14 +225,12 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
           allConfigs = allConfigs.concat(App.config.getConfigsFromJSON(site, true));
         });
 
-        self.get('configDependentServiceNames').forEach(function(serviceName) {
+        self.get('dependentServiceNames').forEach(function(serviceName) {
           var configTypes = App.StackService.find(serviceName).get('configTypeList');
           var configsByService = allConfigs.filter(function (c) {
             return configTypes.contains(App.config.getConfigTagFromFileName(c.get('filename')));
           });
-          if (App.config.get('preDefinedServiceConfigs').someProperty('serviceName', serviceName)) {
-            self.get('stepConfigs').pushObject(App.config.createServiceConfig(serviceName, [], configsByService));
-          }
+          self.get('stepConfigs').pushObject(App.config.createServiceConfig(serviceName, [], configsByService));
         });
 
         self.set('isServiceConfigsLoaded', true);
@@ -657,7 +651,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     var batches = [{
       "order_id": 1,
       "type": "POST",
-      "uri": "/clusters/" + App.get('clusterName') + "/requests",
+      "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
       "RequestBodyInfo": {
         "RequestInfo": {
           "context": "Refresh YARN Capacity Scheduler",
@@ -673,7 +667,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     }, {
       "order_id": 2,
       "type": "POST",
-      "uri": "/clusters/" + App.get('clusterName') + "/requests",
+      "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
       "RequestBodyInfo": {
         "RequestInfo": {"context": "Restart LLAP", "command": "RESTART_LLAP"},
         "Requests/resource_filters": [{
@@ -1491,7 +1485,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    * @return {Boolean}
    * @override
    */
-  allowUpdateProperty: function (parentProperties, name, fileName, configGroup, savedValue) {
+  allowUpdateProperty: function (parentProperties, name, fileName) {
     var stackProperty = App.configsCollection.getConfigByName(name, fileName);
     if (!stackProperty || (stackProperty.serviceName === this.get('content.serviceName'))) {
       /**
@@ -1504,12 +1498,12 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       /**
        * update properties that depends on current service
        */
-      return stackProperty.propertyDependsOn.some(function (p) {
+      return !!stackProperty.propertyDependsOn.filter(function (p) {
         var service = App.config.get('serviceByConfigTypeMap')[p.type];
         return service && (this.get('content.serviceName') === service.get('serviceName'));
-      }, this);
+      }, this).length;
     }
-    return !Em.isNone(savedValue) && stackProperty.recommendedValue === savedValue;
+    return false;
   },
 
   /**

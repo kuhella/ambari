@@ -57,6 +57,10 @@
             <package>
               <name>webhcat-tar-pig</name>
             </package>
+            <package>
+              <name>mysql-connector-java</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
           </packages>
         </osSpecific>
         <osSpecific>

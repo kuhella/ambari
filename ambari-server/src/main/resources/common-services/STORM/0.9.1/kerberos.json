@@ -4,12 +4,10 @@
       "name": "STORM",
       "identities": [
         {
-          "name": "storm_spnego",
-          "reference": "/spnego"
+          "name": "/spnego"
         },
         {
-          "name": "storm_smokeuser",
-          "reference": "/smokeuser"
+          "name": "/smokeuser"
         },
         {
           "name": "storm_components",
@@ -53,8 +51,7 @@
           "name": "STORM_UI_SERVER",
           "identities": [
             {
-              "name": "storm_storm_ui_server_spnego",
-              "reference": "/spnego",
+              "name": "/spnego",
               "principal": {
                 "configuration": "storm-env/storm_ui_principal_name"
               },

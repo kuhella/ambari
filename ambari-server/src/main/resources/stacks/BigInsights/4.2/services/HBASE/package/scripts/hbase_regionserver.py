@@ -30,6 +30,9 @@ from setup_ranger_hbase import setup_ranger_hbase
          
 class HbaseRegionServer(Script):
 
+  def get_component_name(self):
+    return "hbase-regionserver"
+
   def install(self, env):
     self.install_packages(env)
     
@@ -42,7 +45,7 @@ class HbaseRegionServer(Script):
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    upgrade.prestart(env)
+    upgrade.prestart(env, "hbase-regionserver")
 
   def post_upgrade_restart(self, env, upgrade_type=None):
     import params

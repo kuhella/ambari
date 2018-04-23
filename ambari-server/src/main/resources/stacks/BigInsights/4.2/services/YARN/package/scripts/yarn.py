@@ -20,7 +20,6 @@ Ambari Agent
 """
 
 from resource_management import *
-from resource_management.libraries.functions.lzo_utils import install_lzo_if_needed
 import sys
 import os
 
@@ -51,8 +50,6 @@ def create_local_dir(dir_name):
 
 def yarn(name = None):
   import params
-  
-  install_lzo_if_needed()
 
   if name == "historyserver":
     if params.yarn_log_aggregation_enabled:

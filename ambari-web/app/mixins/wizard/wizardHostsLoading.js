@@ -59,7 +59,7 @@ App.WizardHostsLoading = Em.Mixin.create({
         isInstalled: true
       };
     });
-    this.get('controller').setDBProperty('hosts', hosts);
+    App.db.setHosts(hosts);
     this.set('controller.content.hosts', hosts);
     this.set('isLoaded', true);
   },

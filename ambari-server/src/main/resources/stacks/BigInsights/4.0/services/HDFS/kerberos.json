@@ -4,8 +4,7 @@
       "name": "HDFS",
       "identities": [
         {
-          "name": "hdfs_spnego",
-          "reference": "/spnego",
+          "name": "/spnego",
           "principal": {
             "configuration": "hdfs-site/dfs.web.authentication.kerberos.principal"
           },
@@ -14,12 +13,10 @@
           }
         },
         {
-          "name": "hdfs_smokeuser",
-          "reference": "/smokeuser"
+          "name": "/smokeuser"
         },
         {
-          "name": "hdfs_hdfs",
-          "reference": "/hdfs"
+          "name": "/hdfs"
         }
       ],
       "auth_to_local_properties" : [
@@ -51,8 +48,7 @@
           "name":  "HDFS_CLIENT",
           "identities": [
             {
-              "name": "hdfs_hdfs_client_hdfs",
-              "reference": "/HDFS/NAMENODE/hdfs"
+              "name": "/HDFS/NAMENODE/hdfs"
             }
           ]
         },
@@ -102,8 +98,7 @@
               }
             },
             {
-              "name": "hdfs_namenode_spnego",
-              "reference": "/spnego",
+              "name": "/spnego",
               "principal": {
                 "configuration": "hdfs-site/dfs.namenode.kerberos.internal.spnego.principal"
               }
@@ -176,8 +171,7 @@
               }
             },
             {
-              "name": "hdfs_secondary_namenode_spnego",
-              "reference": "/spnego",
+              "name": "/spnego",
               "principal": {
                 "configuration": "hdfs-site/dfs.secondary.namenode.kerberos.internal.spnego.principal"
               }
@@ -235,8 +229,7 @@
               }
             },
             {
-              "name": "hdfs_journalnode_spnego",
-              "reference": "/spnego",
+              "name": "/spnego",
               "principal": {
                 "configuration": "hdfs-site/dfs.journalnode.kerberos.internal.spnego.principal"
               }

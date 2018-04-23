@@ -18,11 +18,11 @@
 
 package org.apache.ambari.server.topology;
 
-import java.util.Collection;
-import java.util.Map;
-
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
+
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * Blueprint representation.
@@ -34,13 +34,13 @@ public interface Blueprint {
    *
    * @return blueprint name
    */
-  String getName();
+  public String getName();
 
   /**
    * Get the hot groups contained in the blueprint.
    * @return map of host group name to host group
    */
-  Map<String, HostGroup> getHostGroups();
+  public Map<String, HostGroup> getHostGroups();
 
   /**
    * Get a hostgroup specified by name.
@@ -49,7 +49,7 @@ public interface Blueprint {
    *
    * @return the host group with the given name or null
    */
-  HostGroup getHostGroup(String name);
+  public HostGroup getHostGroup(String name);
 
   /**
    * Get the Blueprint cluster scoped configuration.
@@ -59,7 +59,7 @@ public interface Blueprint {
    *
    * @return blueprint cluster scoped configuration
    */
-  Configuration getConfiguration();
+  public Configuration getConfiguration();
 
   /**
    * Get the Blueprint cluster scoped setting.
@@ -68,14 +68,14 @@ public interface Blueprint {
    *
    * @return blueprint cluster scoped setting
    */
-  Setting getSetting();
+  public Setting getSetting();
 
   /**
    * Get all of the services represented in the blueprint.
    *
    * @return collection of all represented service names
    */
-  Collection<String> getServices();
+  public Collection<String> getServices();
 
   /**
    * Get the components that are included in the blueprint for the specified service.
@@ -84,7 +84,7 @@ public interface Blueprint {
    *
    * @return collection of component names for the service.  Will not return null.
    */
-  Collection<String> getComponents(String service);
+  public Collection<String> getComponents(String service);
 
   /**
    * Get whether a component is enabled for auto start.
@@ -94,7 +94,7 @@ public interface Blueprint {
    *
    * @return null if value is not specified; true or false if specified.
    */
-  String getRecoveryEnabled(String serviceName, String componentName);
+  public String getRecoveryEnabled(String serviceName, String componentName);
 
   /**
    * Get whether a service is enabled for credential store use.
@@ -103,20 +103,20 @@ public interface Blueprint {
    *
    * @return null if value is not specified; true or false if specified.
    */
-  String getCredentialStoreEnabled(String serviceName);
+  public String getCredentialStoreEnabled(String serviceName);
 
   /**
    * Check if auto skip failure is enabled.
    * @return true if enabled, otherwise false.
    */
-  boolean shouldSkipFailure();
+  public boolean shouldSkipFailure();
 
   /**
    * Get the stack associated with the blueprint.
    *
    * @return associated stack
    */
-  Stack getStack();
+  public Stack getStack();
 
   /**
    * Get the host groups which contain components for the specified service.
@@ -126,7 +126,7 @@ public interface Blueprint {
    * @return collection of host groups containing components for the specified service;
    *         will not return null
    */
-  Collection<HostGroup> getHostGroupsForService(String service);
+  public Collection<HostGroup> getHostGroupsForService(String service);
 
   /**
    * Get the host groups which contain the give component.
@@ -135,23 +135,23 @@ public interface Blueprint {
    *
    * @return collection of host groups containing the specified component; will not return null
    */
-  Collection<HostGroup> getHostGroupsForComponent(String component);
+  public Collection<HostGroup> getHostGroupsForComponent(String component);
 
-  SecurityConfiguration getSecurity();
+  public SecurityConfiguration getSecurity();
 
   /**
    * Validate the blueprint topology.
    *
    * @throws InvalidTopologyException if the topology is invalid
    */
-  void validateTopology() throws InvalidTopologyException;
+  public void validateTopology() throws InvalidTopologyException;
 
   /**
    * Validate that the blueprint contains all of the required properties.
    *
    * @throws InvalidTopologyException if the blueprint doesn't contain all required properties
    */
-  void validateRequiredProperties() throws InvalidTopologyException, GPLLicenseNotAcceptedException;
+  public void validateRequiredProperties() throws InvalidTopologyException;
 
   /**
    *
@@ -166,5 +166,5 @@ public interface Blueprint {
    *
    * @return entity representation of the blueprint
    */
-  BlueprintEntity toEntity();
+  public BlueprintEntity toEntity();
 }

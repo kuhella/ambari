@@ -17,8 +17,8 @@
  */
 package org.apache.ambari.server.checks;
 
+import java.util.Arrays;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
@@ -30,7 +30,6 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 
-import com.google.common.collect.Sets;
 import com.google.inject.Singleton;
 
 /**
@@ -52,8 +51,8 @@ public class HiveMultipleMetastoreCheck extends AbstractCheckDescriptor {
    * {@inheritDoc}
    */
   @Override
-  public Set<String> getApplicableServices() {
-    return Sets.newHashSet("HIVE");
+  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
+    return super.isApplicable(request, Arrays.asList("HIVE"), true);
   }
 
   /**

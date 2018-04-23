@@ -154,13 +154,11 @@ def storm(name=None):
 
   if params.security_enabled:
     TemplateConfig(format("{conf_dir}/storm_jaas.conf"),
-                   owner=params.storm_user,
-                   mode=0644
+                   owner=params.storm_user
     )
     if params.stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.stack_version_formatted):
       TemplateConfig(format("{conf_dir}/client_jaas.conf"),
-                     owner=params.storm_user,
-                     mode=0644
+                     owner=params.storm_user
       )
       minRuid = configurations['_storm.min.ruid'] if configurations.has_key('_storm.min.ruid') else ''
       
@@ -171,21 +169,12 @@ def storm(name=None):
            owner='root',
            group=params.user_group
       )
-  else:
-    File(
-      format("{conf_dir}/storm_jaas.conf"),
-      action="delete"
-    )
-    File(
-      format("{conf_dir}/client_jaas.conf"),
-      action="delete"
-    )
 
 
+'''
+Finds minimal real user UID
+'''
 def _find_real_user_min_uid():
-  """
-  Finds minimal real user UID
-  """
   with open('/etc/login.defs') as f:
     for line in f:
       if line.strip().startswith('UID_MIN') and len(line.split()) == 2 and line.split()[1].isdigit():

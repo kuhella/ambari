@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.utilities;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -30,11 +31,13 @@ import java.util.regex.Pattern;
 
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.internal.RequestImpl;
+import org.apache.ambari.server.controller.jmx.JMXPropertyProvider;
 import org.apache.ambari.server.controller.spi.PageRequest;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SortRequest;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
+import org.apache.ambari.server.state.stack.Metric;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
@@ -49,7 +52,7 @@ public class PropertyHelper {
   private static final String SQLSERVER_PROPERTIES_FILE = "sqlserver_properties.json";
   private static final String JMX_PROPERTIES_FILE = "jmx_properties.json";
   private static final String KEY_PROPERTIES_FILE = "key_properties.json";
-  public static final char EXTERNAL_PATH_SEP = '/';
+  private static final char EXTERNAL_PATH_SEP = '/';
 
   /**
    * Aggregate functions implicitly supported by the Metrics Service
@@ -115,10 +118,6 @@ public class PropertyHelper {
     return propertyIds == null ? Collections.<String>emptySet() : propertyIds;
   }
 
-  public static void setPropertyIds(Resource.Type resourceType, Set<String> propertyIds) {
-    PROPERTY_IDS.put(resourceType.getInternalType(), propertyIds);
-  }
-
   /**
    * Extract the set of property ids from a component PropertyInfo map.
    *
@@ -127,7 +126,7 @@ public class PropertyHelper {
    * @return the set of property ids
    */
   public static Set<String> getPropertyIds(Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap ) {
-    Set<String> propertyIds = new HashSet<>();
+    Set<String> propertyIds = new HashSet<String>();
 
     for (Map.Entry<String, Map<String, PropertyInfo>> entry : componentPropertyInfoMap.entrySet()) {
       propertyIds.addAll(entry.getValue().keySet());
@@ -149,10 +148,6 @@ public class PropertyHelper {
 
   public static Map<Resource.Type, String> getKeyPropertyIds(Resource.Type resourceType) {
     return KEY_PROPERTY_IDS.get(resourceType.getInternalType());
-  }
-  
-  public static void setKeyPropertyIds(Resource.Type resourceType, Map<Resource.Type, String> keyPropertyKeys) {
-    KEY_PROPERTY_IDS.put(resourceType.getInternalType(), keyPropertyKeys);
   }
 
   /**
@@ -255,7 +250,7 @@ public class PropertyHelper {
    * @return the set of categories
    */
   public static Set<String> getCategories(Set<String> propertyIds) {
-    Set<String> categories = new HashSet<>();
+    Set<String> categories = new HashSet<String>();
     for (String property : propertyIds) {
       String category = PropertyHelper.getPropertyCategory(property);
       while (category != null) {
@@ -319,9 +314,9 @@ public class PropertyHelper {
     Set<String> ids = request.getPropertyIds();
 
     if (ids != null) {
-      ids = new HashSet<>(ids);
+      ids = new HashSet<String>(ids);
     } else {
-      ids = new HashSet<>();
+      ids = new HashSet<String>();
     }
 
     Set<Map<String, Object>> properties = request.getProperties();
@@ -341,7 +336,7 @@ public class PropertyHelper {
    * @return the map of properties for the given resource
    */
   public static Map<String, Object> getProperties(Resource resource) {
-    Map<String, Object> properties = new HashMap<>();
+    Map<String, Object> properties = new HashMap<String, Object>();
 
     Map<String, Map<String, Object>> categories = resource.getPropertiesMap();
 
@@ -421,7 +416,7 @@ public class PropertyHelper {
    * @param propertyIds  the property ids associated with the request; may be null
    */
   public static Request getReadRequest(String ... propertyIds) {
-    return PropertyHelper.getReadRequest(new HashSet<>(
+    return PropertyHelper.getReadRequest(new HashSet<String>(
         Arrays.asList(propertyIds)));
   }
 
@@ -446,13 +441,13 @@ public class PropertyHelper {
               new TypeReference<Map<Resource.InternalType, Map<String, Map<String, Metric>>>>() {});
 
       Map<Resource.InternalType, Map<String, Map<String, PropertyInfo>>> resourceMetrics =
-          new HashMap<>();
+          new HashMap<Resource.InternalType, Map<String, Map<String, PropertyInfo>>>();
 
       for (Map.Entry<Resource.InternalType, Map<String, Map<String, Metric>>> resourceEntry : resourceMetricMap.entrySet()) {
-        Map<String, Map<String, PropertyInfo>> componentMetrics = new HashMap<>();
+        Map<String, Map<String, PropertyInfo>> componentMetrics = new HashMap<String, Map<String, PropertyInfo>>();
 
         for (Map.Entry<String, Map<String, Metric>> componentEntry : resourceEntry.getValue().entrySet()) {
-          Map<String, PropertyInfo> metrics = new HashMap<>();
+          Map<String, PropertyInfo> metrics = new HashMap<String, PropertyInfo>();
 
           for (Map.Entry<String, Metric> metricEntry : componentEntry.getValue().entrySet()) {
             String property = metricEntry.getKey();
@@ -497,11 +492,11 @@ public class PropertyHelper {
               new TypeReference<Map<Resource.InternalType, Map<Resource.InternalType, String>>>() {});
 
       Map<Resource.InternalType, Map<Resource.Type, String>> returnMap =
-          new HashMap<>();
+          new HashMap<Resource.InternalType, Map<Resource.Type, String>>();
 
       // convert inner maps from InternalType to Type
       for (Map.Entry<Resource.InternalType, Map<Resource.InternalType, String>> entry : map.entrySet()) {
-        Map<Resource.Type, String> innerMap = new HashMap<>();
+        Map<Resource.Type, String> innerMap = new HashMap<Resource.Type, String>();
 
         for (Map.Entry<Resource.InternalType, String> entry1 : entry.getValue().entrySet()) {
           innerMap.put(Resource.Type.valueOf(entry1.getKey().name()), entry1.getValue());
@@ -601,7 +596,7 @@ public class PropertyHelper {
     for (Map.Entry<String, Map<String, PropertyInfo>> metricInfoEntry : metrics.entrySet()) {
       Map<String, PropertyInfo> metricInfo = metricInfoEntry.getValue();
 
-      Map<String, PropertyInfo> aggregateMetrics = new HashMap<>();
+      Map<String, PropertyInfo> aggregateMetrics = new HashMap<String, PropertyInfo>();
       // For every metric
       for (Map.Entry<String, PropertyInfo> metricEntry : metricInfo.entrySet()) {
         // For each aggregate function id

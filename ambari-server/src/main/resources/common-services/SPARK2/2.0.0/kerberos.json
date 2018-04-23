@@ -4,8 +4,7 @@
       "name": "SPARK2",
       "identities": [
         {
-          "name": "spark2_smokeuser",
-          "reference": "/smokeuser"
+          "name": "/smokeuser"
         },
         {
           "name": "spark2user",
@@ -47,8 +46,7 @@
           "name": "SPARK2_JOBHISTORYSERVER",
           "identities": [
             {
-              "name": "spark2_spark2_jobhistoryserver_hdfs",
-              "reference": "/HDFS/NAMENODE/hdfs"
+              "name": "/HDFS/NAMENODE/hdfs"
             }
           ]
         },
@@ -59,12 +57,10 @@
           "name": "SPARK2_THRIFTSERVER",
           "identities": [
             {
-              "name": "spark2_spark2_thriftserver_hdfs",
-              "reference": "/HDFS/NAMENODE/hdfs"
+              "name": "/HDFS/NAMENODE/hdfs"
             },
             {
-              "name": "spark2_spark2_thriftserver_hive_server_hive",
-              "reference": "/HIVE/HIVE_SERVER/hive_server_hive"
+              "name": "/HIVE/HIVE_SERVER/hive_server_hive"
             }
           ]
         }

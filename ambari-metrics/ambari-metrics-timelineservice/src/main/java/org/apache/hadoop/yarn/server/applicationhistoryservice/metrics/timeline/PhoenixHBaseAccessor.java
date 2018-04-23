@@ -1195,27 +1195,23 @@ public class PhoenixHBaseAccessor {
     }
 
     for (String metricNameEntry : metricFunctions.keySet()) {
-      String metricRegEx = getJavaRegexFromSqlRegex(metricNameEntry);
+
+      String metricRegEx;
+      //Special case handling for metric name with * and __%.
+      //For example, dfs.NNTopUserOpCounts.windowMs=300000.op=*.user=%.count
+      // or dfs.NNTopUserOpCounts.windowMs=300000.op=__%.user=%.count
+      if (metricNameEntry.contains("*") || metricNameEntry.contains("__%")) {
+        String metricNameWithEscSeq = metricNameEntry.replace("*", "\\*").replace("__%", "..%");
+        metricRegEx = metricNameWithEscSeq.replace("%", ".*");
+      } else {
+        metricRegEx = metricNameEntry.replace("%", ".*");
+      }
       if (metricName.matches(metricRegEx)) {
         return metricFunctions.get(metricNameEntry);
       }
     }
 
     return null;
-  }
-
-  public String getJavaRegexFromSqlRegex(String sqlRegex) {
-    String javaRegEx;
-    if (sqlRegex.contains("*") || sqlRegex.contains("__%")) {
-      //Special case handling for metric name with * and __%.
-      //For example, dfs.NNTopUserOpCounts.windowMs=300000.op=*.user=%.count
-      // or dfs.NNTopUserOpCounts.windowMs=300000.op=__%.user=%.count
-      String metricNameWithEscSeq = sqlRegex.replace("*", "\\*").replace("__%", "..%");
-      javaRegEx = metricNameWithEscSeq.replace("%", ".*");
-    } else {
-      javaRegEx = sqlRegex.replace("%", ".*");
-    }
-    return javaRegEx;
   }
 
   public void saveHostAggregateRecords(Map<TimelineMetric, MetricHostAggregate> hostAggregateMap,

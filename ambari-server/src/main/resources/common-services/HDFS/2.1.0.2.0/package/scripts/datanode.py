@@ -22,6 +22,7 @@ from ambari_commons.constants import UPGRADE_TYPE_ROLLING
 
 from hdfs_datanode import datanode
 from resource_management import Script, Fail, shell, Logger
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions import format
@@ -37,11 +38,15 @@ from utils import get_dfsadmin_base_command
 
 class DataNode(Script):
 
+  def get_component_name(self):
+    return "hadoop-hdfs-datanode"
+
   def get_hdfs_binary(self):
     """
     Get the name or path to the hdfs binary depending on the component name.
     """
-    return get_hdfs_binary("hadoop-hdfs-datanode")
+    component_name = self.get_component_name()
+    return get_hdfs_binary(component_name)
 
 
   def install(self, env):
@@ -127,7 +132,8 @@ class DataNodeDefault(DataNode):
     import params
     env.set_params(params)
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-      stack_select.select_packages(params.version)
+      conf_select.select(params.stack_name, "hadoop", params.version)
+      stack_select.select("hadoop-hdfs-datanode", params.version)
 
   def post_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing DataNode Stack Upgrade post-restart")

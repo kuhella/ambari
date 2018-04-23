@@ -93,7 +93,6 @@ angular.module('ambariAdminConsole')
       'important': 'Important',
       'undo': 'Undo',
       'fromGroupMark': '(from group)',
-      'hidden' : 'Hidden',
 
       'clusterNameChangeConfirmation': {
         'title': 'Confirm Cluster Name Change',
@@ -417,7 +416,6 @@ angular.module('ambariAdminConsole')
       'skipValidation': 'Skip Repository Base URL validation (Advanced)',
       'noVersions': 'Select version to display details.',
       'patch': 'Patch',
-      'maint': 'Maint',
       'introduction': 'To register a new version in Ambari, provide a Version Definition File, confirm the software repository information and save the version.',
       'contents': {
         'title': 'Contents',

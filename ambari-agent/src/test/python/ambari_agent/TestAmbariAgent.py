@@ -19,7 +19,7 @@ limitations under the License.
 '''
 
 import unittest
-from ambari_commons import subprocess32
+import subprocess
 import os
 import sys
 import AmbariConfig
@@ -31,14 +31,16 @@ with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
 
 class TestAmbariAgent(unittest.TestCase):
 
-  @patch.object(subprocess32, "Popen")
+  @patch.object(subprocess, "Popen")
   @patch("os.path.isfile")
   @patch("os.remove")
-  def test_main(self, os_remove_mock,
-                os_path_isfile_mock, subprocess32_popen_mock):
+  @patch("os.killpg")
+  @patch("os.setpgrp")
+  def test_main(self, os_setpgrp_mock, os_killpg_mock, os_remove_mock,
+                os_path_isfile_mock, subprocess_popen_mock):
     facter1 = MagicMock()
     facter2 = MagicMock()
-    subprocess32_popen_mock.side_effect = [facter1, facter2]
+    subprocess_popen_mock.side_effect = [facter1, facter2]
     facter1.returncode = 77
     facter2.returncode = 55
     os_path_isfile_mock.return_value = True
@@ -47,13 +49,15 @@ class TestAmbariAgent(unittest.TestCase):
     sys.argv[0] = "test data"
     AmbariAgent.main()
 
-    self.assertTrue(subprocess32_popen_mock.called)
-    self.assertTrue(subprocess32_popen_mock.call_count == 2)
+    self.assertTrue(os_setpgrp_mock.called)
+    self.assertTrue(subprocess_popen_mock.called)
+    self.assertTrue(subprocess_popen_mock.call_count == 2)
     self.assertTrue(facter1.communicate.called)
     self.assertTrue(facter2.communicate.called)
     self.assertTrue(os_path_isfile_mock.called)
     self.assertTrue(os_path_isfile_mock.call_count == 2)
     self.assertTrue(os_remove_mock.called)
+    self.assertTrue(os_killpg_mock.called)
 
   #
   # Test AmbariConfig.getLogFile() for ambari-agent

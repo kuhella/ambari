@@ -335,7 +335,6 @@
   <property>
     <name>dfs.permissions.superusergroup</name>
     <value>hdfs</value>
-    <property-type>GROUP</property-type>
     <description>The name of the group of super-users.</description>
     <on-ambari-upgrade add="true"/>
   </property>

@@ -20,7 +20,7 @@ limitations under the License.
 
 import os
 import time
-from ambari_commons import subprocess32
+import subprocess
 from Hardware import Hardware
 import hostname
 from HostInfo import HostInfo

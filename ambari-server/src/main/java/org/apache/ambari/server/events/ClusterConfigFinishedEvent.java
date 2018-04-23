@@ -23,27 +23,17 @@ package org.apache.ambari.server.events;
  * cluster configuration is successfully updated.
  */
 public class ClusterConfigFinishedEvent extends AmbariEvent {
-
-  private final long clusterId;
   private final String clusterName;
 
 
-  public ClusterConfigFinishedEvent(long clusterId, String clusterName) {
+  public ClusterConfigFinishedEvent(String clusterName) {
     super(AmbariEventType.CLUSTER_CONFIG_FINISHED);
-    this.clusterId = clusterId;
     this.clusterName = clusterName;
   }
 
   /**
-   * Get the cluster id
-   * @return
-   */
-  public long getClusterId() {
-    return clusterId;
-  }
-
-  /**
    * Get the cluster name
+   *
    * @return
    */
   public String getClusterName() {
@@ -56,7 +46,6 @@ public class ClusterConfigFinishedEvent extends AmbariEvent {
   @Override
   public String toString() {
     StringBuilder buffer = new StringBuilder("ClusterConfigChangedEvent{");
-    buffer.append("clusterId=").append(getClusterId());
     buffer.append("clusterName=").append(getClusterName());
     buffer.append("}");
     return buffer.toString();

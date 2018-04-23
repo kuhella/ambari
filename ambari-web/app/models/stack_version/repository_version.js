@@ -30,24 +30,15 @@ App.RepositoryVersion = DS.Model.extend({
   stackServices: DS.hasMany('App.ServiceSimple'),
   stackVersion: DS.belongsTo('App.StackVersion'),
   stack: Em.computed.concat(' ', 'stackVersionType', 'stackVersionNumber'),
-  hidden: DS.attr('boolean'),
   displayNameSimple: function() {
     return this.get('stackVersionType') + '-' + this.get('repositoryVersion').split('-')[0];
   }.property('stackVersionType', 'repositoryVersion'),
-
-  isPatch: Em.computed.equal('type', 'PATCH'),
-
-  isMaint: Em.computed.equal('type', 'MAINT'),
-
-  isService: Em.computed.equal('type', 'SERVICE'),
-
-  isStandard: Em.computed.equal('type', 'STANDARD'),
 
   /**
    * status used until corresponding stack version get created
    * @type {string}
    */
-  defaultStatus: 'NOT_REQUIRED',
+  defaultStatus: 'INIT',
 
   /**
    * @type {boolean}
@@ -64,7 +55,7 @@ App.RepositoryVersion = DS.Model.extend({
    * @type {Array}
    */
   notInstalledHosts: function () {
-    return this.get('stackVersion.notInstalledHosts').length || this.get('stackVersion.installedHosts').length || this.get('stackVersion.currentHosts').length
+    return Array.isArray(this.get('stackVersion.notInstalledHosts'))
           ? this.get('stackVersion.notInstalledHosts')
           : App.get('allHostNames');
   }.property('stackVersion.notInstalledHosts'),
@@ -122,12 +113,7 @@ App.RepositoryVersion = DS.Model.extend({
   /**
    * @type {boolean}
    */
-  isVisible: true,
-
-  /**
-   * @type {boolean}
-   */
-  isCurrent: Em.computed.equal('status', 'CURRENT')
+  isVisible: true
 });
 
 App.RepositoryVersion.FIXTURES = [];

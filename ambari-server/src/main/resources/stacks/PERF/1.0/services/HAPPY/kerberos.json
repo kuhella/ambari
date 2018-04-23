@@ -4,8 +4,7 @@
       "name": "HAPPY",
       "identities": [
         {
-          "name": "happy_spnego",
-          "reference": "/spnego"
+          "name": "/spnego"
         },
         {
           "name": "happy",
@@ -29,8 +28,7 @@
           }
         },
         {
-          "name": "happy_smokeuser",
-          "reference": "/smokeuser"
+          "name": "/smokeuser"
         }
       ],
       "configurations": [
@@ -40,8 +38,7 @@
           "name": "HAPPY",
           "identities": [
             {
-              "name": "happy_happy_hdfs",
-              "reference": "/FAKEHDFS/FAKENAMENODE/hdfs"
+              "name": "/FAKEHDFS/FAKENAMENODE/hdfs"
             },
             {
               "name": "happy_happy",
@@ -65,8 +62,7 @@
               }
             },
             {
-              "name": "happy_happy_spnego",
-              "reference": "/spnego",
+              "name": "/spnego",
               "principal": {
                 "configuration": "happy-site/happy.security.authentication.spnego.kerberos.principal"
               },

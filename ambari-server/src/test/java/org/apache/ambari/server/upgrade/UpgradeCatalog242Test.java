@@ -50,6 +50,7 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.PrincipalDAO;
@@ -94,6 +95,7 @@ public class UpgradeCatalog242Test {
   private AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
   private StackDAO stackDAO = createNiceMock(StackDAO.class);
   private RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
+  private ClusterVersionDAO clusterVersionDAO = createNiceMock(ClusterVersionDAO.class);
   private HostVersionDAO hostVersionDAO = createNiceMock(HostVersionDAO.class);
   private ClusterDAO clusterDAO = createNiceMock(ClusterDAO.class);
 

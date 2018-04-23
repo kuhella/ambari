@@ -4,12 +4,10 @@
       "name": "FAKEYARN",
       "identities": [
         {
-          "name": "fakeyarn_spnego",
-          "reference": "/spnego"
+          "name": "/spnego"
         },
         {
-          "name": "fakeyarn_smokeuser",
-          "reference": "/smokeuser"
+          "name": "/smokeuser"
         }
       ],
       "configurations": [
@@ -89,8 +87,7 @@
               }
             },
             {
-              "name": "fakeyarn_fakenodemanager_hive_server_hive",
-              "reference": "/HIVE/HIVE_SERVER/hive_server_hive",
+              "name": "/HIVE/HIVE_SERVER/hive_server_hive",
               "principal": {
                 "configuration": "hive-interactive-site/hive.llap.daemon.service.principal"
               },
@@ -125,8 +122,7 @@
               }
             },
             {
-              "name": "fakeyarn_fakenodemanager_spnego",
-              "reference": "/spnego",
+              "name": "/spnego",
               "principal": {
                 "configuration": "yarn-site/yarn.nodemanager.webapp.spnego-principal"
               },
@@ -168,8 +164,7 @@
               }
             },
             {
-              "name": "fakeyarn_fakeresourcemanager_spnego",
-              "reference": "/spnego",
+              "name": "/spnego",
               "principal": {
                 "configuration": "yarn-site/yarn.resourcemanager.webapp.spnego-principal"
               },
@@ -178,8 +173,7 @@
               }
             },
             {
-              "name": "fakeyarn_fakeresourcemanager_resource_manager_rm",
-              "reference": "/FAKEYARN/FAKERESOURCEMANAGER/resource_manager_rm",
+              "name": "/FAKEYARN/FAKERESOURCEMANAGER/resource_manager_rm",
               "principal": {
                 "configuration": "ranger-yarn-audit/xasecure.audit.jaas.Client.option.principal"
               },
@@ -214,8 +208,7 @@
               }
             },
             {
-              "name": "fakeyarn_fakeapp_timeline_server_spnego",
-              "reference": "/spnego",
+              "name": "/spnego",
               "principal": {
                 "configuration": "yarn-site/yarn.timeline-service.http-authentication.kerberos.principal"
               },
@@ -224,8 +217,7 @@
               }
             },
             {
-              "name": "app_timeline_server_hdfs",
-              "reference": "/FAKEHDFS/FAKENAMENODE/hdfs"
+              "name": "/FAKEHDFS/FAKENAMENODE/hdfs"
             }
           ]
         }
@@ -235,12 +227,10 @@
       "name": "FAKEMAPREDUCE2",
       "identities": [
         {
-          "name": "fakemapreduce2_spnego",
-          "reference": "/spnego"
+          "name": "/spnego"
         },
         {
-          "name": "fakemapreduce2_smokeuser",
-          "reference": "/smokeuser"
+          "name": "/smokeuser"
         }
       ],
       "components": [
@@ -248,8 +238,7 @@
           "name": "FAKEHISTORYSERVER",
           "identities": [
             {
-              "name": "fakemapreduce2_fakehistoryserver_hdfs",
-              "reference": "/FAKEHDFS/FAKENAMENODE/hdfs"
+              "name": "/FAKEHDFS/FAKENAMENODE/hdfs"
             },
             {
               "name": "history_server_jhs",
@@ -273,8 +262,7 @@
               }
             },
             {
-              "name": "fakemapreduce2_fakehistoryserver_spnego",
-              "reference": "/spnego",
+              "name": "/spnego",
               "principal": {
                 "configuration": "mapred-site/mapreduce.jobhistory.webapp.spnego-principal"
               },

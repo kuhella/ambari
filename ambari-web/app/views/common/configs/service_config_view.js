@@ -271,8 +271,7 @@ App.ServiceConfigView = Em.View.extend({
         var passesFilters = true;
 
         selectedFilters.forEach(function (filter) {
-          if (config.get(filter.attributeName) !== filter.attributeValue &&
-            !(config.get('overrides') && config.get('overrides').someProperty(filter.attributeName, filter.attributeValue))) {
+          if (config.get(filter.attributeName) !== filter.attributeValue) {
             passesFilters = false;
           }
         });

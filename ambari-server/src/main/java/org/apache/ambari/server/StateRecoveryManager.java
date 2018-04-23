@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,17 +18,16 @@
 
 package org.apache.ambari.server;
 
-import java.util.List;
-
+import com.google.inject.Inject;
+import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
-import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
+import java.util.List;
 
 /**
  * Is executed on server start.
@@ -36,17 +35,19 @@ import com.google.inject.Inject;
  */
 public class StateRecoveryManager {
 
-  private static final Logger LOG = LoggerFactory.getLogger(StateRecoveryManager.class);
+  private static Logger LOG = LoggerFactory.getLogger(StateRecoveryManager.class);
 
   @Inject
   private HostVersionDAO hostVersionDAO;
 
   @Inject
-  private ServiceComponentDesiredStateDAO serviceComponentDAO;
+  private ClusterVersionDAO clusterVersionDAO;
+
 
   public void doWork() {
     checkHostAndClusterVersions();
   }
+
 
   void checkHostAndClusterVersions() {
     List<HostVersionEntity> hostVersions = hostVersionDAO.findAll();
@@ -64,20 +65,18 @@ public class StateRecoveryManager {
       }
     }
 
-    List<ServiceComponentDesiredStateEntity> components = serviceComponentDAO.findAll();
-    for (ServiceComponentDesiredStateEntity component : components) {
-      if (RepositoryVersionState.INSTALLING == component.getRepositoryState()) {
-        component.setRepositoryState(RepositoryVersionState.INSTALL_FAILED);
-        serviceComponentDAO.merge(component);
+    List<ClusterVersionEntity> clusterVersions = clusterVersionDAO.findAll();
+    for (ClusterVersionEntity clusterVersion : clusterVersions) {
+      if (clusterVersion.getState().equals(RepositoryVersionState.INSTALLING)) {
+        clusterVersion.setState(RepositoryVersionState.INSTALL_FAILED);
         String msg = String.format(
-            "Recovered state of cluster %s of component %s/%s for version %s from %s to %s",
-            component.getClusterId(),
-            component.getServiceName(),
-            component.getComponentName(),
-            component.getDesiredRepositoryVersion().getDisplayName(),
-            RepositoryVersionState.INSTALLING,
-            RepositoryVersionState.INSTALL_FAILED);
+                "Recovered state of cluster version %s for cluster %s from %s to %s",
+                clusterVersion.getRepositoryVersion().getDisplayName(),
+                clusterVersion.getClusterEntity().getClusterName(),
+                RepositoryVersionState.INSTALLING,
+                RepositoryVersionState.INSTALL_FAILED);
         LOG.warn(msg);
+        clusterVersionDAO.merge(clusterVersion);
       }
     }
   }

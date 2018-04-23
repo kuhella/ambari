@@ -4,12 +4,10 @@
       "name": "YARN",
       "identities": [
         {
-          "name": "yarn_spnego",
-          "reference": "/spnego"
+          "name": "/spnego"
         },
         {
-          "name": "yarn_smokeuser",
-          "reference": "/smokeuser"
+          "name": "/smokeuser"
         }
       ],
       "configurations": [
@@ -78,8 +76,7 @@
               }
             },
             {
-              "name": "yarn_nodemanager_spnego",
-              "reference": "/spnego",
+              "name": "/spnego",
               "principal": {
                 "configuration": "yarn-site/yarn.nodemanager.webapp.spnego-principal"
               },
@@ -121,8 +118,7 @@
               }
             },
             {
-              "name": "yarn_resourcemanager_spnego",
-              "reference": "/spnego",
+              "name": "/spnego",
               "principal": {
                 "configuration": "yarn-site/yarn.resourcemanager.webapp.spnego-principal"
               },
@@ -157,8 +153,7 @@
               }
             },
             {
-              "name": "yarn_app_timeline_server_spnego",
-              "reference": "/spnego",
+              "name": "/spnego",
               "principal": {
                 "configuration": "yarn-site/yarn.timeline-service.http-authentication.kerberos.principal"
               },
@@ -167,8 +162,7 @@
               }
             },
             {
-              "name": "yarn_app_timeline_server_hdfs",
-              "reference": "/HDFS/NAMENODE/hdfs"
+              "name": "/HDFS/NAMENODE/hdfs"
             }
           ]
         }
@@ -178,12 +172,10 @@
       "name": "MAPREDUCE2",
       "identities": [
         {
-          "name": "mapreduce2_spnego",
-          "reference": "/spnego"
+          "name": "/spnego"
         },
         {
-          "name": "mapreduce2_smokeuser",
-          "reference": "/smokeuser"
+          "name": "/smokeuser"
         }
       ],
       "components": [
@@ -191,8 +183,7 @@
           "name": "HISTORYSERVER",
           "identities": [
             {
-              "name": "mapreduce2_historyserver_hdfs",
-              "reference": "/HDFS/NAMENODE/hdfs"
+              "name": "/HDFS/NAMENODE/hdfs"
             },
             {
               "name": "history_server_jhs",
@@ -216,8 +207,7 @@
               }
             },
             {
-              "name": "mapreduce2_historyserver_spnego",
-              "reference": "/spnego",
+              "name": "/spnego",
               "principal": {
                 "configuration": "mapred-site/mapreduce.jobhistory.webapp.spnego-principal"
               },

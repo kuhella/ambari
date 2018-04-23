@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
+
 var App = require('app');
 var date = require('utils/date/date');
-var arrayUtils = require('utils/array_utils');
 
 App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewMixin, {
 
@@ -97,7 +97,10 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
    */
   selectedCategory: Em.computed.findBy('categories', 'isSelected', true),
 
-  filteredCount: Em.computed.alias('filteredContent.length'),
+  filteredCount: function () {
+    var filteredContent = this.get('filteredContent').toArray();
+    return filteredContent.length;
+  }.property('filteredContent'),
 
   /**
    * displaying content filtered by upgrade type and upgrade status.
@@ -112,7 +115,7 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
   }.property('selectedCategory'),
 
   /**
-   * sort and slice received content by pagination parameters
+   * sort and slice recieved content by pagination parameters
    */
   pageContent: function () {
     var content = this.get('filteredContent').toArray();
@@ -122,39 +125,21 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
   }.property('filteredContent', 'startIndex', 'endIndex'),
 
   processForDisplay: function (content) {
-    var upgradeMethods = this.get('upgradeMethods');
-    var repoVersions = App.RepositoryVersion.find();
-    return content.map(function(item) {
-      var versions = item.get('versions');
-      var repoVersion = repoVersions.findProperty('repositoryVersion', item.get('associatedVersion'));
-      var method = upgradeMethods.findProperty('type', item.get('upgradeType'));
-      return {
-        idHref: '#' + item.get('upgradeId'),
-        id: item.get('upgradeId'),
-        repositoryName: repoVersion.get('displayName'),
-        repositoryType: repoVersion.get('type').toLowerCase().capitalize(),
-        directionLabel: item.get('direction') === 'UPGRADE' ? Em.I18n.t('common.upgrade') : Em.I18n.t('common.downgrade'),
+    var processedContent = [];
+
+    content.forEach(function (item) {
+      var direction = item.get('direction') === 'UPGRADE' ? Em.I18n.t('common.upgrade') : Em.I18n.t('common.downgrade');
+      var method = this.get('upgradeMethods').findProperty('type', item.get('upgradeType'));
+      item.setProperties({
+        directionLabel: direction,
         upgradeTypeLabel: method ? method.get('displayName') : method,
         startTimeLabel: date.startTime(App.dateTimeWithTimeZone(item.get('startTime'))),
         endTimeLabel: date.endTime(App.dateTimeWithTimeZone(item.get('endTime'))),
-        duration: date.durationSummary(item.get('startTime'), item.get('endTime')),
-        displayStatus: item.get('displayStatus'),
-        stackUpgradeHistoryItem: item,
-        services: this.getRepoServicesForDisplay(versions)
-      };
+        duration: date.durationSummary(item.get('startTime'), item.get('endTime'))
+      });
+      processedContent.push(item);
     }, this);
-  },
-
-  getRepoServicesForDisplay: function(versions) {
-    return Object.keys(versions).map(function(serviceName) {
-      var displayName = App.RepositoryVersion.find(versions[serviceName].from_repository_id).get('stackServices').findProperty('name', serviceName).get('displayName');
-      return {
-        name: serviceName,
-        displayName: displayName,
-        fromVersion: versions[serviceName].from_repository_version,
-        toVersion: versions[serviceName].to_repository_version
-      }
-    });
+    return processedContent;
   },
 
   paginationLeftClass: function () {
@@ -204,13 +189,6 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
 
   didInsertElement: function () {
     this.observesCategories();
-    this.$(".accordion").on("show hide", function (e) {
-      $(e.target).siblings(".accordion-heading").find("i.accordion-toggle").toggleClass('icon-caret-right icon-caret-down');
-    });
-
-    Em.run.later(this, function(){
-      App.tooltip( $('.widest-column span') );
-    }, 1000)
   },
 
   observesCategories: function () {
@@ -310,20 +288,18 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
   },
 
   showUpgradeHistoryRecord: function (event) {
-    event.stopPropagation();
     var record = event.context;
     var direction = App.format.normalizeName(record.get('direction'));
-    var associatedVersion = record.get('associatedVersion');
+    var toVersion = record.get('displayToVersion');
     var type = this.get('upgradeMethods').findProperty('type', record.get('upgradeType'));
-    var displayName = type ? type.get('displayName') : App.format.normalizeName(record.get('upgradeType'));
-    var i18nKeySuffix = direction.toLowerCase() === 'upgrade' ? 'upgrade' : 'downgrade';
+    var displayName = type ? type.get('displayName') : record.get('upgradeType');
 
     this.get('controller').set('currentUpgradeRecord', record);
 
     App.ModalPopup.show({
       classNames: ['wizard-modal-wrapper'],
       modalDialogClasses: ['modal-xlg'],
-      header: Em.I18n.t('admin.stackVersions.upgradeHistory.record.title.' + i18nKeySuffix).format(displayName, direction, associatedVersion),
+      header: Em.I18n.t('admin.stackVersions.upgradeHistory.record.title').format(displayName, direction, toVersion),
       bodyClass: App.MainAdminStackUpgradeHistoryDetailsView,
       primary: Em.I18n.t('common.dismiss'),
       secondary: null,
@@ -337,7 +313,7 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
         var scrollable = this.$().find('#modal .scrollable-block');
         scrollable.css('max-height', Number(block.css('max-height').slice(0, -2)) - block.height());
         block.css('max-height', 'none');
-      }
+      },
     });
-  }
+  },
 });

@@ -17,12 +17,11 @@
  */
 package org.apache.ambari.server.agent;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import com.google.gson.annotations.SerializedName;
 import org.apache.ambari.server.state.State;
 
-import com.google.gson.annotations.SerializedName;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Command to report the status of a list of services in roles.
@@ -39,9 +38,6 @@ public class StatusCommand extends AgentCommand {
   @SerializedName("serviceName")
   private String serviceName;
 
-  @SerializedName("role")
-  private String role;
-
   @SerializedName("componentName")
   private String componentName;
 
@@ -52,10 +48,10 @@ public class StatusCommand extends AgentCommand {
   private Map<String, Map<String, Map<String, String>>> configurationAttributes;
 
   @SerializedName("commandParams")
-  private Map<String, String> commandParams = new HashMap<>();
+  private Map<String, String> commandParams = new HashMap<String, String>();
 
   @SerializedName("hostLevelParams")
-  private Map<String, String> hostLevelParams = new HashMap<>();
+  private Map<String, String> hostLevelParams = new HashMap<String, String>();
 
   @SerializedName("hostname")
   private String hostname = null;
@@ -124,17 +120,8 @@ public class StatusCommand extends AgentCommand {
     return componentName;
   }
 
-  /**
-   * Sets both the {@code componentName} and the {@code role}. Status commands
-   * use the {@code componentName}, while execution commands use the
-   * {@code role}. It's simpler for the Python to just worry about {@code role},
-   * so this ensures that both are set.
-   *
-   * @param componentName
-   */
   public void setComponentName(String componentName) {
     this.componentName = componentName;
-    role = componentName;
   }
 
   public Map<String, Map<String, String>> getConfigurations() {
@@ -175,10 +162,6 @@ public class StatusCommand extends AgentCommand {
 
   public String getHostname() {
     return hostname;
-  }
-
-  public String getRole() {
-    return role;
   }
 
   public enum StatusCommandPayload {

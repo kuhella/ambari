@@ -87,11 +87,6 @@ public class StackServiceComponentResponse {
   private String decommissionAllowed;
 
   /**
-   * Whether the component supports rolling restart.
-   * */
-  private boolean rollingRestartSupported;
-
-  /**
    * auto deploy information
    */
   private AutoDeployInfo autoDeploy;
@@ -136,7 +131,6 @@ public class StackServiceComponentResponse {
     bulkCommandsDisplayName = getBulkCommandsDisplayName(component);
     bulkCommandMasterComponentName = getBulkCommandsMasterComponentName(component);
     reassignAllowed = component.getReassignAllowed();
-    rollingRestartSupported = component.getRollingRestartSupported();
 
     // the custom command names defined for this component
     List<CustomCommandDefinition> definitions = component.getCustomCommands();
@@ -401,17 +395,6 @@ public class StackServiceComponentResponse {
   public void setDecommissionAllowed(String decommissionAllowed) {
     this.decommissionAllowed = decommissionAllowed;
   }
-
-  /**
-   * Get whether the component supports rolling restart
-   *
-   * @return whether the component supports rolling restart
-   */
-  public boolean isRollingRestartSupported(){
-    return rollingRestartSupported;
-  }
-
-
 
   /**
    * Get whether the components can be reassigned.

@@ -857,14 +857,14 @@ describe('App.WizardController', function () {
 
   describe('#loadConfirmedHosts', function () {
     beforeEach(function(){
-      sinon.stub(wizardController, 'getDBProperty').returns(Em.A([
+      sinon.stub(App.db, 'getHosts').returns(Em.A([
         Em.Object.create({
           name: 'h1'
         })
       ]));
     });
     afterEach(function(){
-      wizardController.getDBProperty.restore();
+      App.db.getHosts.restore();
     });
     it('should load hosts from db', function () {
       wizardController.loadConfirmedHosts();

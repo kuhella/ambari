@@ -4,12 +4,10 @@
       "name": "RANGER",
       "identities": [
         {
-          "name": "ranger_spnego",
-          "reference": "/spnego"
+          "name": "/spnego"
         },
         {
-          "name": "ranger_smokeuser",
-          "reference": "/smokeuser"
+          "name": "/smokeuser"
         }
       ],
       "configurations": [
@@ -61,15 +59,13 @@
               }
             },
             {
-              "name": "ranger_ranger_admin_spnego",
-              "reference": "/spnego",
+              "name": "/spnego",
               "keytab": {
                 "configuration": "ranger-admin-site/ranger.spnego.kerberos.keytab"
               }
             },
             {
-              "name": "ranger_ranger_admin_rangeradmin",
-              "reference": "/RANGER/RANGER_ADMIN/rangeradmin",
+              "name": "/RANGER/RANGER_ADMIN/rangeradmin",
               "principal": {
                 "configuration": "ranger-admin-site/xasecure.audit.jaas.Client.option.principal"
               },
@@ -78,8 +74,7 @@
               }
             },
             {
-              "name": "ranger_ranger_admin_infra-solr",
-              "reference": "/AMBARI_INFRA/INFRA_SOLR/infra-solr",
+              "name": "/AMBARI_INFRA/INFRA_SOLR/infra-solr",
               "when" : {
                 "contains" : ["services", "AMBARI_INFRA"]
               }
@@ -129,8 +124,7 @@
               }
             },
             {
-              "name": "ranger_ranger_tagsync_rangertagsync",
-              "reference": "/RANGER/RANGER_TAGSYNC/rangertagsync",
+              "name": "/RANGER/RANGER_TAGSYNC/rangertagsync",
               "principal": {
                 "configuration": "tagsync-application-properties/atlas.jaas.KafkaClient.option.principal"
               },

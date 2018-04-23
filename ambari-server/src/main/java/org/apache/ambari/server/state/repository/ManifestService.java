@@ -38,7 +38,7 @@ public class ManifestService {
   public String serviceName;
 
   /**
-   * Version of the service.  This is the publicly available version of the binary.
+   * Version of the service.  This is the publicly available version.
    */
   @XmlAttribute(name="version")
   public String version;
@@ -48,12 +48,4 @@ public class ManifestService {
    */
   @XmlAttribute(name="version-id")
   public String versionId;
-
-  /**
-   * The release version of the service.  This is not the same as {@link #version}; that is a binary version.
-   * This version is a build specific string that is independent of the binary and roughly matches
-   * {@link Release#version} for upgrade orchestration.
-   */
-  @XmlAttribute(name="release-version")
-  public String releaseVersion;
 }

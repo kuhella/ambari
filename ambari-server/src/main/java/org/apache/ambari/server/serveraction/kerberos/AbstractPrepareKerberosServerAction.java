@@ -39,7 +39,6 @@ import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.utils.StageUtils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,8 +75,7 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
                                     Map<String, Map<String, String>> currentConfigurations,
                                     Map<String, Map<String, String>> kerberosConfigurations,
                                     boolean includeAmbariIdentity,
-                                    Map<String, Set<String>> propertiesToBeIgnored,
-                                    boolean excludeHeadless) throws AmbariException {
+                                    Map<String, Set<String>> propertiesToBeIgnored) throws AmbariException {
 
     actionLog.writeStdOut("Processing Kerberos identities and configurations");
 
@@ -126,22 +124,9 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
           if (serviceDescriptor != null) {
             List<KerberosIdentityDescriptor> serviceIdentities = serviceDescriptor.getIdentities(true, filterContext);
 
-            if (!StringUtils.isEmpty(hostName)) {
-              // Update the configurations with the relevant hostname
-              Map<String, String> generalProperties = currentConfigurations.get("");
-              if (generalProperties == null) {
-                generalProperties = new HashMap<>();
-                currentConfigurations.put("", generalProperties);
-              }
-
-              // Add the current hostname under "host" and "hostname"
-              generalProperties.put("host", hostName);
-              generalProperties.put("hostname", hostName);
-            }
-
             // Add service-level principals (and keytabs)
             kerberosHelper.addIdentities(kerberosIdentityDataFileWriter, serviceIdentities,
-                identityFilter, hostName, serviceName, componentName, kerberosConfigurations, currentConfigurations, excludeHeadless);
+                identityFilter, hostName, serviceName, componentName, kerberosConfigurations, currentConfigurations);
             propertiesToIgnore = gatherPropertiesToIgnore(serviceIdentities, propertiesToIgnore);
 
             KerberosComponentDescriptor componentDescriptor = serviceDescriptor.getComponent(componentName);
@@ -152,11 +137,11 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
               // Calculate the set of configurations to update and replace any variables
               // using the previously calculated Map of configurations for the host.
               kerberosHelper.mergeConfigurations(kerberosConfigurations,
-                  componentDescriptor.getConfigurations(true), currentConfigurations, null);
+                  componentDescriptor.getConfigurations(true), currentConfigurations);
 
               // Add component-level principals (and keytabs)
               kerberosHelper.addIdentities(kerberosIdentityDataFileWriter, componentIdentities,
-                  identityFilter, hostName, serviceName, componentName, kerberosConfigurations, currentConfigurations, excludeHeadless);
+                  identityFilter, hostName, serviceName, componentName, kerberosConfigurations, currentConfigurations);
               propertiesToIgnore = gatherPropertiesToIgnore(componentIdentities, propertiesToIgnore);
             }
           }
@@ -177,7 +162,7 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
 
               List<KerberosIdentityDescriptor> componentIdentities = Collections.singletonList(identity);
               kerberosHelper.addIdentities(kerberosIdentityDataFileWriter, componentIdentities,
-                  identityFilter, KerberosHelper.AMBARI_SERVER_HOST_NAME, "AMBARI", componentName, kerberosConfigurations, currentConfigurations, excludeHeadless);
+                  identityFilter, KerberosHelper.AMBARI_SERVER_HOST_NAME, "AMBARI", componentName, kerberosConfigurations, currentConfigurations);
               propertiesToIgnore = gatherPropertiesToIgnore(componentIdentities, propertiesToIgnore);
             }
           }

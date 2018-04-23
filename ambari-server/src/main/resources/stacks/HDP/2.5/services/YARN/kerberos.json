@@ -4,12 +4,10 @@
       "name": "YARN",
       "identities": [
         {
-          "name": "yarn_spnego",
-          "reference": "/spnego"
+          "name": "/spnego"
         },
         {
-          "name": "yarn_smokeuser",
-          "reference": "/smokeuser"
+          "name": "/smokeuser"
         }
       ],
       "configurations": [
@@ -88,8 +86,7 @@
               }
             },
             {
-              "name": "yarn_nodemanager_hive_server_hive",
-              "reference": "/HIVE/HIVE_SERVER/hive_server_hive",
+              "name": "/HIVE/HIVE_SERVER/hive_server_hive",
               "principal": {
                 "configuration": "hive-interactive-site/hive.llap.daemon.service.principal"
               },
@@ -102,11 +99,21 @@
             },
             {
               "name": "llap_zk_hive",
-              "reference": "/HIVE/HIVE_SERVER/hive_server_hive",
               "principal": {
+                "value": "hive/_HOST@${realm}",
+                "type" : "service",
                 "configuration": "hive-interactive-site/hive.llap.zk.sm.principal"
               },
               "keytab": {
+                "file": "${keytab_dir}/hive.llap.zk.sm.keytab",
+                "owner": {
+                  "name": "${yarn-env/yarn_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": "r"
+                },
                 "configuration": "hive-interactive-site/hive.llap.zk.sm.keytab.file"
               },
               "when" : {
@@ -114,8 +121,7 @@
               }
             },
             {
-              "name": "yarn_nodemanager_spnego",
-              "reference": "/spnego",
+              "name": "/spnego",
               "principal": {
                 "configuration": "yarn-site/yarn.nodemanager.webapp.spnego-principal"
               },
@@ -157,8 +163,7 @@
               }
             },
             {
-              "name": "yarn_resourcemanager_spnego",
-              "reference": "/spnego",
+              "name": "/spnego",
               "principal": {
                 "configuration": "yarn-site/yarn.resourcemanager.webapp.spnego-principal"
               },
@@ -167,8 +172,7 @@
               }
             },
             {
-              "name": "yarn_resourcemanager_resource_manager_rm",
-              "reference": "/YARN/RESOURCEMANAGER/resource_manager_rm",
+              "name": "/YARN/RESOURCEMANAGER/resource_manager_rm",
               "principal": {
                 "configuration": "ranger-yarn-audit/xasecure.audit.jaas.Client.option.principal"
               },
@@ -203,8 +207,7 @@
               }
             },
             {
-              "name": "yarn_app_timeline_server_spnego",
-              "reference": "/spnego",
+              "name": "/spnego",
               "principal": {
                 "configuration": "yarn-site/yarn.timeline-service.http-authentication.kerberos.principal"
               },
@@ -213,8 +216,7 @@
               }
             },
             {
-              "name": "yarn_app_timeline_server_hdfs",
-              "reference": "/HDFS/NAMENODE/hdfs"
+              "name": "/HDFS/NAMENODE/hdfs"
             }
           ]
         }
@@ -224,12 +226,10 @@
       "name": "MAPREDUCE2",
       "identities": [
         {
-          "name": "mapreduce2_spnego",
-          "reference": "/spnego"
+          "name": "/spnego"
         },
         {
-          "name": "mapreduce2_smokeuser",
-          "reference": "/smokeuser"
+          "name": "/smokeuser"
         }
       ],
       "components": [
@@ -237,8 +237,7 @@
           "name": "HISTORYSERVER",
           "identities": [
             {
-              "name": "mapreduce2_historyserver_hdfs",
-              "reference": "/HDFS/NAMENODE/hdfs"
+              "name": "/HDFS/NAMENODE/hdfs"
             },
             {
               "name": "history_server_jhs",
@@ -262,8 +261,7 @@
               }
             },
             {
-              "name": "mapreduce2_historyserver_spnego",
-              "reference": "/spnego",
+              "name": "/spnego",
               "principal": {
                 "configuration": "mapred-site/mapreduce.jobhistory.webapp.spnego-principal"
               },

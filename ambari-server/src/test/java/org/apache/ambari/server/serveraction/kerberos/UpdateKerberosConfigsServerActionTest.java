@@ -35,17 +35,14 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
-import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -98,15 +95,15 @@ public class UpdateKerberosConfigsServerActionTest extends EasyMockSupport{
 
   @Test
   public void testUpdateConfig() throws Exception {
-    Map<String, String> commandParams = new HashMap<>();
+    Map<String, String> commandParams = new HashMap<String, String>();
     commandParams.put(KerberosServerAction.DATA_DIRECTORY, dataDir);
 
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);
 
     ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
-    configHelper.updateConfigType(anyObject(Cluster.class), anyObject(StackId.class), anyObject(AmbariManagementController.class),
-        anyObject(String.class), EasyMock.<Map<String, String>>anyObject(), EasyMock.<Collection<String>>anyObject(), anyObject(String.class), anyObject(String.class));
+    configHelper.updateConfigType(anyObject(Cluster.class), anyObject(AmbariManagementController.class),
+        anyObject(String.class), anyObject(Map.class), anyObject(Collection.class), anyObject(String.class), anyObject(String.class));
     expectLastCall().atLeastOnce();
 
     replayAll();
@@ -120,7 +117,7 @@ public class UpdateKerberosConfigsServerActionTest extends EasyMockSupport{
   @Test
   public void testUpdateConfigMissingDataDirectory() throws Exception {
     ExecutionCommand executionCommand = new ExecutionCommand();
-    Map<String, String> commandParams = new HashMap<>();
+    Map<String, String> commandParams = new HashMap<String, String>();
     executionCommand.setCommandParams(commandParams);
 
     replayAll();
@@ -134,7 +131,7 @@ public class UpdateKerberosConfigsServerActionTest extends EasyMockSupport{
   @Test
   public void testUpdateConfigEmptyDataDirectory() throws Exception {
     ExecutionCommand executionCommand = new ExecutionCommand();
-    Map<String, String> commandParams = new HashMap<>();
+    Map<String, String> commandParams = new HashMap<String, String>();
     commandParams.put(KerberosServerAction.DATA_DIRECTORY, testFolder.newFolder().getAbsolutePath());
     executionCommand.setCommandParams(commandParams);
 
@@ -148,7 +145,7 @@ public class UpdateKerberosConfigsServerActionTest extends EasyMockSupport{
 
   @Test
   public void testUpdateConfigForceSecurityEnabled() throws Exception {
-    Map<String, String> commandParams = new HashMap<>();
+    Map<String, String> commandParams = new HashMap<String, String>();
     commandParams.put(KerberosServerAction.DATA_DIRECTORY, dataDir);
 
     ExecutionCommand executionCommand = new ExecutionCommand();
@@ -158,7 +155,7 @@ public class UpdateKerberosConfigsServerActionTest extends EasyMockSupport{
 
     Capture<String> configTypes = Capture.newInstance(CaptureType.ALL);
     Capture<Map<String, String>> configUpdates = Capture.newInstance(CaptureType.ALL);
-    configHelper.updateConfigType(anyObject(Cluster.class), anyObject(StackId.class), anyObject(AmbariManagementController.class),
+    configHelper.updateConfigType(anyObject(Cluster.class), anyObject(AmbariManagementController.class),
         capture(configTypes), capture(configUpdates), anyObject(Collection.class), anyObject(String.class), anyObject(String.class));
     expectLastCall().atLeastOnce();
 

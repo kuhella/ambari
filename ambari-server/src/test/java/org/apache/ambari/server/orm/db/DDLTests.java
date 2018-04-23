@@ -17,23 +17,17 @@
  */
 package org.apache.ambari.server.orm.db;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang.StringUtils;
-import org.junit.Assert;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.junit.Assert;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 
 /**
@@ -53,6 +47,11 @@ public class DDLTests {
   @Test
   public void testVerifyPostgres() throws Exception {
     verifyDDL("Postgres");
+  }
+
+  @Test
+  public void testVerifyPostgresEmbedded() throws Exception {
+    verifyDDL("Postgres-EMBEDDED");
   }
 
   @Test
@@ -120,6 +119,11 @@ public class DDLTests {
   }
 
   @Test
+  public void testComparePostgresEmbedded() throws Exception {
+    compareAgainstPostgres("Postgres-EMBEDDED");
+  }
+
+  @Test
   public void testCompareDerby() throws Exception {
     compareAgainstPostgres("Derby");
   }
@@ -155,12 +159,7 @@ public class DDLTests {
     else {
       LOG.info("{} differences found:", diffs.size());
       for (String diff: diffs) { LOG.info(diff); }
-      StringBuilder buffer = new StringBuilder();
-      buffer.append("Found ").append(diffs.size()).append(" differences when comparing ").append(
-          other).append(" against Postgres:").append(System.lineSeparator()).append(
-              StringUtils.join(diffs, System.lineSeparator()));
-
-      Assert.fail(buffer.toString());
+      Assert.fail("Found " + diffs.size() + " differences when comparing " + other + " against Postgres.");
     }
   }
 
@@ -172,9 +171,7 @@ public class DDLTests {
     int uqCount = 0;
     for (Table t: ddl.tables.values()) {
       colCount += t.columns.size();
-      if (t.primaryKey.isPresent()) {
-        pkCount ++;
-      }
+      if (t.primaryKey.isPresent()) pkCount ++;
       fkCount += t.foreignKeys.size();
       uqCount += t.uniqueConstraints.size();
     }

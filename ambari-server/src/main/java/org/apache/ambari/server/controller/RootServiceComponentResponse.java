@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,28 +15,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.apache.ambari.server.controller;
 
 import java.util.Map;
-import java.util.Objects;
 
 public class RootServiceComponentResponse {
 
-  private final String serviceName;
-  private final String componentName;
-  private final Map<String, String> properties;
-  private final String componentVersion;
-  private final long serverClock = System.currentTimeMillis() / 1000L;
+  private String serviceName;
+  private String componentName;
+  private Map<String, String> properties;
+  private String componentVersion;
 
-  public RootServiceComponentResponse(String serviceName, String componentName, String componentVersion, Map<String, String> properties) {
-    this.serviceName = serviceName;
+  public RootServiceComponentResponse(String componentName, String componentVersion, Map<String, String> properties) {
     this.componentName = componentName;
-    this.componentVersion = componentVersion;
-    this.properties = properties;
+    this.setComponentVersion(componentVersion); 
+    this.setProperties(properties);
+    
   }
 
   public String getServiceName() {
     return serviceName;
+  }
+
+  public void setServiceName(String serviceName) {
+    this.serviceName = serviceName;
   }
 
   public String getComponentName() {
@@ -47,30 +51,35 @@ public class RootServiceComponentResponse {
     return properties;
   }
 
+  public void setProperties(Map<String, String> properties) {
+    this.properties = properties;
+  }
+  
   public String getComponentVersion() {
     return componentVersion;
   }
 
-  public long getServerClock() {
-    return serverClock;
+  public void setComponentVersion(String componentVersion) {
+    this.componentVersion = componentVersion;
   }
-
+  
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    RootServiceComponentResponse other = (RootServiceComponentResponse) o;
+    RootServiceComponentResponse that = (RootServiceComponentResponse) o;
 
-    return Objects.equals(serviceName, other.serviceName) &&
-      Objects.equals(componentName, other.componentName) &&
-      Objects.equals(componentVersion, other.componentVersion) &&
-      Objects.equals(properties, other.properties);
+    return !(componentName != null ? !componentName.equals(that.componentName) : that.componentName != null) &&
+        !(componentVersion != null ? !componentVersion.equals(that.componentVersion) : that.componentVersion != null) &&
+        !(properties != null ? !properties.equals(that.properties) : that.properties != null);
+
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(serviceName, componentName, componentVersion);
+    int result = 31 + (componentName != null ? componentName.hashCode() : 0);
+    result += (componentVersion != null ? componentVersion.hashCode() : 0);
+    return result;
   }
-
 }

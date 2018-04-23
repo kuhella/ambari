@@ -260,7 +260,6 @@ class TestMpacks(TestCase):
   @patch("os.path.exists")
   @patch("shutil.move")
   @patch("os.mkdir")
-  @patch("ambari_server.setupMpacks.read_ambari_user")
   @patch("ambari_server.setupMpacks.create_symlink")
   @patch("ambari_server.setupMpacks.get_ambari_version")
   @patch("ambari_server.setupMpacks.get_ambari_properties")
@@ -273,7 +272,7 @@ class TestMpacks(TestCase):
   @patch("ambari_server.setupMpacks.set_file_permissions")
   def test_install_stack_mpack(self, set_file_permissions_mock, validate_purge_mock, run_os_command_mock, download_mpack_mock, expand_mpack_mock, purge_stacks_and_mpacks_mock,
                                      add_replay_log_mock, get_ambari_properties_mock, get_ambari_version_mock,
-                                     create_symlink_mock, read_ambari_user_mock, os_mkdir_mock, shutil_move_mock, os_path_exists_mock):
+                                     create_symlink_mock, os_mkdir_mock, shutil_move_mock, os_path_exists_mock):
     options = self._create_empty_options_mock()
     options.mpack_path = "/path/to/mystack.tar.gz"
     options.purge = True
@@ -410,7 +409,6 @@ class TestMpacks(TestCase):
   @patch("os.path.exists")
   @patch("shutil.move")
   @patch("os.mkdir")
-  @patch("ambari_server.setupMpacks.read_ambari_user")
   @patch("ambari_server.setupMpacks.create_symlink")
   @patch("ambari_server.setupMpacks.get_ambari_version")
   @patch("ambari_server.setupMpacks.get_ambari_properties")
@@ -422,7 +420,7 @@ class TestMpacks(TestCase):
 
   def test_install_extension_mpack(self, set_file_permissions_mock, download_mpack_mock, expand_mpack_mock, add_replay_log_mock,
       purge_stacks_and_mpacks_mock, get_ambari_properties_mock, get_ambari_version_mock,
-      create_symlink_mock, read_ambari_user_mock, os_mkdir_mock, shutil_move_mock, os_path_exists_mock):
+      create_symlink_mock, os_mkdir_mock, shutil_move_mock, os_path_exists_mock):
     options = self._create_empty_options_mock()
     options.mpack_path = "/path/to/myextension.tar.gz"
     options.purge = False
@@ -488,7 +486,6 @@ class TestMpacks(TestCase):
   @patch("os.symlink")
   @patch("shutil.move")
   @patch("os.mkdir")
-  @patch("ambari_server.setupMpacks.read_ambari_user")
   @patch("ambari_server.setupMpacks.create_symlink")
   @patch("ambari_server.setupMpacks.get_ambari_version")
   @patch("ambari_server.setupMpacks.get_ambari_properties")
@@ -499,7 +496,7 @@ class TestMpacks(TestCase):
   @patch("ambari_server.setupMpacks.set_file_permissions")
   def test_install_addon_service_mpack(self, set_file_permissions_mock, download_mpack_mock, expand_mpack_mock, purge_stacks_and_mpacks_mock,
                                        add_replay_log_mock, get_ambari_properties_mock, get_ambari_version_mock,
-                                       create_symlink_mock, read_ambari_user_mock, os_mkdir_mock, shutil_move_mock,os_symlink_mock,
+                                       create_symlink_mock, os_mkdir_mock, shutil_move_mock,os_symlink_mock,
                                        os_path_isdir_mock, os_path_exists_mock ):
     options = self._create_empty_options_mock()
     options.mpack_path = "/path/to/myservice.tar.gz"
@@ -578,7 +575,6 @@ class TestMpacks(TestCase):
   @patch("os.path.exists")
   @patch("shutil.move")
   @patch("os.mkdir")
-  @patch("ambari_server.setupMpacks.read_ambari_user")
   @patch("ambari_server.setupMpacks.create_symlink")
   @patch("ambari_server.setupMpacks.get_ambari_version")
   @patch("ambari_server.setupMpacks.get_ambari_properties")
@@ -592,7 +588,7 @@ class TestMpacks(TestCase):
 
   def test_upgrade_stack_mpack(self, set_file_permissions_mock, run_os_command_mock, download_mpack_mock, expand_mpack_mock, purge_stacks_and_mpacks_mock,
                                _uninstall_mpack_mock, add_replay_log_mock, get_ambari_properties_mock,
-                               get_ambari_version_mock, create_symlink_mock, read_ambari_user_mock, os_mkdir_mock, shutil_move_mock,
+                               get_ambari_version_mock, create_symlink_mock, os_mkdir_mock, shutil_move_mock,
                                os_path_exists_mock, create_symlink_using_path_mock):
     options = self._create_empty_options_mock()
     options.mpack_path = "/path/to/mystack-1.0.0.1.tar.gz"
@@ -836,7 +832,7 @@ class TestMpacks(TestCase):
     _uninstall_mpack("mystack-ambari-mpack", "1.0.0.1")
 
     self.assertEqual(1, sudo_rmtree_mock.call_count)
-    # self.assertEqual(6, sudo_unlink_mock.call_count) # ToDo: fix, as os.walk is not mocked
+    self.assertEqual(6, sudo_unlink_mock.call_count)
     sudo_unlink_mock_calls = [call(os.path.join(stacks_directory, "2.0/SERVICEB")),
                               call(os.path.join(stacks_directory, "2.0/files/metainfo2.xml")),
                               call(os.path.join(extension_directory, "SERVICEB")),

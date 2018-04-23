@@ -21,7 +21,6 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -30,8 +29,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.api.resources.OperatingSystemResourceDefinition;
@@ -63,7 +60,6 @@ import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
-import org.apache.ambari.server.state.stack.RepoTag;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
@@ -75,12 +71,10 @@ import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.common.collect.ListMultimap;
 
 /**
  * The {@link VersionDefinitionResourceProvider} class deals with managing Version Definition
@@ -94,10 +88,10 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
   public static final String VERSION_DEF_STACK_NAME                  = "VersionDefinition/stack_name";
   public static final String VERSION_DEF_STACK_VERSION               = "VersionDefinition/stack_version";
 
-  public static final String VERSION_DEF_ID                       = "VersionDefinition/id";
+  protected static final String VERSION_DEF_ID                       = "VersionDefinition/id";
   protected static final String VERSION_DEF_TYPE_PROPERTY_ID         = "VersionDefinition/type";
   protected static final String VERSION_DEF_DEFINITION_URL           = "VersionDefinition/version_url";
-  public static final String VERSION_DEF_AVAILABLE_DEFINITION     = "VersionDefinition/available";
+  protected static final String VERSION_DEF_AVAILABLE_DEFINITION     = "VersionDefinition/available";
   protected static final String VERSION_DEF_DEFINITION_BASE64        = PropertyHelper.getPropertyId(VERSION_DEF, VERSION_DEF_BASE64_PROPERTY);
 
   protected static final String VERSION_DEF_FULL_VERSION             = "VersionDefinition/repository_version";
@@ -353,7 +347,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<Resource> results = new HashSet<>();
+    Set<Resource> results = new HashSet<Resource>();
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
 
     Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
@@ -379,8 +373,6 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
           String id = (String) propertyMap.get(VERSION_DEF_ID);
 
           if (null != id) {
-            // id is either the repo version id from the db, or it's a phantom id from
-            // the stack
             if (NumberUtils.isDigits(id)) {
 
               RepositoryVersionEntity entity = s_repoVersionDAO.findByPK(Long.parseLong(id));
@@ -432,15 +424,11 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
    */
   private void checkForParent(XmlHolder holder) throws AmbariException {
     RepositoryVersionEntity entity = holder.entity;
-
-    // only STANDARD types don't have a parent
-    if (entity.getType() == RepositoryType.STANDARD) {
+    if (entity.getType() != RepositoryType.PATCH) {
       return;
     }
 
-    List<RepositoryVersionEntity> entities = s_repoVersionDAO.findByStackAndType(
-        entity.getStackId(), RepositoryType.STANDARD);
-
+    List<RepositoryVersionEntity> entities = s_repoVersionDAO.findByStack(entity.getStackId());
     if (entities.isEmpty()) {
       throw new IllegalArgumentException(String.format("Patch %s was uploaded, but there are no repositories for %s",
           entity.getVersion(), entity.getStackId().toString()));
@@ -450,24 +438,22 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
     boolean emptyCompatible = StringUtils.isBlank(holder.xml.release.compatibleWith);
 
-    for (RepositoryVersionEntity version : entities) {
-      String baseVersion = version.getVersion();
+    for (RepositoryVersionEntity candidate : entities) {
+      String baseVersion = candidate.getVersion();
       if (baseVersion.lastIndexOf('-') > -1) {
         baseVersion = baseVersion.substring(0,  baseVersion.lastIndexOf('-'));
       }
 
       if (emptyCompatible) {
         if (baseVersion.equals(holder.xml.release.version)) {
-          matching.add(version);
+          matching.add(candidate);
         }
       } else {
         if (baseVersion.matches(holder.xml.release.compatibleWith)) {
-          matching.add(version);
+          matching.add(candidate);
         }
       }
     }
-
-    RepositoryVersionEntity parent = null;
 
     if (matching.isEmpty()) {
       String format = "No versions matched pattern %s";
@@ -475,42 +461,16 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       throw new IllegalArgumentException(String.format(format,
           emptyCompatible ? holder.xml.release.version : holder.xml.release.compatibleWith));
     } else if (matching.size() > 1) {
-
-      Function<RepositoryVersionEntity, String> function = new Function<RepositoryVersionEntity, String>() {
-        @Override
-        public String apply(RepositoryVersionEntity input) {
-          return input.getVersion();
-        }
-      };
-
-      Collection<String> versions = Collections2.transform(matching, function);
-
-      List<RepositoryVersionEntity> used = s_repoVersionDAO.findByServiceDesiredVersion(matching);
-
-      if (used.isEmpty()) {
-        throw new IllegalArgumentException(String.format("Could not determine which version " +
-          "to associate patch %s. Remove one of %s and try again.",
-          entity.getVersion(), StringUtils.join(versions, ", ")));
-      } else if (used.size() > 1) {
-        Collection<String> usedVersions = Collections2.transform(used, function);
-
-        throw new IllegalArgumentException(String.format("Patch %s was found to match more " +
-            "than one repository in use: %s. Move all services to a common version and try again.",
-            entity.getVersion(), StringUtils.join(usedVersions, ", ")));
-      } else {
-        parent = used.get(0);
-        LOG.warn("Patch {} was found to match more than one repository in {}. " +
-            "Repository {} is in use and will be the parent.", entity.getVersion(),
-               StringUtils.join(versions, ", "), parent.getVersion());
+      Set<String> versions= new HashSet<>();
+      for (RepositoryVersionEntity match : matching) {
+        versions.add(match.getVersion());
       }
-    } else {
-      parent = matching.get(0);
+
+      throw new IllegalArgumentException(String.format("More than one repository matches patch %s: %s",
+          entity.getVersion(), StringUtils.join(versions, ", ")));
     }
 
-    if (null == parent) {
-      throw new IllegalArgumentException(String.format("Could not find any parent repository for %s.",
-          entity.getVersion()));
-    }
+    RepositoryVersionEntity parent = matching.get(0);
 
     entity.setParent(parent);
   }
@@ -591,8 +551,6 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
    *
    * @throws AmbariException if some properties are missing or json has incorrect structure
    */
-  @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
-    comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
   protected void toRepositoryVersionEntity(XmlHolder holder) throws AmbariException {
 
     // !!! TODO validate parsed object graph
@@ -772,33 +730,10 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
             repo.getRepositoryId());
         repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID),
             repo.getName());
-        repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_DISTRIBUTION_PROPERTY_ID),
-            repo.getDistribution());
-        repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_COMPONENTS_PROPERTY_ID),
-            repo.getComponents());
         repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_STACK_NAME_PROPERTY_ID),
             entity.getStackName());
         repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_STACK_VERSION_PROPERTY_ID),
             entity.getStackVersion());
-
-        ArrayNode tagsNode = factory.arrayNode();
-        for (RepoTag repoTag : repo.getTags()) {
-          tagsNode.add(repoTag.toString());
-        }
-        repoElement.put(PropertyHelper.getPropertyName(
-            RepositoryResourceProvider.REPOSITORY_TAGS_PROPERTY_ID), tagsNode);
-
-        @Experimental(feature = ExperimentalFeature.CUSTOM_SERVICE_REPOS,
-          comment = "Remove logic for handling custom service repos after enabling multi-mpack cluster deployment")
-        ArrayNode applicableServicesNode = factory.arrayNode();
-        if(repo.getApplicableServices() != null) {
-          for (String applicableService : repo.getApplicableServices()) {
-            applicableServicesNode.add(applicableService);
-          }
-        }
-        repoElement.put(PropertyHelper.getPropertyName(
-          RepositoryResourceProvider.REPOSITORY_APPLICABLE_SERVICES_PROPERTY_ID), applicableServicesNode);
-
         repoBase.put(PropertyHelper.getPropertyCategory(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID),
             repoElement);
 

@@ -22,6 +22,7 @@ import os
 import json
 import  tempfile
 from resource_management import *
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
@@ -54,6 +55,9 @@ except ImportError:
 
 class NameNode(Script):
 
+  def get_component_name(self):
+    return "hadoop-hdfs-namenode"
+
   def install(self, env):
     import params
 
@@ -83,7 +87,8 @@ class NameNode(Script):
     env.set_params(params)
 
     if params.version and compare_versions(format_stack_version(params.version), '4.0.0.0') >= 0:
-      stack_select.select_packages(params.version)
+      conf_select.select(params.stack_name, "hadoop", params.version)
+      stack_select.select("hadoop-hdfs-namenode", params.version)
       #Execute(format("stack-select set hadoop-hdfs-namenode {version}"))
 
   def start(self, env, upgrade_type=None):

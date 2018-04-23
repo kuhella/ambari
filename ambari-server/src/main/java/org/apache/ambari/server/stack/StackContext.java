@@ -18,31 +18,20 @@
 
 package org.apache.ambari.server.stack;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
-
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
+import org.apache.ambari.server.state.stack.LatestRepoCallable;
 import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.ambari.server.state.stack.RepoUrlInfoCallable;
-import org.apache.ambari.server.state.stack.RepoUrlInfoCallable.RepoUrlInfoResult;
-import org.apache.ambari.server.state.stack.RepoVdfCallable;
-import org.apache.commons.collections.MapUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * Provides external functionality to the Stack framework.
@@ -59,17 +48,19 @@ public class StackContext {
   private ActionMetadata actionMetaData;
 
   /**
+   * Operating System families
+   */
+  private OsFamily osFamily;
+
+  /**
    * Executor used to get latest repo url's
    */
-  private LatestRepoQueryExecutor repoUpdateExecutor;
+  private LatestRepoQueryExecutor repoUpdateExecutor = new LatestRepoQueryExecutor();
 
   /**
    * Repository XML base url property name
    */
   private static final String REPOSITORY_XML_PROPERTY_BASEURL = "baseurl";
-
-  private final static Logger LOG = LoggerFactory.getLogger(StackContext.class);
-  private static final int THREAD_COUNT = 10;
 
 
   /**
@@ -82,7 +73,7 @@ public class StackContext {
   public StackContext(MetainfoDAO metaInfoDAO, ActionMetadata actionMetaData, OsFamily osFamily) {
     this.metaInfoDAO = metaInfoDAO;
     this.actionMetaData = actionMetaData;
-    repoUpdateExecutor = new LatestRepoQueryExecutor(osFamily);
+    this.osFamily = osFamily;
   }
 
   /**
@@ -118,10 +109,10 @@ public class StackContext {
    * @param url    external repo information URL
    * @param stack  stack module
    */
-  public void registerRepoUpdateTask(URI uri, StackModule stack) {
-    repoUpdateExecutor.addTask(uri, stack);
+  public void registerRepoUpdateTask(String url, StackModule stack) {
+    repoUpdateExecutor.addTask(new LatestRepoCallable(url,
+        new File(stack.getStackDirectory().getRepoDir()), stack.getModuleInfo(), osFamily));
   }
-
 
   /**
    * Execute the registered repo update tasks.
@@ -148,16 +139,16 @@ public class StackContext {
     /**
      * Registered tasks
      */
-    private Map<URI, RepoUrlInfoCallable> tasks = new HashMap<>();
+    private Collection<LatestRepoCallable> tasks = new ArrayList<LatestRepoCallable>();
 
     /**
      * Task futures
      */
-    Collection<Future<?>> futures = new ArrayList<>();
+    Collection<Future<Void>> futures = new ArrayList<Future<Void>>();
     /**
      * Underlying executor
      */
-    private ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT, new ThreadFactory() {
+    private ExecutorService executor = Executors.newSingleThreadExecutor(new ThreadFactory() {
       @Override
       public Thread newThread(Runnable r) {
         return new Thread(r, "Stack Version Loading Thread");
@@ -165,93 +156,24 @@ public class StackContext {
     });
 
 
-    private OsFamily m_family;
-
-    private LatestRepoQueryExecutor(OsFamily family) {
-      m_family = family;
-    }
-
     /**
-     * @param uri
-     *          uri to load
-     * @param stackModule
-     *          the stack module
+     * Add a task.
+     *
+     * @param task task to be added
      */
-    public void addTask(URI uri, StackModule stackModule) {
-      RepoUrlInfoCallable callable = null;
-      if (tasks.containsKey(uri)) {
-        callable = tasks.get(uri);
-      } else {
-        callable = new RepoUrlInfoCallable(uri);
-        tasks.put(uri, callable);
-      }
-
-      callable.addStack(stackModule);
+    public void addTask(LatestRepoCallable task) {
+      tasks.add(task);
     }
-
 
     /**
      * Execute all tasks.
      */
     public void execute() {
-
-      long currentTime = System.nanoTime();
-      List<Future<Map<StackModule, RepoUrlInfoResult>>> results = new ArrayList<>();
-
-      // !!! first, load the *_urlinfo.json files and block for completion
-      try {
-        results = executor.invokeAll(tasks.values(), 2, TimeUnit.MINUTES);
-      } catch (InterruptedException e) {
-        LOG.warn("Could not load urlinfo as the executor was interrupted", e);
-        return;
-      } finally {
-        LOG.info("Loaded urlinfo in " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - currentTime) + "ms");
+      for (LatestRepoCallable task : tasks) {
+        futures.add(executor.submit(task));
       }
-
-      List<Map<StackModule, RepoUrlInfoResult>> urlInfoResults = new ArrayList<>();
-      // !!! now load all the VDF _by version_ in a new thread.
-      for (Future<Map<StackModule, RepoUrlInfoResult>> future : results) {
-        try {
-          urlInfoResults.add(future.get());
-        } catch (Exception e) {
-          LOG.error("Could not load repo results", e.getCause());
-        }
-      }
-
-      currentTime = System.nanoTime();
-      for (Map<StackModule, RepoUrlInfoResult> urlInfoResult : urlInfoResults) {
-        for (Entry<StackModule, RepoUrlInfoResult> entry : urlInfoResult.entrySet()) {
-          StackModule stackModule = entry.getKey();
-          RepoUrlInfoResult result = entry.getValue();
-
-          if (null != result) {
-            if (MapUtils.isNotEmpty(result.getManifest())) {
-              for (Entry<String, Map<String, URI>> manifestEntry : result.getManifest().entrySet()) {
-                futures.add(executor.submit(new RepoVdfCallable(stackModule, manifestEntry.getKey(),
-                    manifestEntry.getValue(), m_family)));
-              }
-            }
-
-            if (MapUtils.isNotEmpty(result.getLatestVdf())) {
-             futures.add(executor.submit(
-                 new RepoVdfCallable(stackModule, result.getLatestVdf(), m_family)));
-            }
-          }
-        }
-      }
-
       executor.shutdown();
-
-      try {
-        executor.awaitTermination(2,  TimeUnit.MINUTES);
-      } catch (InterruptedException e) {
-        LOG.warn("Loading all VDF was interrupted", e.getCause());
-      } finally {
-        LOG.info("Loaded all VDF in " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - currentTime) + "ms");
-      }
     }
-
-
 
     /**
      * Determine whether all tasks have completed.
@@ -259,7 +181,7 @@ public class StackContext {
      * @return true if all tasks have completed; false otherwise
      */
     public boolean hasCompleted() {
-      for (Future<?> f : futures) {
+      for (Future<Void> f : futures) {
         if (! f.isDone()) {
           return false;
         }

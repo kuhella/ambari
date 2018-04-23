@@ -23,7 +23,7 @@ import socket
 import ssl
 import os
 import logging
-from ambari_commons import subprocess32
+import subprocess
 import ambari_simplejson as json
 import pprint
 import traceback
@@ -255,11 +255,11 @@ class CertificateManager():
     
     logger.info(generate_script)
     if platform.system() == 'Windows':
-      p = subprocess32.Popen(generate_script, stdout=subprocess32.PIPE)
+      p = subprocess.Popen(generate_script, stdout=subprocess.PIPE)
       p.communicate()
     else:
-      p = subprocess32.Popen([generate_script], shell=True,
-                           stdout=subprocess32.PIPE)
+      p = subprocess.Popen([generate_script], shell=True,
+                           stdout=subprocess.PIPE)
       p.communicate()
     # this is required to be 600 for security concerns.
     os.chmod(keyname, 0600)

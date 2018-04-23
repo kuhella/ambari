@@ -44,7 +44,7 @@ public class LogsearchAuthenticationEntryPoint extends LoginUrlAuthenticationEnt
       response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Session Timeout");
     } else {
       logger.debug("Redirecting to login page :" + this.getLoginFormUrl());
-      super.commence(request, response, authException);
+      response.sendRedirect(this.getLoginFormUrl() + ((request.getQueryString() != null) ? "?" + request.getQueryString() : ""));
     }
   }
 }

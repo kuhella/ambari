@@ -144,7 +144,6 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     serviceInfo.setServicePackageFolder(serviceDirectory.getPackageDir());
     serviceInfo.setServiceUpgradesFolder(serviceDirectory.getUpgradesDir());
     serviceInfo.setChecksFolder(serviceDirectory.getChecksDir());
-    serviceInfo.setServerActionsFolder(serviceDirectory.getServerActionsDir());
     serviceInfo.setAdvisorFile(serviceDirectory.getAdvisorFile());
     serviceInfo.setAdvisorName(serviceDirectory.getAdvisorName(serviceInfo.getName()));
 
@@ -258,13 +257,6 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     }
     if (serviceInfo.getChecksFolder() == null) {
       serviceInfo.setChecksFolder(parent.getChecksFolder());
-    }
-
-    /*
-     * Use parent's server actions if the current one does not have any.
-     */
-    if (serviceInfo.getServerActionsFolder() == null) {
-      serviceInfo.setServerActionsFolder(parent.getServerActionsFolder());
     }
 
     /**
@@ -399,7 +391,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
    */
   private void populateConfigurationModules() {
     ConfigurationDirectory configDirectory = serviceDirectory.getConfigurationDirectory(
-        serviceInfo.getConfigDir(), StackDirectory.SERVICE_PROPERTIES_FOLDER_NAME);
+        serviceInfo.getConfigDir(), AmbariMetaInfo.SERVICE_PROPERTIES_FOLDER_NAME);
 
     if (configDirectory != null) {
       for (ConfigurationModule config : configDirectory.getConfigurationModules()) {
@@ -432,7 +424,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
   private void populateThemeModules() {
 
     if (serviceInfo.getThemesDir() == null) {
-      serviceInfo.setThemesDir(StackDirectory.SERVICE_THEMES_FOLDER_NAME);
+      serviceInfo.setThemesDir(AmbariMetaInfo.SERVICE_THEMES_FOLDER_NAME);
     }
 
     String themesDir = serviceDirectory.getAbsolutePath() + File.separator + serviceInfo.getThemesDir();
@@ -476,7 +468,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
 
   private void populateQuickLinksConfigurationModules(){
     if (serviceInfo.getQuickLinksConfigurationsDir() == null) {
-      serviceInfo.setQuickLinksConfigurationsDir(StackDirectory.SERVICE_QUICKLINKS_CONFIGURATIONS_FOLDER_NAME);
+      serviceInfo.setQuickLinksConfigurationsDir(AmbariMetaInfo.SERVICE_QUICKLINKS_CONFIGURATIONS_FOLDER_NAME);
     }
 
     String quickLinksConfigurationsDir = serviceDirectory.getAbsolutePath() + File.separator + serviceInfo.getQuickLinksConfigurationsDir();

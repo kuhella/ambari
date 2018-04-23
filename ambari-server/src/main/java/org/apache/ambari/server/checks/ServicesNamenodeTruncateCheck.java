@@ -17,10 +17,6 @@
  */
 package org.apache.ambari.server.checks;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
@@ -28,8 +24,10 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 
-import com.google.common.collect.Sets;
 import com.google.inject.Singleton;
+
+import java.util.Arrays;
+import java.util.Map;
 
 /**
  * Checks that namenode high availability is enabled.
@@ -45,21 +43,18 @@ public class ServicesNamenodeTruncateCheck extends AbstractCheckDescriptor {
     super(CheckDescription.SERVICES_NAMENODE_TRUNCATE);
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
-  public Set<String> getApplicableServices() {
-    return Sets.newHashSet("HDFS");
-  }
+  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
+    if (!super.isApplicable(request, Arrays.asList("HDFS"), true)) {
+      return false;
+    }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public List<CheckQualification> getQualifications() {
-    return Arrays.<CheckQualification> asList(
-        new PriorCheckQualification(CheckDescription.SERVICES_NAMENODE_HA));
+    PrereqCheckStatus ha = request.getResult(CheckDescription.SERVICES_NAMENODE_HA);
+    if (null != ha && ha == PrereqCheckStatus.FAIL) {
+      return false;
+    }
+
+    return true;
   }
 
   @Override

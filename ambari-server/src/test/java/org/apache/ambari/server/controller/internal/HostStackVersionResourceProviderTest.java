@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -79,7 +79,6 @@ import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.StageUtils;
 import org.easymock.Capture;
-import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -154,10 +153,9 @@ public class HostStackVersionResourceProviderTest {
 
     StackEntity stack = new StackEntity();
     stack.setStackName("HDP");
-    stack.setStackVersion("2.0.1");
+    stack.setStackVersion("2.2");
     repoVersion.setStack(stack);
     repoVersion.setVersion("2.2");
-    repoVersion.setId(1L);
   }
 
   @After
@@ -234,9 +232,9 @@ public class HostStackVersionResourceProviderTest {
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
     expect(managementController.getJdkResourceUrl()).andReturn("/JdkResourceUrl").anyTimes();
     expect(managementController.getPackagesForServiceHost(anyObject(ServiceInfo.class),
-            EasyMock.<Map<String, String>>anyObject(), anyObject(String.class))).andReturn(packages).anyTimes();
+            anyObject(Map.class), anyObject(String.class))).andReturn(packages).anyTimes();
 
-    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.<Set<String>>anyObject(), EasyMock.<Map<Resource.Type, String>>anyObject(),
+    expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class), anyObject(Map.class),
         eq(managementController))).andReturn(csvResourceProvider).anyTimes();
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
@@ -428,9 +426,9 @@ public class HostStackVersionResourceProviderTest {
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
     expect(managementController.getJdkResourceUrl()).andReturn("/JdkResourceUrl").anyTimes();
     expect(managementController.getPackagesForServiceHost(anyObject(ServiceInfo.class),
-            EasyMock.<Map<String, String>>anyObject(), anyObject(String.class))).andReturn(packages).anyTimes();
+            anyObject(Map.class), anyObject(String.class))).andReturn(packages).anyTimes();
 
-    expect(resourceProviderFactory.getHostResourceProvider(EasyMock.<Set<String>>anyObject(), EasyMock.<Map<Resource.Type, String>>anyObject(),
+    expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class), anyObject(Map.class),
             eq(managementController))).andReturn(csvResourceProvider).anyTimes();
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);

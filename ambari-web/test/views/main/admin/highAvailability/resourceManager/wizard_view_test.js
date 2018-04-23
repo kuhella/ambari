@@ -28,8 +28,7 @@ describe('App.RMHighAvailabilityWizardView', function () {
     view = App.RMHighAvailabilityWizardView.create({
       controller: Em.Object.create({
         content: Em.Object.create(),
-        setLowerStepsDisable: Em.K,
-        setDBProperty: Em.K
+        setLowerStepsDisable: Em.K
       })
     });
   });
@@ -93,13 +92,13 @@ describe('App.RMHighAvailabilityWizardView', function () {
     };
 
     beforeEach(function() {
-      sinon.stub(view.get('controller'), 'setDBProperty');
+      sinon.stub(App.db, 'setHosts');
     });
     afterEach(function() {
-      view.get('controller').setDBProperty.restore();
+      App.db.setHosts.restore();
     });
 
-    it("setDBProperty should be called", function () {
+    it("App.db.setHosts should be called", function () {
       view.loadHostsSuccessCallback(data);
       expect(view.get('isLoaded')).to.be.true;
       expect(view.get('controller.content.hosts')).to.be.eql({
@@ -109,7 +108,7 @@ describe('App.RMHighAvailabilityWizardView', function () {
           "isInstalled": true
         }
       });
-      expect(view.get('controller').setDBProperty.calledWith('hosts', {
+      expect(App.db.setHosts.calledWith({
         "host1": {
           "name": "host1",
           "bootStatus": "REGISTERED",

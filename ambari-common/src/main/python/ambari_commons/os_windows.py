@@ -21,7 +21,7 @@ import getpass
 import os
 import random
 import shlex
-from ambari_commons import subprocess32
+import subprocess
 import sys
 import tempfile
 import time
@@ -341,10 +341,10 @@ def os_run_os_command(cmd, env=None, shell=False, cwd=None):
   if isinstance(cmd,basestring):
     cmd = cmd.replace("\\", "\\\\")
     cmd = shlex.split(cmd)
-  process = subprocess32.Popen(cmd,
-                             stdout=subprocess32.PIPE,
-                             stdin=subprocess32.PIPE,
-                             stderr=subprocess32.PIPE,
+  process = subprocess.Popen(cmd,
+                             stdout=subprocess.PIPE,
+                             stdin=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
                              env=env,
                              cwd=cwd,
                              shell=shell

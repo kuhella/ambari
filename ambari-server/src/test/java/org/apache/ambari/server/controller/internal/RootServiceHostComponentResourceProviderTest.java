@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -43,7 +43,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
-import org.easymock.EasyMock;
+import org.apache.ambari.server.state.HostHealthStatus;
 import org.junit.Test;
 
 public class RootServiceHostComponentResourceProviderTest {
@@ -56,6 +56,7 @@ public class RootServiceHostComponentResourceProviderTest {
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
     Host host1 = createNiceMock(Host.class);
+    HostHealthStatus healthStatus = createNiceMock(HostHealthStatus.class);
 
     HostResponse hostResponse1 = createNiceMock(HostResponse.class);
 
@@ -63,13 +64,13 @@ public class RootServiceHostComponentResourceProviderTest {
 
     AbstractRootServiceResponseFactory factory = createNiceMock(AbstractRootServiceResponseFactory.class);
 
-    List<Host> hosts = new LinkedList<>();
+    List<Host> hosts = new LinkedList<Host>();
     hosts.add(host1);
 
-    Set<Cluster> clusterSet = new HashSet<>();
+    Set<Cluster> clusterSet = new HashSet<Cluster>();
     clusterSet.add(cluster);
 
-    Set<RootServiceHostComponentResponse> responseSet = new HashSet<>();
+    Set<RootServiceHostComponentResponse> responseSet = new HashSet<RootServiceHostComponentResponse>();
     responseSet.add(response);
 
     // set expectations
@@ -77,7 +78,7 @@ public class RootServiceHostComponentResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getHosts()).andReturn(hosts).anyTimes();
 
-    expect(factory.getRootServiceHostComponent((RootServiceHostComponentRequest) anyObject(), EasyMock.<Set<HostResponse>>anyObject())).
+    expect(factory.getRootServiceHostComponent((RootServiceHostComponentRequest) anyObject(), (Set<HostResponse>) anyObject())).
         andReturn(responseSet).anyTimes();
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
@@ -90,13 +91,16 @@ public class RootServiceHostComponentResourceProviderTest {
 
     expect(hostResponse1.getClusterName()).andReturn("Cluster100").anyTimes();
     expect(hostResponse1.getHostname()).andReturn("Host100").anyTimes();
-    expect(hostResponse1.getHealthReport()).andReturn("HEALTHY").anyTimes();
+    expect(hostResponse1.getHealthStatus()).andReturn(healthStatus).anyTimes();
+
+    expect(healthStatus.getHealthStatus()).andReturn(HostHealthStatus.HealthStatus.HEALTHY).anyTimes();
+    expect(healthStatus.getHealthReport()).andReturn("HEALTHY").anyTimes();
 
     // replay
     replay(managementController, clusters, cluster,
         host1,
         hostResponse1,
-        factory, response);
+        healthStatus, factory, response);
 
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -105,7 +109,7 @@ public class RootServiceHostComponentResourceProviderTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
-    Set<String> propertyIds = new HashSet<>();
+    Set<String> propertyIds = new HashSet<String>();
 
     propertyIds.add(RootServiceHostComponentResourceProvider.SERVICE_NAME_PROPERTY_ID);
     propertyIds.add(RootServiceHostComponentResourceProvider.HOST_NAME_PROPERTY_ID);
@@ -124,7 +128,7 @@ public class RootServiceHostComponentResourceProviderTest {
     verify(managementController, clusters, cluster,
         host1,
         hostResponse1,
-        factory, response);
+        healthStatus, factory, response);
   }
 
 }

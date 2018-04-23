@@ -1220,7 +1220,11 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
    * Will be used at <code>Assign Masters(step5)</code> step
    */
   loadConfirmedHosts: function () {
-    this.set('content.hosts', this.getDBProperty('hosts') || {});
+    var hosts = App.db.getHosts();
+
+    if (hosts) {
+      this.set('content.hosts', hosts);
+    }
   },
 
   loadHosts: function () {

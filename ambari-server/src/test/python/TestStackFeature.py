@@ -36,20 +36,24 @@ class TestStackFeature(TestCase):
     - STOP
       hostLevelParams/stack_name = HDP
       hostLevelParams/stack_version = 2.5
+      hostLevelParams/current_version = 2.5.0.0-1237
       commandParams/version = 2.5.0.0-1237
     - START
       hostLevelParams/stack_name = HDP
       hostLevelParams/stack_version = 2.6
+      hostLevelParams/current_version = 2.5.0.0-1237
       commandParams/version = 2.6.0.0-334
 
   EU Downgrade (HDP 2.6 to HDP 2.5)
     - STOP
     hostLevelParams/stack_name = HDP
     hostLevelParams/stack_version = 2.6
+    hostLevelParams/current_version = 2.5.0.0-1237
     commandParams/version = 2.6.0.0-334
     - START
     hostLevelParams/stack_name = HDP
     hostLevelParams/stack_version = 2.5
+    hostLevelParams/current_version = 2.5.0.0-1237
     commandParams/version = 2.5.0.0-1237
   """
 
@@ -149,7 +153,6 @@ class TestStackFeature(TestCase):
     :return:
     """
     return {
-      "serviceName":"HDFS",
       "roleCommand": "ACTIONEXECUTE",
       "hostLevelParams": {
         "stack_name": "HDP",
@@ -169,33 +172,17 @@ class TestStackFeature(TestCase):
     :return:
     """
     return {
-      "serviceName":"HDFS",
       "roleCommand":"ACTIONEXECUTE",
       "hostLevelParams": {
         "stack_name": "HDP",
         "stack_version": "2.4",
+        "current_version":  "2.4.0.0-1234"
       },
       "commandParams": {
         "source_stack": "2.4",
         "target_stack": "2.5",
         "upgrade_direction": "upgrade",
         "version": "2.5.9.9-9999"
-      },
-      "upgradeSummary": {
-        "services":{
-          "HDFS":{
-            "sourceRepositoryId":1,
-            "sourceStackId":"HDP-2.4",
-            "sourceVersion":"2.4.0.0-1234",
-            "targetRepositoryId":2,
-            "targetStackId":"HDP-2.5",
-            "targetVersion":"2.5.9.9-9999"
-          }
-        },
-        "direction":"UPGRADE",
-        "type":"rolling_upgrade",
-        "isRevert":False,
-        "orchestration":"STANDARD"
       }
     }
 
@@ -206,33 +193,18 @@ class TestStackFeature(TestCase):
     :return:
     """
     return {
-      "serviceName":"HDFS",
       "roleCommand":"ACTIONEXECUTE",
       "hostLevelParams":{
         "stack_name":"HDP",
-        "stack_version":"2.4"
+        "stack_version":"2.4",
+        "current_version":"2.4.0.0-1234"
       },
       "commandParams":{
         "source_stack":"2.5",
         "target_stack":"2.4",
         "upgrade_direction":"downgrade",
-        "version":"2.4.0.0-1234"
-      },
-      "upgradeSummary":{
-        "services":{
-          "HDFS":{
-            "sourceRepositoryId":2,
-            "sourceStackId":"HDP-2.5",
-            "sourceVersion":"2.5.9.9-9999",
-            "targetRepositoryId":1,
-            "targetStackId":"HDP-2.4",
-            "targetVersion":"2.4.0.0-1234"
-          }
-        },
-        "direction":"DOWNGRADE",
-        "type":"rolling_upgrade",
-        "isRevert":False,
-        "orchestration":"STANDARD"
+        "version":"2.4.0.0-1234",
+        "downgrade_from_version": "2.5.9.9-9999"
       }
     }
 
@@ -244,33 +216,18 @@ class TestStackFeature(TestCase):
     :return:
     """
     return {
-      "serviceName":"HDFS",
       "roleCommand":"STOP",
       "hostLevelParams":{
         "stack_name":"HDP",
         "stack_version":"2.5",
+        "current_version":"2.4.0.0-1234"
       },
       "commandParams":{
         "source_stack":"2.5",
         "target_stack":"2.4",
         "upgrade_direction":"downgrade",
-        "version":"2.5.9.9-9999"
-      },
-      "upgradeSummary":{
-        "services":{
-          "HDFS":{
-            "sourceRepositoryId":2,
-            "sourceStackId":"HDP-2.5",
-            "sourceVersion":"2.5.9.9-9999",
-            "targetRepositoryId":1,
-            "targetStackId":"HDP-2.4",
-            "targetVersion":"2.4.0.0-1234"
-          }
-        },
-        "direction":"DOWNGRADE",
-        "type":"rolling_upgrade",
-        "isRevert":False,
-        "orchestration":"STANDARD"
+        "version":"2.5.9.9-9999",
+        "downgrade_from_version":"2.5.9.9-9999"
       }
     }
 
@@ -281,34 +238,19 @@ class TestStackFeature(TestCase):
     :return:
     """
     return {
-      "serviceName":"HDFS",
       "roleCommand":"CUSTOM_COMMAND",
       "hostLevelParams":{
         "stack_name":"HDP",
         "stack_version":"2.5",
+        "current_version":"2.4.0.0-1234",
         "custom_command":"STOP"
       },
       "commandParams":{
         "source_stack":"2.5",
         "target_stack":"2.4",
         "upgrade_direction":"downgrade",
-        "version":"2.5.9.9-9999"
-      },
-      "upgradeSummary":{
-        "services":{
-          "HDFS":{
-            "sourceRepositoryId":2,
-            "sourceStackId":"HDP-2.5",
-            "sourceVersion":"2.5.9.9-9999",
-            "targetRepositoryId":1,
-            "targetStackId":"HDP-2.4",
-            "targetVersion":"2.4.0.0-1234"
-          }
-        },
-        "direction":"DOWNGRADE",
-        "type":"rolling_upgrade",
-        "isRevert":False,
-        "orchestration":"STANDARD"
+        "version":"2.5.9.9-9999",
+        "downgrade_from_version":"2.5.9.9-9999"
       }
     }
 
