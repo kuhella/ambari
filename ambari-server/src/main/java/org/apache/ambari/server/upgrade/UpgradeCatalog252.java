@@ -34,7 +34,7 @@ import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
-import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
+import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.serveraction.kerberos.DeconstructedPrincipal;
 import org.apache.ambari.server.state.Cluster;
@@ -51,12 +51,12 @@ import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The {@link org.apache.ambari.server.upgrade.UpgradeCatalog252} upgrades Ambari from 2.5.1 to 2.5.2.
@@ -81,7 +81,7 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
   private static final String MARIADB_REDHAT_SUPPORT = "mariadb_redhat_support";
 
   private static final List<String> configTypesToEnsureSelected = Arrays.asList("spark2-javaopts-properties");
-
+  
   /**
    * Logger.
    */
@@ -255,16 +255,16 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
       LOG.info("Ensuring all config types have at least one selected config for cluster {}", clusterEntity.getClusterName());
 
       boolean atLeastOneChanged = false;
-      Collection<ClusterConfigEntity> configEntities = clusterEntity.getClusterConfigEntities();
+      Collection<ClusterConfigMappingEntity> configMappingEntities = clusterEntity.getConfigMappingEntities();
 
-      if (configEntities != null) {
+      if (configMappingEntities != null) {
         Set<String> configTypesNotSelected = new HashSet<>();
         Set<String> configTypesWithAtLeastOneSelected = new HashSet<>();
 
-        for (ClusterConfigEntity clusterConfigEntity : configEntities) {
-          String typeName = clusterConfigEntity.getType();
+        for (ClusterConfigMappingEntity clusterConfigMappingEntity : configMappingEntities) {
+          String typeName = clusterConfigMappingEntity.getType();
 
-          if (clusterConfigEntity.isSelected()) {
+          if (clusterConfigMappingEntity.isSelected() == 1) {
             configTypesWithAtLeastOneSelected.add(typeName);
           } else {
             configTypesNotSelected.add(typeName);
@@ -274,7 +274,7 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
         // Due to the ordering, eliminate any configs with at least one selected.
         configTypesNotSelected.removeAll(configTypesWithAtLeastOneSelected);
         if (!configTypesNotSelected.isEmpty()) {
-          LOG.info("The following config types have entries which are not enabled: {}", StringUtils.join(configTypesNotSelected, ", "));
+          LOG.info("The following config types have config mappings which don't have at least one as selected. {}", StringUtils.join(configTypesNotSelected, ", "));
 
           LOG.info("Filtering only config types these config types: {}", StringUtils.join(configTypesToEnsureSelected, ", "));
           // Get the intersection with a subset of configs that are allowed to be selected during the migration.
@@ -282,19 +282,19 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
         }
 
         if (!configTypesNotSelected.isEmpty()) {
-          LOG.info("The following config types have entries which don't have at least one as selected. {}", StringUtils.join(configTypesNotSelected, ", "));
+          LOG.info("The following config types have config mappings which don't have at least one as selected. {}", StringUtils.join(configTypesNotSelected, ", "));
 
           for (String typeName : configTypesNotSelected) {
-            ClusterConfigEntity clusterConfigMappingWithGreatestTimeStamp = null;
+            ClusterConfigMappingEntity clusterConfigMappingWithGreatestTimeStamp = null;
 
-            for (ClusterConfigEntity clusterConfigEntity : configEntities) {
-              if (typeName.equals(clusterConfigEntity.getType())) {
+            for (ClusterConfigMappingEntity clusterConfigMappingEntity : configMappingEntities) {
+              if (typeName.equals(clusterConfigMappingEntity.getType())) {
 
                 if (null == clusterConfigMappingWithGreatestTimeStamp) {
-                  clusterConfigMappingWithGreatestTimeStamp = clusterConfigEntity;
+                  clusterConfigMappingWithGreatestTimeStamp = clusterConfigMappingEntity;
                 } else {
-                  if (clusterConfigEntity.getTimestamp() >= clusterConfigMappingWithGreatestTimeStamp.getTimestamp()) {
-                    clusterConfigMappingWithGreatestTimeStamp = clusterConfigEntity;
+                  if (clusterConfigMappingEntity.getCreateTimestamp() >= clusterConfigMappingWithGreatestTimeStamp.getCreateTimestamp()) {
+                    clusterConfigMappingWithGreatestTimeStamp = clusterConfigMappingEntity;
                   }
                 }
               }
@@ -302,9 +302,9 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
 
             if (null != clusterConfigMappingWithGreatestTimeStamp) {
               LOG.info("Saving. Config type {} has a mapping with tag {} and greatest timestamp {} that is not selected, so will mark it selected.",
-                  typeName, clusterConfigMappingWithGreatestTimeStamp.getTag(), clusterConfigMappingWithGreatestTimeStamp.getTimestamp());
+                  typeName, clusterConfigMappingWithGreatestTimeStamp.getTag(), clusterConfigMappingWithGreatestTimeStamp.getCreateTimestamp());
               atLeastOneChanged = true;
-              clusterConfigMappingWithGreatestTimeStamp.setSelected(true);
+              clusterConfigMappingWithGreatestTimeStamp.setSelected(1);
             }
           }
         } else {
@@ -313,7 +313,7 @@ public class UpgradeCatalog252 extends AbstractUpgradeCatalog {
       }
 
       if (atLeastOneChanged) {
-        clusterDAO.merge(clusterEntity);
+        clusterDAO.mergeConfigMappings(configMappingEntities);
       }
     }
   }
