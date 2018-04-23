@@ -40,32 +40,15 @@
     <module>commons</module>
     <module>files</module>
     <module>jobs</module>
-<<<<<<< HEAD
-<<<<<<< HEAD
 <!--    <module>pig</module> -->
-=======
- <!--      <module>pig</module> -->
->>>>>>> parent of 65afbb3301... Fixed Ambari 2.6 Merge Confilcts
-=======
- <!--      <module>pig</module> -->
->>>>>>> parent of 65afbb3301... Fixed Ambari 2.6 Merge Confilcts
 <!--    <module>slider</module> -->
     <module>capacity-scheduler</module>
     <module>tez</module>
 <!--    <module>hawq</module> -->
 <!--    <module>storm</module> -->
 <!--    <module>hueambarimigration</module> -->
-<<<<<<< HEAD
-<<<<<<< HEAD
 <!--    <module>hive-next</module> -->
-=======
-<!--    <module>hive-next</module>
->>>>>>> parent of 65afbb3301... Fixed Ambari 2.6 Merge Confilcts
-=======
-<!--    <module>hive-next</module>
->>>>>>> parent of 65afbb3301... Fixed Ambari 2.6 Merge Confilcts
     <module>hive20</module>
--->
     <module>wfmanager</module>
     <!--ambari-views-package should be last in the module list for it to function properly-->
     <module>ambari-views-package</module>
