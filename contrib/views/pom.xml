@@ -41,7 +41,11 @@
     <module>files</module>
     <module>jobs</module>
 <<<<<<< HEAD
+<<<<<<< HEAD
 <!--    <module>pig</module> -->
+=======
+ <!--      <module>pig</module> -->
+>>>>>>> parent of 65afbb3301... Fixed Ambari 2.6 Merge Confilcts
 =======
  <!--      <module>pig</module> -->
 >>>>>>> parent of 65afbb3301... Fixed Ambari 2.6 Merge Confilcts
@@ -52,7 +56,11 @@
 <!--    <module>storm</module> -->
 <!--    <module>hueambarimigration</module> -->
 <<<<<<< HEAD
+<<<<<<< HEAD
 <!--    <module>hive-next</module> -->
+=======
+<!--    <module>hive-next</module>
+>>>>>>> parent of 65afbb3301... Fixed Ambari 2.6 Merge Confilcts
 =======
 <!--    <module>hive-next</module>
 >>>>>>> parent of 65afbb3301... Fixed Ambari 2.6 Merge Confilcts
