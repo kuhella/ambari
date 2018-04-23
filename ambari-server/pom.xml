@@ -486,6 +486,16 @@
               </sources>
             </mapping>
             <mapping>
+              <directory>/usr/lib/python2.6/site-packages</directory>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}-dist/usr/lib/python2.6/site-packages</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
               <directory>/var/log/ambari-server</directory>
               <username>root</username>
               <groupname>root</groupname>
@@ -1034,10 +1044,6 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>commons-collections</groupId>
-      <artifactId>commons-collections</artifactId>
-    </dependency>
-    <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
       <version>2.4</version>
@@ -1113,10 +1119,6 @@
       <scope>test</scope>
       <exclusions>
         <exclusion>
-          <groupId>commons-collections</groupId>
-          <artifactId>commons-collections</artifactId>
-        </exclusion>
-        <exclusion>
           <groupId>net.sf.ehcache</groupId>
           <artifactId>ehcache-core</artifactId>
         </exclusion>
@@ -1127,10 +1129,6 @@
       <artifactId>apacheds-core-integ</artifactId>
       <scope>test</scope>
       <exclusions>
-        <exclusion>
-          <groupId>commons-collections</groupId>
-          <artifactId>commons-collections</artifactId>
-        </exclusion>
         <exclusion>
           <groupId>net.sf.ehcache</groupId>
           <artifactId>ehcache-core</artifactId>
@@ -1152,10 +1150,6 @@
       <artifactId>apacheds-kerberos-codec</artifactId>
       <exclusions>
         <exclusion>
-          <groupId>commons-collections</groupId>
-          <artifactId>commons-collections</artifactId>
-        </exclusion>
-        <exclusion>
           <groupId>net.sf.ehcache</groupId>
           <artifactId>ehcache-core</artifactId>
         </exclusion>
@@ -1166,10 +1160,6 @@
       <artifactId>apacheds-core</artifactId>
       <scope>test</scope>
       <exclusions>
-        <exclusion>
-          <groupId>commons-collections</groupId>
-          <artifactId>commons-collections</artifactId>
-        </exclusion>
         <exclusion>
           <groupId>net.sf.ehcache</groupId>
           <artifactId>ehcache-core</artifactId>
@@ -1189,12 +1179,6 @@
       <groupId>org.apache.directory.shared</groupId>
       <artifactId>shared-ldap</artifactId>
       <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>commons-collections</groupId>
-          <artifactId>commons-collections</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -1421,6 +1405,7 @@
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
+      <version>4.2.5</version>
     </dependency>
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
@@ -1447,12 +1432,6 @@
       <groupId>org.apache.velocity</groupId>
       <artifactId>velocity</artifactId>
       <version>1.7</version>
-      <exclusions>
-        <exclusion>
-          <groupId>commons-collections</groupId>
-          <artifactId>commons-collections</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.sun.mail</groupId>
@@ -1473,24 +1452,11 @@
       <groupId>org.apache.ambari</groupId>
       <artifactId>ambari-metrics-common</artifactId>
       <version>${project.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.curator</groupId>
-          <artifactId>curator-framework</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.httpcomponents</groupId>
-          <artifactId>httpclient</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
-    </dependency>
-   <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
+      <version>2.8.0</version>
     </dependency>
     <dependency>
       <groupId>net.sf.ehcache</groupId>
@@ -1513,16 +1479,6 @@
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-auth</artifactId>
       <version>${hadoop.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.zookeeper</groupId>
-          <artifactId>zookeeper</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.httpcomponents</groupId>
-          <artifactId>httpclient</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
@@ -1530,32 +1486,12 @@
       <version>${hadoop.version}</version>
       <exclusions>
         <exclusion>
-          <groupId>org.apache.zookeeper</groupId>
-          <artifactId>zookeeper</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>commons-beanutils</groupId>
-          <artifactId>commons-beanutils-core</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>commons-collections</groupId>
-          <artifactId>commons-collections</artifactId>
-        </exclusion>
-        <exclusion>
           <groupId>javax.servlet</groupId>
           <artifactId>servlet-api</artifactId>
         </exclusion>
         <exclusion>
           <groupId>org.mortbay.jetty</groupId>
           <artifactId>jetty-util</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.httpcomponents</groupId>
-          <artifactId>httpclient</artifactId>
-        </exclusion>
-         <exclusion>
-          <groupId>commons-httpclient</groupId>
-          <artifactId>commons-httpclient</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -1587,12 +1523,6 @@
       <artifactId>utility</artifactId>
       <version>1.0.0.0-SNAPSHOT</version>
       <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>commons-collections</groupId>
-          <artifactId>commons-collections</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.kohsuke</groupId>
@@ -1619,16 +1549,6 @@
       <artifactId>json-schema-validator</artifactId>
       <version>0.1.10</version>
       <scope>test</scope>
-      <exclusions>
-        <exclusion>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>jline</groupId>
-      <artifactId>jline</artifactId>
     </dependency>
   </dependencies>
 
