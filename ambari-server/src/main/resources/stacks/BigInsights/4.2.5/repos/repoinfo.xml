@@ -41,7 +41,7 @@
       <reponame>IOP-UTILS</reponame>
     </repo>
   </os>
-    <os family="redhat-ppc7">
+  <os family="redhat-ppc7">
     <repo>
       <baseurl>http://ibm-open-platform.ibm.com/repos/IOP/rhel/7/ppc64le/4.2.x/Updates/4.2.5.0</baseurl>
       <repoid>IOP-4.2.5</repoid>
