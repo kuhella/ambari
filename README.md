@@ -7,29 +7,32 @@ ADH 1.5 Release Notes
 Все компоненты ADH 1.5, представленные в данном документе, являются наиболее стабильными версиями официальных релизов продуктов Apache Software Foundation. Arenadata оставляет за собой лишь право добавления необхоимых изменений и патчей для обеспечения стабильного функционирования компонентов и их интеграции.
 
 **Состав и версии компонентов ADH 1.5:**
-- Apache Ambari 2.6.1
-- Apache HDFS	3.1.0
-- Apache YARN	3.1.0
-- Apache MapReduce	3.1.0
-- Apache Zookeeper	3.5.3
-- Apache Tez	0.9.1
+- Apache Ambari 2.5.2
+- Apache HDFS	2.8.1
+- Apache YARN	2.8.1
+- Apache MapReduce	2.8.1
+- Apache Zookeeper	3.4.10
+- Apache Tez	0.9.0
 - Apache Hive	2.3.0
-- Apache HBase	2.0.0
-- Apache Phoenix	5.0.0
+- Apache HBase	1.3.1
+- Apache Phoenix	4.11.0
 - Apache Pig	0.17.0
 - Apache Sqoop	1.4.6
 - Apache Flume	1.8.0
 - Apache Oozie	4.3.0
-- Apache Atlas	1.0.0
-- Apache NiFi   1.6.0
-- Apache Kafka	1.1.0
-- Apache Knox	1.0.0
+- Apache Atlas	0.8.1
+- Apache NiFi   1.3.0
+- Apache Apex 	3.6.0
+- Apache Flink	1.3.2
+- Apache Kafka	1.0.0
+- Apache Knox	0.12.0
 - Apache Mahout	0.13.0
-- Apache Ranger	1.0.0
-- Apache Ranger KMS	1.0.0
-- Apache Solr	7.3.0
-- Apache Spark	2.3.0
+- Apache Ranger	0.7.1
+- Apache Ranger KMS	0.7.1
+- Apache Solr	6.6.0
+- Apache Spark	2.2.0
 - Apache Zeppelin 	0.7.3
+- Apache Giraph	1.1.0
 - Apache Slider	0.92.0
 
 **Дополнительные компоненты включенные в состав дистрибутива:**
