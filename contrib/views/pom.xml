@@ -31,7 +31,7 @@
   <properties>
     <ambari.version>2.6.1.0.0</ambari.version>
     <ambari.dir>${project.parent.parent.basedir}</ambari.dir>
-    <hadoop.version>2.7.3</hadoop.version>
+    <hadoop.version>2.8.1</hadoop.version>
     <views.jars.dir>views-jars</views.jars.dir>
     <views.jars.dir.rel>../target/${views.jars.dir}</views.jars.dir.rel>
   </properties>
@@ -39,7 +39,7 @@
     <module>utils</module>
     <module>commons</module>
     <module>files</module>
-    <module>jobs</module>
+<!--    <module>jobs</module> -->
 <!--    <module>pig</module> -->
 <!--    <module>slider</module> -->
     <module>capacity-scheduler</module>
