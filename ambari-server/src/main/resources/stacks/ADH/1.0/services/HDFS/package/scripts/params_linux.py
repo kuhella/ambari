@@ -40,7 +40,6 @@ from resource_management.libraries.functions.get_not_managed_resources import ge
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions.format_jvm_option import format_jvm_option
-from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
 from resource_management.libraries.functions.hdfs_utils import is_https_enabled_in_hdfs
 from resource_management.libraries.functions import is_empty
 from resource_management.libraries.functions.get_architecture import get_architecture
@@ -80,7 +79,7 @@ version_for_stack_feature_checks = get_stack_feature_version(config)
 #stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
 #stack_supports_zk_security = check_stack_feature(StackFeature.SECURE_ZOOKEEPER, version_for_stack_feature_checks)
 # Koctbi/\b
-stack_supports_ranger_kerberos = True 
+stack_supports_ranger_kerberos = True
 stack_supports_ranger_audit_db = True
 stack_supports_zk_security = True
 
@@ -258,7 +257,7 @@ smoke_hdfs_user_mode = 0770
 hdfs_namenode_format_disabled = default("/configurations/cluster-env/hdfs_namenode_format_disabled", False)
 hdfs_namenode_formatted_mark_suffix = "/namenode-formatted/"
 hdfs_namenode_bootstrapped_mark_suffix = "/namenode-bootstrapped/"
-namenode_formatted_old_mark_dirs = ["/var/run/hadoop/hdfs/namenode-formatted", 
+namenode_formatted_old_mark_dirs = ["/var/run/hadoop/hdfs/namenode-formatted",
   format("{hadoop_pid_dir_prefix}/hdfs/namenode/formatted"),
   "/var/lib/hdfs/namenode/formatted"]
 dfs_name_dirs = dfs_name_dir.split(",")
@@ -338,19 +337,19 @@ else:
 
 if journalnode_address:
   journalnode_port = journalnode_address.split(":")[1]
-  
-  
+
+
 if security_enabled:
   dn_principal_name = config['configurations']['hdfs-site']['dfs.datanode.kerberos.principal']
   dn_keytab = config['configurations']['hdfs-site']['dfs.datanode.keytab.file']
   dn_principal_name = dn_principal_name.replace('_HOST',hostname.lower())
-  
+
   dn_kinit_cmd = format("{kinit_path_local} -kt {dn_keytab} {dn_principal_name};")
-  
+
   nn_principal_name = config['configurations']['hdfs-site']['dfs.namenode.kerberos.principal']
   nn_keytab = config['configurations']['hdfs-site']['dfs.namenode.keytab.file']
   nn_principal_name = nn_principal_name.replace('_HOST',hostname.lower())
-  
+
   nn_kinit_cmd = format("{kinit_path_local} -kt {nn_keytab} {nn_principal_name};")
 
   jn_principal_name = default("/configurations/hdfs-site/dfs.journalnode.kerberos.principal", None)
@@ -391,7 +390,6 @@ HdfsResource = functools.partial(
 # The logic for LZO also exists in OOZIE's params.py
 io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)
 lzo_enabled = io_compression_codecs is not None and "com.hadoop.compression.lzo" in io_compression_codecs.lower()
-lzo_packages = get_lzo_packages(stack_version_unformatted)
   
 name_node_params = default("/commandParams/namenode", None)
 
@@ -570,4 +568,3 @@ if enable_ranger_hdfs:
 cluster_name = config['clusterName']
 
 # ranger hdfs plugin section end
-
