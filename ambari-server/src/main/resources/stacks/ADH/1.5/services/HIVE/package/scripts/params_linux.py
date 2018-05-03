@@ -315,7 +315,7 @@ driver_curl_source = format("{jdk_location}/{jdbc_jar_name}")
 # is now pointing to the upgraded version location; that's bad for the cp command
 source_jdbc_file = format("/usr/lib/hive/lib/{jdbc_jar_name}")
 
-check_db_connection_jar_name = "DBConnectionVerification.jar"
+check_db_connection_jar_name = "/DBConnectionVerification.jar"
 check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar_name}")
 hive_jdbc_drivers_list = ["com.microsoft.sqlserver.jdbc.SQLServerDriver","com.mysql.jdbc.Driver",
                           "org.postgresql.Driver","oracle.jdbc.driver.OracleDriver","sap.jdbc4.sqlanywhere.IDriver"]
@@ -698,7 +698,7 @@ enable_ranger_hive = config['configurations']['hive-env']['hive_security_authori
 
 # ranger support xml_configuration flag, instead of depending on ranger xml_configurations_supported/ranger-env, using stack feature
 # Force True
-xml_configurations_supported = True 
+xml_configurations_supported = True
 
 # get ranger hive properties if enable_ranger_hive is True
 if enable_ranger_hive:
@@ -814,4 +814,3 @@ if enable_ranger_hive:
     xa_audit_db_is_enabled = False
 
 # ranger hive plugin section end
-
