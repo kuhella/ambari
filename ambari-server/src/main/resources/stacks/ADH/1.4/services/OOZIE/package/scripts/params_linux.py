@@ -27,8 +27,6 @@ from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import get_port_from_url
 from resource_management.libraries.script.script import Script
 
-from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
-
 from urlparse import urlparse
 
 import status_params
@@ -230,5 +228,3 @@ is_webhdfs_enabled = config['configurations']['hdfs-site']['dfs.webhdfs.enabled'
 # The logic for LZO also exists in HDFS' params.py
 io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)
 lzo_enabled = io_compression_codecs is not None and "com.hadoop.compression.lzo" in io_compression_codecs.lower()
-
-all_lzo_packages = get_lzo_packages(stack_version_unformatted)
