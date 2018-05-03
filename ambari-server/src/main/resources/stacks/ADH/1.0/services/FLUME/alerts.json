@@ -10,7 +10,7 @@
         "scope": "ANY",
         "source": {
           "type": "SCRIPT",
-          "path": "stacks/ADH/1.0/services/FLUME/package/alerts/alert_flume_agent_status.py",
+          "path": "ADH/1.0/services/FLUME/package/alerts/alert_flume_agent_status.py",
           "parameters": [
             {
               "name": "run.directory",
