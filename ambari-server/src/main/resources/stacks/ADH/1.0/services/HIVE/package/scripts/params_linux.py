@@ -161,7 +161,7 @@ elif hive_jdbc_driver == "sap.jdbc4.sqlanywhere.IDriver":
   hive_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
   sqla_db_used = True
 
-check_db_connection_jar_name = "DBConnectionVerification.jar"
+check_db_connection_jar_name = "/DBConnectionVerification.jar"
 check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar_name}")
 hive_jdbc_drivers_list = ["com.microsoft.sqlserver.jdbc.SQLServerDriver","com.mysql.jdbc.Driver",
                           "org.postgresql.Driver","oracle.jdbc.driver.OracleDriver","sap.jdbc4.sqlanywhere.IDriver"]
