@@ -109,7 +109,7 @@
               <type>env</type>
               <fileName>log4j.properties</fileName>
               <dictionaryName>hdfs-log4j,yarn-log4j</dictionaryName>
-            </configFile>                          
+            </configFile>
             <configFile>
               <type>env</type>
               <fileName>hadoop-env.sh</fileName>
@@ -155,6 +155,20 @@
         </component>
       </components>
 
+      <component>
+        <name>HTTPFS</name>
+        <displayName>HttpFS</displayName>
+        <category>SLAVE</category>
+        <!-- how many of these components are allowed in a cluster -->
+        <cardinality>0+</cardinality>
+        <!-- reference to (and details of) what script is to be used to install/stop/start/config the service -->
+        <commandScript>
+          <script>scripts/httpfs.py</script>
+          <scriptType>PYTHON</scriptType>
+          <timeout>600</timeout>
+        </commandScript>
+      </component>
+
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>
@@ -168,7 +182,7 @@
             </package>
           </packages>
         </osSpecific>
-        
+
         <osSpecific>
           <osFamily>redhat6,suse11</osFamily>
           <packages>
@@ -187,7 +201,7 @@
             </package>
           </packages>
         </osSpecific>
-        
+
         <osSpecific>
           <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
@@ -212,7 +226,7 @@
             </package>
           </packages>
         </osSpecific>
-            
+
       </osSpecifics>
 
       <commandScript>
@@ -220,7 +234,7 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
-      
+
       <requiredServices>
         <service>ZOOKEEPER</service>
       </requiredServices>
