@@ -25,7 +25,6 @@ export default Ember.Service.extend({
 
   settings: Ember.ArrayProxy.create({ content: [] }),
   predefinedSettings: constants.hiveParameters,
-  isDefaultSettingsLoaded :false,
 
   _createSetting: function(name, value) {
     var setting = Ember.Object.createWithMixins({
@@ -105,17 +104,12 @@ export default Ember.Service.extend({
   },
 
   loadDefaultSettings: function() {
-    var isDefaultSettingsLoaded = this.get('isDefaultSettingsLoaded');
-    if (isDefaultSettingsLoaded == true) {
-      return false;
-    }
     var adapter       = this.container.lookup('adapter:application');
     var url           = adapter.buildURL() + '/savedQueries/defaultSettings';
     var self = this;
 
     adapter.ajax(url)
       .then(function(response) {
-        self.set('isDefaultSettingsLoaded',true);
         self._createDefaultSettings(response.settings);
       })
       .catch(function(error) {

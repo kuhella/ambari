@@ -21,7 +21,6 @@ import FileOperationMixin from '../mixins/file-operation';
 
 export default Ember.Service.extend(FileOperationMixin, {
   fileSelectionService: Ember.inject.service('files-selection'),
-  logger: Ember.inject.service('alert-messages'),
   selectedFiles: Ember.computed.alias('fileSelectionService.files'),
   selected: Ember.computed('selectedFiles', function () {
     return this.get('selectedFiles').objectAt(0);
@@ -84,9 +83,7 @@ export default Ember.Service.extend(FileOperationMixin, {
           return resolve(response);
         }, (responseError) => {
           _self.set('isLoading', false);
-          var error = this.extractError(responseError);
-          this.get('logger').danger("Failed to preview file.", error);
-          return reject(responseError);
+          return reject(error);
         });
     });
   },

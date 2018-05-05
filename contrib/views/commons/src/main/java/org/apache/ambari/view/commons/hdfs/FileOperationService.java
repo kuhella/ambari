@@ -323,7 +323,7 @@ public class FileOperationService extends HdfsService {
    * @param request remove request
    * @return response with success
    */
-  @POST
+  @DELETE
   @Path("/moveToTrash")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
@@ -380,7 +380,7 @@ public class FileOperationService extends HdfsService {
    * @param request remove request
    * @return response with success
    */
-  @POST
+  @DELETE
   @Path("/remove")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)

@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,21 +15,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import Ember from 'ember';
 
-export default Ember.Component.extend({
+export default Ember.Controller.extend({
+  openQueries: Ember.inject.controller(),
+  index: Ember.inject.controller(),
+
   settingsService: Ember.inject.service('settings'),
+
   predefinedSettings: Ember.computed.alias('settingsService.predefinedSettings'),
   settings: Ember.computed.alias('settingsService.settings'),
-  didInsertElement: function () {
+
+  init: function() {
+    this._super();
+
     this.get('settingsService').loadDefaultSettings();
   },
-  excluded: function () {
+
+  excluded: function() {
     var settings = this.get('settings');
-    return this.get('predefinedSettings').filter(function (setting) {
+
+    return this.get('predefinedSettings').filter(function(setting) {
       return settings.findBy('key.name', setting.name);
     });
   }.property('settings.@each.key'),
+
+  parseGlobalSettings: function () {
+    this.get('settingsService').parseGlobalSettings(this.get('openQueries.currentQuery'), this.get('index.model'));
+  }.observes('openQueries.currentQuery', 'openQueries.currentQuery.fileContent', 'openQueries.tabUpdated').on('init'),
 
   actions: {
     add: function () {
@@ -48,7 +62,7 @@ export default Ember.Component.extend({
       this.get('settingsService').removeAll();
     },
 
-    saveDefaultSettings: function () {
+    saveDefaultSettings: function() {
       this.get('settingsService').saveDefaultSettings();
     }
   }

@@ -44,10 +44,7 @@ Router.map(function () {
 
   this.route('loading');
   this.route('splash');
-  this.route('messages');
-  this.route('visual-explain');
-  this.route('tez-ui');
-  this.route('visualization-ui');
+
 });
 
 export default Router;

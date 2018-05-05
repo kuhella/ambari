@@ -54,12 +54,4 @@ public class PreviewData {
   public void setPreviewRows(List<Row> previewRows) {
     this.previewRows = previewRows;
   }
-
-  @Override
-  public String toString() {
-    return "PreviewData{" +
-        "header=" + header +
-        ", previewRows=" + previewRows +
-        '}';
-  }
 }

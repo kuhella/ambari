@@ -71,7 +71,7 @@ var CoordinatorGenerator= Ember.Object.extend({
           dataSetJson._frequency = dataset.frequency.value;
         }
         dataSetJson["uri-template"]=dataset.uriTemplate;
-        if (dataset.doneFlagType === 'custom'){
+        if (dataset.doneFlag){
           dataSetJson["done-flag"]=dataset.doneFlag;
         }
         datasets.push(dataSetJson);
