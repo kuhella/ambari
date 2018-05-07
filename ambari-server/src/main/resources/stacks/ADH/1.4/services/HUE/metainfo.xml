@@ -65,9 +65,9 @@
     <component>
       <name>HTTPFS</name>
       <displayName>HttpFS</displayName>
-      <category>MASTER</category>
+      <category>SLAVE</category>
       <!-- how many of these components are allowed in a cluster -->
-      <cardinality>1+</cardinality>
+      <cardinality>0+</cardinality>
       <!-- reference to (and details of) what script is to be used to install/stop/start/config the service -->
       <commandScript>
         <script>scripts/httpfs.py</script>
