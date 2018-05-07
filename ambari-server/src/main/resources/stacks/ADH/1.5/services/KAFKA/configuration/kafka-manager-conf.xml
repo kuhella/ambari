@@ -34,7 +34,7 @@ play.http.requestHandler = "play.http.DefaultHttpRequestHandler"
 play.http.context = "/"
 play.application.loader=loader.KafkaManagerLoader
 
-kafka-manager.zkhosts="{{zookeeper_hosts}}"
+kafka-manager.zkhosts="{{{zookeeper_connect}}"
 pinned-dispatcher.type="PinnedDispatcher"
 pinned-dispatcher.executor="thread-pool-executor"
 application.features=["KMClusterManagerFeature","KMTopicManagerFeature","KMPreferredReplicaElectionFeature","KMReassignPartitionsFeature"]
