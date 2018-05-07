@@ -1,0 +1,35 @@
+{
+  "name": "default",
+  "description": "default quick links configuration",
+  "configuration": {
+    "protocol":
+    {
+      "type":"https",
+      "checks":[
+        {
+          "property":"ssl_enable",
+          "desired":"true",
+          "site":"kafka-broker"
+        }
+      ]
+    },
+
+    "links": [
+      {
+        "name": "kafka_ui",
+        "label": "Kafka Admin",
+        "requires_user_name": "false",
+        "component_name": "KAFKA_BROKER",
+        "url":"%@://%@:%@/",
+        "port":{
+          "http_property": "kafka.admin.port",
+          "http_default_port": "9898",
+          "https_property": "kafka.admin.port",
+          "https_default_port": "9898",
+          "regex": "^(\\d+)$",
+          "site": "kafka-broker"
+        }
+      }
+    ]
+  }
+}

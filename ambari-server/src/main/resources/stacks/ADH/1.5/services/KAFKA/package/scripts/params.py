@@ -99,6 +99,12 @@ zookeeper_hosts.sort()
 secure_acls = default("/configurations/kafka-broker/zookeeper.set.acl", False)
 kafka_security_migrator = os.path.join(kafka_home, "bin", "zookeeper-security-migration.sh")
 
+#Kafka Manager 
+kafka_manager_port = config['configurations']['kafka-broker']['kafka.admin.port']
+kafka_manager_env_content = config['configurations']['kafka-manager-env']['kafka_manager_content']
+kafka_manager_conf_dir="/usr/lib/kafka-manager/conf"
+kafka_manager_application_conf_content = config['configurations']['kafka-manager-conf']['application.conf']
+
 #Kafka log4j
 kafka_log_maxfilesize = default('/configurations/kafka-log4j/kafka_log_maxfilesize',256)
 kafka_log_maxbackupindex = default('/configurations/kafka-log4j/kafka_log_maxbackupindex',20)
