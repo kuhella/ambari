@@ -13,7 +13,7 @@ class kafka_manager(Script):
         mode=0755,
         content = InlineTemplate(params.kafka_manager_env_content)
         )
-        File(format("{kafka_manager_conf_dir}/aplication.conf"),
+        File(format("{kafka_manager_conf_dir}/application.conf"),
         mode=0755,
         content = InlineTemplate(params.kafka_manager_application_conf_content)
         )
@@ -42,4 +42,3 @@ class kafka_manager(Script):
 
 if __name__ == "__main__":
     kafka_manager().execute()
-

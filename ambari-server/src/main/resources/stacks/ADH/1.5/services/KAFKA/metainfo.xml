@@ -72,7 +72,7 @@
               <name>ranger-kafka-plugin</name>
             </package>
             <package>
-              <name>kafka-manager-1.1-1</name>
+              <name>kafka-manager</name>
             </package>
           </packages>a
         </osSpecific>
