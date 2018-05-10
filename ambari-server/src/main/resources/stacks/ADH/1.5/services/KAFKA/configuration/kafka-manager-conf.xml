@@ -24,7 +24,7 @@
     <value>
 
 # KAFKA MANAGER application.conf file's content
-play.crypto.secret="^<csmm5Fx4d=r2HEX8pelM3iBkFVv?k[mc;IZE<_Qoq8EkX_/7@Zt6dP05Pzea3U"
+play.crypto.secret="^&lt;csmm5Fx4d=r2HEX8pelM3iBkFVv?k[mc;IZE&lt;_Qoq8EkX_/7@Zt6dP05Pzea3U"
 pidfile.path="/var/run/kafka-manager/play.pid"
 
 # The application languages
