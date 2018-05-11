@@ -609,8 +609,7 @@ class ADH14StackAdvisor(ADH13StackAdvisor):
       zookeeper_port = self.getZKPort(services)
       for i in range(len(zookeeper_hosts)):
         zookeeper_host = zookeeper_hosts[i] + ':' + zookeeper_port
-        if infra_solr_znode is not None:
-          zookeeper_host += infra_solr_znode
+
         zookeeper_host_arr.append(zookeeper_host)
 
       solr_zookeeper_url = ",".join(zookeeper_host_arr)
