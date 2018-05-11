@@ -20,14 +20,20 @@
  */
 -->
 <configuration  supports_final="true">
-<property>
-    <name>kafka_manager_content</name>
-    <value>
+  <property>
+        <name>kafka_manager_content</name>
+        <value>
 #Kafka Manager Config
 MAX_WAIT_TIME=120
 JAVA_HOME={{java64_home}}
 JAVA_OPTS="-Dhttp.port={{kafka_manager_port}}"
-  </value>
-  </property>
+        </value>
+    </property>
+    <property>
+        <name>kafka.manager.port</name>
+        <value>9898</value>
+        <description>Kafka manager port</description>
+        <on-ambari-upgrade add="true"/>
+    </property>
 </configuration>
 
