@@ -19,7 +19,7 @@
         "name": "kafka_ui",
         "label": "Kafka Admin",
         "requires_user_name": "false",
-        "component_name": "KAFKA_BROKER",
+        "component_name": "KAFKA_MANAGER",
         "url":"%@://%@:%@/",
         "port":{
           "http_property": "kafka.admin.port",

@@ -22,9 +22,9 @@
 <property>
     <name>application.conf</name>
     <value>
-	
-# KAFKA MANAGER application.conf file's content
 
+# KAFKA MANAGER application.conf file's content
+play.crypto.secret="^&lt;csmm5Fx4d=r2HEX8pelM3iBkFVv?k[mc;IZE&lt;_Qoq8EkX_/7@Zt6dP05Pzea3U"
 pidfile.path="/var/run/kafka-manager/play.pid"
 
 # The application languages
@@ -34,7 +34,7 @@ play.http.requestHandler = "play.http.DefaultHttpRequestHandler"
 play.http.context = "/"
 play.application.loader=loader.KafkaManagerLoader
 
-kafka-manager.zkhosts="{{zookeeper_hosts}}"
+kafka-manager.zkhosts="{{zookeeper_connect}}"
 pinned-dispatcher.type="PinnedDispatcher"
 pinned-dispatcher.executor="thread-pool-executor"
 application.features=["KMClusterManagerFeature","KMTopicManagerFeature","KMPreferredReplicaElectionFeature","KMReassignPartitionsFeature"]
@@ -55,4 +55,3 @@ basicAuthentication.excluded=["/api/health"] # ping the health of your instance 
   </value>
   </property>
 </configuration>
-
