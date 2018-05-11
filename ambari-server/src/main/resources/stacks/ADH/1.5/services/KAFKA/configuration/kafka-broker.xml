@@ -166,9 +166,9 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>kafka.admin.port</name>
-    <value>9898</value>
-    <description>Kafka manager port</description>
-    <on-ambari-upgrade add="true"/>
+        <name>kafka.broker.jmx.port</name>
+        <value>9999</value>
+        <description>Kafka broker jmx port</description>
+        <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

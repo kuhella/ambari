@@ -9,7 +9,7 @@
         {
           "property":"ssl_enable",
           "desired":"true",
-          "site":"kafka-broker"
+          "site":"kafka-manager-env"
         }
       ]
     },
@@ -22,12 +22,12 @@
         "component_name": "KAFKA_MANAGER",
         "url":"%@://%@:%@/",
         "port":{
-          "http_property": "kafka.admin.port",
+          "http_property": "kafka.manager.port",
           "http_default_port": "9898",
-          "https_property": "kafka.admin.port",
+          "https_property": "kafka.manager.port",
           "https_default_port": "9898",
           "regex": "^(\\d+)$",
-          "site": "kafka-broker"
+          "site": "kafka-manager-env"
         }
       }
     ]
