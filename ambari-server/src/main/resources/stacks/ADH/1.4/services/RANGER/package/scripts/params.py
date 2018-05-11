@@ -161,7 +161,7 @@ ranger_db_password = unicode(config['configurations']['admin-properties']['db_pa
 oracle_home = default("/configurations/ranger-env/oracle_home", "-")
 
 #For curl command in ranger to get db connector
-jdk_location = config['hostLevelParams']['jdk_location'] 
+jdk_location = config['hostLevelParams']['jdk_location']
 java_share_dir = '/usr/share/java'
 jdbc_jar_name = None
 previous_jdbc_jar_name = None
@@ -212,7 +212,7 @@ if db_flavor.lower() == 'sqla':
   ld_lib_path = format("{jdbc_libs_dir}")
 
 #for db connection
-check_db_connection_jar_name = "DBConnectionVerification.jar"
+check_db_connection_jar_name = "/DBConnectionVerification.jar"
 check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar_name}")
 ranger_jdbc_connection_url = config["configurations"]["ranger-admin-site"]["ranger.jpa.jdbc.url"]
 ranger_jdbc_driver = config["configurations"]["ranger-admin-site"]["ranger.jpa.jdbc.driver"]
@@ -262,7 +262,7 @@ tagsync_application_properties = dict(config["configurations"]["tagsync-applicat
 tagsync_pid_file = format('{ranger_pid_dir}/tagsync.pid')
 tagsync_cred_lib = os.path.join(ranger_tagsync_home, "lib", "*")
 
-ranger_usersync_log_maxfilesize = default('/configurations/usersync-log4j/ranger_usersync_log_maxfilesize',256) 
+ranger_usersync_log_maxfilesize = default('/configurations/usersync-log4j/ranger_usersync_log_maxfilesize',256)
 ranger_usersync_log_maxbackupindex = default('/configurations/usersync-log4j/ranger_usersync_log_maxbackupindex',20)
 ranger_tagsync_log_maxfilesize = default('/configurations/tagsync-log4j/ranger_tagsync_log_maxfilesize',256)
 ranger_tagsync_log_number_of_backup_files = default('/configurations/tagsync-log4j/ranger_tagsync_log_number_of_backup_files',20)
@@ -444,4 +444,3 @@ truststore_password = config['configurations']['ranger-admin-site']['ranger.trus
 cluster_name = config['clusterName']
 ranger_ldap_bind_auth_password = config['configurations']['ranger-admin-site']['ranger.ldap.bind.password']
 ranger_ad_bind_auth_password = config['configurations']['ranger-admin-site']['ranger.ldap.ad.bind.password']
-
