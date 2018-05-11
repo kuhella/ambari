@@ -165,10 +165,4 @@
     </depends-on>
     <on-ambari-upgrade add="true"/>
   </property>
-  <property>
-    <name>kafka.admin.port</name>
-    <value>9898</value>
-    <description>Kafka manager port</description>
-    <on-ambari-upgrade add="true"/>
-  </property>
 </configuration>
