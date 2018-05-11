@@ -104,6 +104,7 @@ kafka_manager_port = config['configurations']['kafka-broker']['kafka.admin.port'
 kafka_manager_env_content = config['configurations']['kafka-manager-env']['kafka_manager_content']
 kafka_manager_conf_dir="/usr/lib/kafka-manager/conf"
 kafka_manager_application_conf_content = config['configurations']['kafka-manager-conf']['application.conf']
+kafka_manager_host = config['clusterHostInfo']['kafka_manager_hosts'][0]
 
 #Kafka log4j
 kafka_log_maxfilesize = default('/configurations/kafka-log4j/kafka_log_maxfilesize',256)
