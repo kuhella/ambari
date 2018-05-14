@@ -40,8 +40,8 @@
     <module>commons</module>
     <module>files</module>
     <module>jobs</module>
-<!--     <module>pig</module>
-    <module>slider</module> -->
+    <module>pig</module>
+<!--     <module>slider</module> -->
     <module>capacity-scheduler</module>
     <module>tez</module>
 <!--    <module>hawq</module>
