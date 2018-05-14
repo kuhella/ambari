@@ -264,12 +264,12 @@
           "values": [
             {
               "name": "Memory utilization",
-              "value": "${mem_total._sum / mem_free._sum}"
+              "value": "${(1/(mem_total._sum / mem_free._sum}))*100"
             }
           ],
           "properties": {
             "display_unit": "%",
-            "graph_type": "LINE",
+            "graph_type": "STACK",
             "time_range": "1"
           }
         },
