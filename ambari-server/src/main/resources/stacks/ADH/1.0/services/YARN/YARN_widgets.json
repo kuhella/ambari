@@ -264,7 +264,7 @@
           "values": [
             {
               "name": "Memory utilization",
-              "value": "${(1/(mem_total._sum / mem_free._sum}))*100"
+              "value": "${(1/(mem_total._sum / mem_free._sum))*100}"
             }
           ],
           "properties": {
