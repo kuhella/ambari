@@ -18,10 +18,10 @@ class kafka_manager(Script):
         content = InlineTemplate(params.kafka_manager_application_conf_content)
         )
 
-        def addCluster(self,env):
-            import params
-            env.set_params(params)
-            Execute(format("curl -d 'name=Default&zkHosts={zookeeper_connect}&"+
+    def addCluster(self,env):
+        import params
+        env.set_params(params)
+        Execute(format("curl -d 'name=Default&zkHosts={zookeeper_connect}&"+
                                     "kafkaVersion=1.0.0&"+
                                     "jmxEnabled=true&"+
                                     "jmxUser=&"+
@@ -34,8 +34,8 @@ class kafka_manager(Script):
                                     "displaySizeEnabled=false&"+
                                     "securityProtocol=PLAINTEXT' "+
                                     "-X POST http://{kafka_manager_host}:{kafka_manager_port}/clusters"),
-            tries = 20,
-            try_sleep = 3)
+        tries = 20,
+        try_sleep = 3)
 
     #To stop the service, use the linux service stop command and pipe output to log file
     def stop(self, env):
