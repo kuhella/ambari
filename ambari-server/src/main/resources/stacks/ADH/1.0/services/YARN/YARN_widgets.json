@@ -263,7 +263,7 @@
           ],
           "values": [
             {
-              "name": "Memory utilization",
+              "name": "Free Cluster Memory",
               "value": "${(1/(mem_total._sum / mem_free._sum))*100}"
             }
           ],
