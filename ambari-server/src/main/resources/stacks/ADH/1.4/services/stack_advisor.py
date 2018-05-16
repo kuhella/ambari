@@ -614,7 +614,7 @@ class ADH14StackAdvisor(ADH13StackAdvisor):
 
       solr_zookeeper_url = ",".join(zookeeper_host_arr)
 
-      putAtlasApplicationProperty('atlas.graph.index.search.solr.zookeeper-url', solr_zookeeper_url)
+      putAtlasApplicationProperty('atlas.graph.index.search.solr.zookeeper-url', solr_zookeeper_url + "/solr")
     else:
       putAtlasApplicationProperty('atlas.graph.index.search.solr.zookeeper-url', "")
 
