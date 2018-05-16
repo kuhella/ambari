@@ -410,7 +410,7 @@ export default Ember.Route.extend(UILoggerMixin, {
         ctrlrModel.set('isJobCreated',true);
         ctrlr.set('isJobCreated',true);
 
-        self.get('jobs').waitForJobToComplete(data.job.id, 2 * 1000, false)
+        self.get('jobs').waitForJobToComplete(data.job.id, 5 * 1000, false)
           .then((status) => {
             ctrlrModel.set('isJobSuccess', true);
             ctrlrModel.set('isJobCancelled', false);
