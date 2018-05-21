@@ -41,17 +41,4 @@
       <reponame>ADH-UTILS-1.5.2</reponame>
     </repo>
   </os>
-  <os family="redhat-ppc7">
-    <repo>
-      <baseurl>http://storage.googleapis.com/arenadata-repo/ADH/1.5.1/ppc64le/adh</baseurl>
-      <repoid>ADH-1.5.1</repoid>
-      <reponame>ADH-1.5.1</reponame>
-    </repo>
-    <repo>
-      <baseurl>http://storage.googleapis.com/arenadata-repo/ADH/1.5.1/ppc64le/adh-utils</baseurl>
-      <repoid>ADH-UTILS-1.5.1</repoid>
-      <reponame>ADH-UTILS-1.5.1</reponame>
-    </repo>
-  </os>
-
 </reposinfo>
