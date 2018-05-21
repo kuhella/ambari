@@ -72,7 +72,7 @@ class ADH15StackAdvisor(ADH14StackAdvisor):
           streamline_bare_principal = get_bare_principal(_streamline_principal_name)
           storm_nimbus_impersonation_acl.replace('{{streamline_bare_principal}}', streamline_bare_principal)
           putStormSiteProperty('nimbus.impersonation.acl', storm_nimbus_impersonation_acl)
-      
+
       storm_nimbus_autocred_plugin_classes = storm_site["nimbus.autocredential.plugins.classes"] if "nimbus.autocredential.plugins.classes" in storm_site else None
       if storm_nimbus_autocred_plugin_classes is not None:
         new_storm_nimbus_autocred_plugin_classes = ['org.apache.storm.hdfs.security.AutoHDFS',
@@ -298,20 +298,7 @@ class ADH15StackAdvisor(ADH14StackAdvisor):
       ranger_yarn_plugin_enabled = (services['configurations']['ranger-yarn-plugin-properties']['properties']['ranger-yarn-plugin-enabled'].lower() == 'Yes'.lower())
     else:
       ranger_yarn_plugin_enabled = False
-
-    #yarn timeline service url depends on http policy and takes the host name of the yarn webapp.
-    if "yarn-site" in services["configurations"] and \
-                    "yarn.timeline-service.webapp.https.address" in services["configurations"]["yarn-site"]["properties"] and \
-                    "yarn.http.policy" in services["configurations"]["yarn-site"]["properties"] and \
-                    "yarn.log.server.web-service.url" in services["configurations"]["yarn-site"]["properties"]:
-        if services["configurations"]["yarn-site"]["properties"]["yarn.http.policy"] == 'HTTP_ONLY':
-            webapp_address = services["configurations"]["yarn-site"]["properties"]["yarn.timeline-service.webapp.address"]
-            webservice_url = "http://"+webapp_address+"/ws/v1/applicationhistory"
-        else:
-            webapp_address = services["configurations"]["yarn-site"]["properties"]["yarn.timeline-service.webapp.https.address"]
-            webservice_url = "https://"+webapp_address+"/ws/v1/applicationhistory"
-        putYarnSiteProperty('yarn.log.server.web-service.url',webservice_url )
-
+    
     if ranger_yarn_plugin_enabled and 'ranger-yarn-plugin-properties' in services['configurations'] and 'REPOSITORY_CONFIG_USERNAME' in services['configurations']['ranger-yarn-plugin-properties']['properties']:
       Logger.info("Setting Yarn Repo user for Ranger.")
       putRangerYarnPluginProperty = self.putProperty(configurations, "ranger-yarn-plugin-properties", services)

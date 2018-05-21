@@ -815,6 +815,19 @@ class ADH14StackAdvisor(ADH13StackAdvisor):
     putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes', ",".join(timeline_plugin_classes_values))
     putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.group-id-plugin-classpath', ":".join(timeline_plugin_classpath_values))
 
+    #yarn timeline service url depends on http policy and takes the host name of the yarn webapp.
+    if "yarn-site" in services["configurations"] and \
+                    "yarn.timeline-service.webapp.https.address" in services["configurations"]["yarn-site"]["properties"] and \
+                    "yarn.http.policy" in services["configurations"]["yarn-site"]["properties"] and \
+                    "yarn.log.server.web-service.url" in services["configurations"]["yarn-site"]["properties"]:
+        if services["configurations"]["yarn-site"]["properties"]["yarn.http.policy"] == 'HTTP_ONLY':
+            webapp_address = services["configurations"]["yarn-site"]["properties"]["yarn.timeline-service.webapp.address"]
+            webservice_url = "http://"+webapp_address+"/ws/v1/applicationhistory"
+        else:
+            webapp_address = services["configurations"]["yarn-site"]["properties"]["yarn.timeline-service.webapp.https.address"]
+            webservice_url = "https://"+webapp_address+"/ws/v1/applicationhistory"
+        putYarnSiteProperty('yarn.log.server.web-service.url',webservice_url)
+
   def updateLlapConfigs(self, configurations, services, hosts, llap_queue_name):
     """
     Entry point for updating Hive's 'LLAP app' configs namely :
