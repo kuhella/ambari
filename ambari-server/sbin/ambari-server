@@ -108,6 +108,7 @@ case "${1:-}" in
         ;;
   upgrade)
         echo -e "Upgrading ambari-server"
+        sudo -u postgres psql -d ambari --command "UPDATE ambari.cluster_version SET state='CURRENT' where repo_version_id=(SELECT repo_version_id FROM ambari.repo_version)"
         $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
         ;;
   status)
