@@ -1,0 +1,6 @@
+{
+  "general_deps": {
+    "_comment": "Dependencies for RANGER RANGER_ADMIN service",
+    "RANGER_ADMIN-START": ["ZOOKEEPER_SERVER-START", "SOLR_SERVER-START"],
+    }
+}
