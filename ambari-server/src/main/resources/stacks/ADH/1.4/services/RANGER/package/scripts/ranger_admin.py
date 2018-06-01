@@ -110,7 +110,6 @@ class RangerAdmin(Script):
     #start another solr instance for ranger audits
     Execute(format('/usr/lib/solr/ranger_audit_server/scripts/start_solr.sh'), environment={'JAVA_HOME': params.java_home}, user='solr')
 
-    Execute(format('/usr/lib/ranger-admin/setup.sh'), environment={'JAVA_HOME': params.java_home})
     update_password_configs()
     ranger_service('ranger_admin')
 
