@@ -695,7 +695,7 @@ def setup_ranger_audit_solr():
   import params
 
   if params.security_enabled and params.stack_supports_ranger_kerberos:
-
+ 
     if params.solr_jaas_file is not None:
       File(format("{solr_jaas_file}"),
         content=Template("ranger_solr_jaas_conf.j2"),
