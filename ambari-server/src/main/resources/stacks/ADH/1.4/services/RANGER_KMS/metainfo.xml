@@ -75,6 +75,13 @@
         <service>HDFS</service>
       </requiredServices>
 
+      <themes>
+        <theme>
+          <fileName>theme_version_1.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
+
     </service>
   </services>
 </metainfo>

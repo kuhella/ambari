@@ -26,6 +26,14 @@
       <displayName>Ranger KMS</displayName>
       <comment>Key Management Server</comment>
       <version>0.7.1.1.5</version>
-    </service>
+
+      <themes>
+        <theme>
+          <fileName>theme_version_2.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes> 
+
+   </service>
   </services>
 </metainfo>
