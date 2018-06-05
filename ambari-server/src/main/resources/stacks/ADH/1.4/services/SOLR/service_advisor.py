@@ -4,7 +4,7 @@ import traceback
 import re
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-STACKS_DIR = os.path.join(SCRIPT_DIR, '../../../../stacks/')
+STACKS_DIR = os.path.join(SCRIPT_DIR, '../../../../')
 PARENT_FILE = os.path.abspath(os.path.join(STACKS_DIR, 'service_advisor.py'))
 
 try:
@@ -22,7 +22,7 @@ EXAMPLE_COLLECTION = "example-collection"
 PROPERTIES = "properties"
 
 
-class SOLR552ServiceAdvisor(service_advisor.ServiceAdvisor):
+class ADH14SOLRServiceAdvisor(service_advisor.ServiceAdvisor):
     def is_not_null_or_empty(self, property_value):
         if property_value is None:
             return self.getErrorItem("Value cannot be null or empty")
