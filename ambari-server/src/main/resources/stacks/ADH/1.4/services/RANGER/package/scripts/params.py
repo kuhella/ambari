@@ -275,7 +275,7 @@ usersync_log4j = config['configurations']['usersync-log4j']['content']
 tagsync_log4j = config['configurations']['tagsync-log4j']['content']
 
 # ranger kerberos
-security_enabled = False 
+security_enabled = config['configurations']['cluster-env']['security_enabled']
 namenode_hosts = default("/clusterHostInfo/namenode_host", [])
 has_namenode = len(namenode_hosts) > 0
 
