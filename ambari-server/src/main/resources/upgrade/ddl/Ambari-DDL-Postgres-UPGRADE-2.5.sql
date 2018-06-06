@@ -4,7 +4,7 @@ DO $$
             ( SELECT 1
               FROM   information_schema.tables
               WHERE  table_schema = 'ambari'
-              AND    table_name = 'repo_version'
+              AND    table_name = 'cluster_version'
             )
         THEN
                 UPDATE ambari.cluster_version SET state='CURRENT'
