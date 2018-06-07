@@ -18,8 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import StringIO
-import sys
-from ambari_commons import subprocess32
+import sys, subprocess
 from mock.mock import MagicMock, patch, ANY
 import mock.mock
 import unittest
@@ -345,12 +344,12 @@ class TestSecurity(unittest.TestCase):
       pass
     self.assertFalse(open_mock.return_value.write.called)
 
-  @patch.object(subprocess32, "Popen")
-  @patch("subprocess32.Popen.communicate")
+  @patch("subprocess.Popen")
+  @patch("subprocess.Popen.communicate")
   @patch.object(os, "chmod")
   def test_genAgentCrtReq(self, chmod_mock, communicate_mock, popen_mock):
     man = CertificateManager(self.config, "active_server")
-    p = MagicMock(spec=subprocess32.Popen)
+    p = MagicMock(spec=subprocess.Popen)
     p.communicate = communicate_mock
     popen_mock.return_value = p
     man.genAgentCrtReq('/dummy-keysdir/hostname.key')

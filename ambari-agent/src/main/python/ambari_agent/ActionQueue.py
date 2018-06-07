@@ -143,8 +143,8 @@ class ActionQueue(threading.Thread):
       self.customServiceOrchestrator.cancel_command(task_id, reason)
 
   def run(self):
-    while not self.stopped():
-      try:
+    try:
+      while not self.stopped():
         self.processBackgroundQueueSafeEmpty()
         self.controller.get_status_commands_executor().process_results() # process status commands
         try:
@@ -175,8 +175,9 @@ class ActionQueue(threading.Thread):
             pass
         except (Queue.Empty):
           pass
-      except:
-        logger.exception("ActionQueue thread failed with exception. Re-running it")
+    except:
+      logger.exception("ActionQueue thread failed with exception:")
+      raise
     
     logger.info("ActionQueue thread has successfully finished")
 

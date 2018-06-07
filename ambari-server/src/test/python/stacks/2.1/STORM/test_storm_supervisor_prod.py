@@ -50,6 +50,7 @@ class TestStormSupervisor(TestStormBase):
     )
 
     self.assert_configure_default()
+
     self.assertResourceCalled('Execute', 'supervisorctl start storm-supervisor',
       wait_for_finish = False,
     )

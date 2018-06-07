@@ -22,7 +22,7 @@ from stacks.utils.RMFTestCase import *
 import json
 import os
 import socket
-from ambari_commons import subprocess32
+import subprocess
 from ambari_commons import inet_utils, OSCheck
 from resource_management import Script, ConfigDictionary
 from resource_management.core.exceptions import Fail
@@ -447,11 +447,3 @@ class TestCheckHost(TestCase):
 
     self.assertEquals(structured_out_mock.call_args[0][0], {'db_connection_check': {'message': '\'unsupported_db\' database type not supported.', 'exit_code': 1}})
 
-  @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
-  def testBuildUrl(self, ):
-    checkHost = CheckHost()
-
-    self.assertEquals('base_url/path', checkHost.build_url('base_url', 'path'))
-    self.assertEquals('base_url/path', checkHost.build_url('base_url/', 'path'))
-    self.assertEquals('base_url/path', checkHost.build_url('base_url/', '/path'))
-    self.assertEquals('base_url/path', checkHost.build_url('base_url', '/path'))

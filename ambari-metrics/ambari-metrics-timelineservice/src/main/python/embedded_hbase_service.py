@@ -82,7 +82,7 @@ class EmbeddedHBaseService:
   def Install(cls, startupMode = "auto", username = None, password = None):
     print "Installing service %s" % (cls._svc_name_)
 
-    # Configure master.xml, which drives the java subprocess32
+    # Configure master.xml, which drives the java subprocess
     java_path = get_java_exe_path()
     java_args = _build_master_java_args(username)
 

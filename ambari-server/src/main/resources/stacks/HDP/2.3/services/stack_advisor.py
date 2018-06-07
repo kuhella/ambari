@@ -337,10 +337,6 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     kafka_broker = getServicesSiteProperties(services, "kafka-broker")
-    kafka_env = getServicesSiteProperties(services, "kafka-env")
-
-    if not kafka_env: #Kafka check not required
-      return
 
     security_enabled = self.isSecurityEnabled(services)
 
@@ -349,7 +345,8 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     putKafkaBrokerAttributes = self.putPropertyAttribute(configurations, "kafka-broker")
 
     if security_enabled:
-      kafka_user = kafka_env.get('kafka_user')
+      kafka_env = getServicesSiteProperties(services, "kafka-env")
+      kafka_user = kafka_env.get('kafka_user') if kafka_env is not None else None
 
       if kafka_user is not None:
         kafka_super_users = kafka_broker.get('super.users') if kafka_broker is not None else None
@@ -368,14 +365,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         putKafkaBrokerProperty("super.users", kafka_super_users)
 
       putKafkaBrokerProperty("principal.to.local.class", "kafka.security.auth.KerberosPrincipalToLocal")
-
-      recommended_inter_broker_protocol = 'PLAINTEXTSASL'
-      if 'security.inter.broker.protocol' in kafka_broker:
-        current_inter_broker_protocol = kafka_broker['security.inter.broker.protocol']
-        if current_inter_broker_protocol in ('PLAINTEXTSASL', 'SASL_PLAINTEXT', 'SASL_SSL'):
-          recommended_inter_broker_protocol = current_inter_broker_protocol
-      putKafkaBrokerProperty("security.inter.broker.protocol", recommended_inter_broker_protocol)
-
+      putKafkaBrokerProperty("security.inter.broker.protocol", "PLAINTEXTSASL")
       putKafkaBrokerProperty("zookeeper.set.acl", "true")
 
     else:  # not security_enabled

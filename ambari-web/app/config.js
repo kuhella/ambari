@@ -28,8 +28,7 @@ App.testEnableSecurity = true; // By default enable security is tested; turning 
 App.testNameNodeHA = true;
 App.appURLRoot = '{proxy_root}/'.replace(/\{.+\}/g, ''); // determines application root path name, not related to hash route
 App.apiPrefix = '/api/v1';
-App.defaultStackVersion = 'HDP-2.3';
-App.defaultFullVersion = '2.3.0.0';
+App.defaultStackVersion = 'ADH-1.5';
 App.defaultWindowsStackVersion = 'HDPWIN-2.1';
 
 App.defaultJavaHome = '/usr/jdk/jdk1.6.0_31';

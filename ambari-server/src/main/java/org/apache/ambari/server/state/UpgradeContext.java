@@ -47,7 +47,6 @@ import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
 import org.apache.ambari.server.controller.internal.PreUpgradeCheckResourceProvider;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -261,12 +260,6 @@ public class UpgradeContext {
    * Defines orchestration type.  This is not the repository type when reverting a patch.
    */
   private RepositoryType m_orchestration = RepositoryType.STANDARD;
-
-  /**
-   * Used to lookup overridable settings like default task parallelism
-   */
-  @Inject
-  private Configuration configuration;
 
   /**
    * Reading upgrade type from provided request  or if nothing were provided,
@@ -525,20 +518,6 @@ public class UpgradeContext {
 
     m_isRevert = upgradeEntity.getOrchestration().isRevertable()
         && upgradeEntity.getDirection() == Direction.DOWNGRADE;
-  }
-
-  /**
-   * Getting stackId from the set of versions. Is is possible until we upgrading components on the same stack.
-   *
-   * Note: Function should be modified for cross-stack upgrade.
-   *
-   * @param version {@link Set} of services repository versions
-   * @return
-   * {@link StackId} based on provided versions
-   */
-  @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES, comment="This is wrong")
-  public StackId getStackIdFromVersions(Map<String, RepositoryVersionEntity> version) {
-    return version.values().iterator().next().getStackId();
   }
 
   /**
@@ -926,13 +905,6 @@ public class UpgradeContext {
 
   public long getPatchRevertUpgradeId() {
     return m_revertUpgradeId;
-  }
-
-  /**
-   * @return default value of number of tasks to run in parallel during upgrades
-   */
-  public int getDefaultMaxDegreeOfParallelism() {
-    return configuration.getDefaultMaxParallelismForUpgrades();
   }
 
   /**

@@ -30,12 +30,10 @@ from resource_management.libraries import XmlConfig
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions.check_process_status import \
-  check_process_status
+from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.stack_features import \
-  check_stack_feature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.script.script import Script
 
@@ -292,39 +290,6 @@ class Master(Script):
       if setting_key not in interpreter_settings:
         interpreter_settings[setting_key] = interpreter_json_template[
           setting_key]
-      else:
-        templateGroups = interpreter_json_template[setting_key]['interpreterGroup']
-        groups = interpreter_settings[setting_key]['interpreterGroup']
-
-        templateProperties = interpreter_json_template[setting_key]['properties']
-        properties = interpreter_settings[setting_key]['properties']
-
-        templateOptions = interpreter_json_template[setting_key]['option']
-        options = interpreter_settings[setting_key]['option']
-
-        # search for difference in groups from current interpreter and template interpreter
-        # if any group exists in template but doesn't exist in current interpreter, it will be added
-        group_names = []
-        for group in groups:
-          group_names.append(group['name'])
-
-        for template_group in templateGroups:
-          if not template_group['name'] in group_names:
-            groups.append(template_group)
-
-
-        # search for difference in properties from current interpreter and template interpreter
-        # if any property exists in template but doesn't exist in current interpreter, it will be added
-        for template_property in templateProperties:
-          if not template_property in properties:
-            properties[template_property] = templateProperties[template_property]
-
-
-        # search for difference in options from current interpreter and template interpreter
-        # if any option exists in template but doesn't exist in current interpreter, it will be added
-        for template_option in templateOptions:
-          if not template_option in options:
-            options[template_option] = templateOptions[template_option]
 
     self.set_interpreter_settings(config_data)
 
@@ -391,27 +356,22 @@ class Master(Script):
 
     return False
 
-  def copy_interpreter_from_HDFS_to_FS(self, params):
+  def get_interpreter_settings(self):
+    import params
+    import json
+
+    interpreter_config = os.path.join(params.conf_dir, "interpreter.json")
     if params.conf_stored_in_hdfs:
       zeppelin_conf_fs = self.get_zeppelin_conf_FS(params)
 
       if self.is_file_exists_in_HDFS(zeppelin_conf_fs, params.zeppelin_user):
         # copy from hdfs to /etc/zeppelin/conf/interpreter.json
-        kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+        kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths',None))
         kinit_if_needed = format("{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_kerberos_principal};")
-        interpreter_config = os.path.join(params.conf_dir, "interpreter.json")
         shell.call(format("rm {interpreter_config};"
-            "{kinit_if_needed} hdfs --config {hadoop_conf_dir} dfs -get {zeppelin_conf_fs} {interpreter_config}"),
-            user=params.zeppelin_user)
-        return True
-    return False
+                          "{kinit_if_needed} hdfs --config {hadoop_conf_dir} dfs -get {zeppelin_conf_fs} {interpreter_config}"),
+                   user=params.zeppelin_user)
 
-  def get_interpreter_settings(self):
-    import params
-    import json
-
-    self.copy_interpreter_from_HDFS_to_FS(params)
-    interpreter_config = os.path.join(params.conf_dir, "interpreter.json")
     config_content = sudo.read_file(interpreter_config)
     config_data = json.loads(config_content)
     return config_data
@@ -428,12 +388,6 @@ class Master(Script):
          content=json.dumps(config_data, indent=2))
 
     if params.conf_stored_in_hdfs:
-      #delete file from HDFS, as the `replace_existing_files` logic checks length of file which can remain same.
-      params.HdfsResource(self.get_zeppelin_conf_FS(params),
-                          type="file",
-                          action="delete_on_execute")
-
-      #recreate file in HDFS from LocalFS
       params.HdfsResource(self.get_zeppelin_conf_FS(params),
                           type="file",
                           action="create_on_execute",
@@ -495,6 +449,16 @@ class Master(Script):
     import params
     config_data = self.get_interpreter_settings()
     interpreter_settings = config_data['interpreterSettings']
+
+    if 'spark2-defaults' in params.config['configurations']:
+      spark2_config = self.get_spark2_interpreter_config()
+      config_id = spark2_config["id"]
+      interpreter_settings[config_id] = spark2_config
+
+    if params.livy2_livyserver_host:
+      livy2_config = self.get_livy2_interpreter_config()
+      config_id = livy2_config["id"]
+      interpreter_settings[config_id] = livy2_config
 
     if params.zeppelin_interpreter:
       settings_to_delete = []
@@ -579,14 +543,9 @@ class Master(Script):
         if params.zookeeper_znode_parent \
                 and params.hbase_zookeeper_quorum:
             interpreter['properties']['phoenix.driver'] = 'org.apache.phoenix.jdbc.PhoenixDriver'
-            if 'phoenix.hbase.client.retries.number' not in interpreter['properties']:
-              interpreter['properties']['phoenix.hbase.client.retries.number'] = '1'
-            if 'phoenix.phoenix.query.numberFormat' not in interpreter['properties']:
-              interpreter['properties']['phoenix.phoenix.query.numberFormat'] = '#.#'
-            if 'phoenix.user' not in interpreter['properties']:
-              interpreter['properties']['phoenix.user'] = 'phoenixuser'
-            if 'phoenix.password' not in interpreter['properties']:
-              interpreter['properties']['phoenix.password'] = ''
+            interpreter['properties']['phoenix.hbase.client.retries.number'] = '1'
+            interpreter['properties']['phoenix.user'] = 'phoenixuser'
+            interpreter['properties']['phoenix.password'] = ''
             interpreter['properties']['phoenix.url'] = "jdbc:phoenix:" + \
                                                     params.hbase_zookeeper_quorum + ':' + \
                                                     params.zookeeper_znode_parent
@@ -632,27 +591,38 @@ class Master(Script):
     import interpreter_json_template
     import params
 
-    if not self.copy_interpreter_from_HDFS_to_FS(params):
-      interpreter_json = interpreter_json_template.template
-      File(format("{params.conf_dir}/interpreter.json"),
-           content=interpreter_json,
-           owner=params.zeppelin_user,
-           group=params.zeppelin_group,
-           mode=0664)
+    interpreter_json = interpreter_json_template.template
+    File(format("{params.conf_dir}/interpreter.json"),
+         content=interpreter_json,
+         owner=params.zeppelin_user,
+         group=params.zeppelin_group,
+         mode=0664)
 
-      if params.conf_stored_in_hdfs:
-        params.HdfsResource(self.get_zeppelin_conf_FS(params),
-                            type="file",
-                            action="create_on_execute",
-                            source=format("{params.conf_dir}/interpreter.json"),
-                            owner=params.zeppelin_user,
-                            recursive_chown=True,
-                            recursive_chmod=True,
-                            replace_existing_files=True)
+    if params.conf_stored_in_hdfs:
+      params.HdfsResource(self.get_zeppelin_conf_FS(params),
+                          type="file",
+                          action="create_on_execute",
+                          source=format("{params.conf_dir}/interpreter.json"),
+                          owner=params.zeppelin_user,
+                          recursive_chown=True,
+                          recursive_chmod=True,
+                          replace_existing_files=True)
 
   def get_zeppelin_spark_dependencies(self):
     import params
     return glob.glob(params.zeppelin_dir + '/interpreter/spark/dep/zeppelin-spark-dependencies*.jar')
+
+  def get_spark2_interpreter_config(self):
+    import spark2_config_template
+    import json
+
+    return json.loads(spark2_config_template.template)
+
+  def get_livy2_interpreter_config(self):
+    import livy2_config_template
+    import json
+
+    return json.loads(livy2_config_template.template)
 
 if __name__ == "__main__":
   Master().execute()

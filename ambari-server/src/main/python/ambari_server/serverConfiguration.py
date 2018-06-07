@@ -1143,19 +1143,6 @@ def update_ambari_env():
 
   return 0
 
-def set_property(key, value, rewrite=True):
-  properties = get_ambari_properties()
-  if properties == -1:
-    err = "Error getting ambari properties"
-    raise FatalException(-1, err)
-
-  if not rewrite and key in properties.keys():
-    return
-
-  properties.process_pair(key, value)
-  update_properties(properties)
-
-
 # default should be false / not accepted
 def write_gpl_license_accepted(default_prompt_value = False, text = GPL_LICENSE_PROMPT_TEXT):
   properties = get_ambari_properties()
@@ -1168,7 +1155,9 @@ def write_gpl_license_accepted(default_prompt_value = False, text = GPL_LICENSE_
     return True
 
   result = get_YN_input(text, default_prompt_value)
-  set_property(GPL_LICENSE_ACCEPTED_PROPERTY, str(result).lower())
+
+  properties.process_pair(GPL_LICENSE_ACCEPTED_PROPERTY, str(result).lower())
+  update_properties(properties)
 
   return result
 
@@ -1200,7 +1189,6 @@ def update_ambari_properties():
       new_properties.load(hfNew)
 
     for prop_key, prop_value in old_properties.getPropertyDict().items():
-      prop_value = prop_value.replace("/usr/lib/python2.6/site-packages", "/usr/lib/ambari-server/lib")
       if "agent.fqdn.service.url" == prop_key:
         # what is agent.fqdn property in ambari.props?
         new_properties.process_pair(GET_FQDN_SERVICE_URL, prop_value)
@@ -1218,8 +1206,8 @@ def update_ambari_properties():
     if NR_USER_PROPERTY not in new_properties.keys():
       new_properties.process_pair(NR_USER_PROPERTY, "root")
 
-    # update the os. In case os detection routine changed
-    new_properties.process_pair(OS_FAMILY_PROPERTY, OS_FAMILY + OS_VERSION)
+    if OS_FAMILY_PROPERTY not in new_properties.keys():
+      new_properties.process_pair(OS_FAMILY_PROPERTY, OS_FAMILY + OS_VERSION)
 
     with open(conf_file, 'w') as hfW:
       new_properties.store(hfW)

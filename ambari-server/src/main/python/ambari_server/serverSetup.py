@@ -23,7 +23,7 @@ import os
 import re
 import shutil
 import sys
-from ambari_commons import subprocess32
+import subprocess
 import getpass
 import logging
 
@@ -739,9 +739,9 @@ class JDKSetupLinux(JDKSetup):
     super(JDKSetupLinux, self).__init__()
     self.JDK_DEFAULT_CONFIGS = [
       JDKRelease("jdk1.8", "Oracle JDK 1.8 + Java Cryptography Extension (JCE) Policy Files 8",
-                 "https://storage.googleapis.com/arenadata-repo/ADH/1.5.2/jdk/jdk-8u172-linux-x64.tar.gz", "jdk-8u172-linux-x64.tar.gz",
-                 "https://storage.googleapis.com/arenadata-repo/ADH/1.5.2/jdk/jce_policy-8.zip", "jce_policy-8.zip",
-                 AmbariPath.get("/usr/jdk64/jdk1.8.0_172"),
+                 "http://public-repo-1.hortonworks.com/ARTIFACTS/jdk-8u112-linux-x64.tar.gz", "jdk-8u112-linux-x64.tar.gz",
+                 "http://public-repo-1.hortonworks.com/ARTIFACTS/jce_policy-8.zip", "jce_policy-8.zip",
+                 AmbariPath.get("/usr/jdk64/jdk1.8.0_112"),
                  "(jdk.*)/jre")
     ]
 
@@ -800,10 +800,10 @@ class JDKSetupLinux(JDKSetup):
 
     cmd = " && ".join(cmds)
 
-    process = subprocess32.Popen(cmd,
-                           stdout=subprocess32.PIPE,
-                           stdin=subprocess32.PIPE,
-                           stderr=subprocess32.PIPE,
+    process = subprocess.Popen(cmd,
+                           stdout=subprocess.PIPE,
+                           stdin=subprocess.PIPE,
+                           stderr=subprocess.PIPE,
                            shell=True
                            )
     (stdoutdata, stderrdata) = process.communicate()
@@ -1025,8 +1025,8 @@ def extract_views(options):
     retcode, stdout, stderr = run_os_command(command)
     if retcode == 0:
       sys.stdout.write(f + "\n")
-#    elif retcode == 2:
-#      sys.stdout.write("Error extracting " + f + "\n")
+    elif retcode == 2:
+      sys.stdout.write("Error extracting " + f + "\n")
     else:
       sys.stdout.write(".")
       sys.stdout.flush()

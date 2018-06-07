@@ -26,7 +26,7 @@ from mock.mock import patch
 from mock.mock import MagicMock
 
 # Module imports
-from ambari_commons import subprocess32
+import subprocess
 from stacks.utils.RMFTestCase import *
 from resource_management import Script, ConfigDictionary
 from resource_management.libraries.functions.default import default

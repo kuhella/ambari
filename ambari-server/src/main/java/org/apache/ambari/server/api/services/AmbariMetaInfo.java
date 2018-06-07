@@ -140,8 +140,7 @@ public class AmbariMetaInfo {
   private File extensionsRoot;
   private File serverVersionFile;
   private File customActionRoot;
-
-  Map<String, VersionDefinitionXml> versionDefinitions = null;
+  private Map<String, VersionDefinitionXml> versionDefinitions = null;
 
 
   @Inject
@@ -1068,30 +1067,6 @@ public class AmbariMetaInfo {
   }
 
   /**
-   * Returns new definitions for the merge
-   *
-   * @param definitions List of the definitions
-   * @param clusterId Cluster ID
-   * @param mappedEntities Mapped entities
-   * @return Entities to merge
-   */
-  private List<AlertDefinitionEntity> getDefinitionsForMerge(List<AlertDefinition> definitions, long clusterId,
-                                                             Map<String, AlertDefinitionEntity> mappedEntities ) {
-    List<AlertDefinitionEntity> definitionsForMerge = new ArrayList<>();
-
-    for (AlertDefinition definition: definitions) {
-      AlertDefinitionEntity entity = mappedEntities.get(definition.getName());
-
-      // no entity means this is new; create a new entity
-      if (null == entity) {
-        entity = alertDefinitionFactory.coerce(clusterId, definition);
-        definitionsForMerge.add(entity);
-      }
-    }
-    return definitionsForMerge;
-  }
-
-  /**
    * Compares the alert definitions defined on the stack with those in the
    * database and merges any new or updated definitions. This method will first
    * determine the services that are installed on each cluster to prevent alert
@@ -1115,12 +1090,18 @@ public class AmbariMetaInfo {
 
     // for every cluster
     for (Cluster cluster : clusterMap.values()) {
-
       long clusterId = cluster.getClusterId();
+
+      // creating a mapping between names and service/component for fast lookups
+//      Collection<ServiceInfo> stackServices = new ArrayList<>();
       Map<String, ServiceInfo> stackServiceMap = new HashMap<>();
       Map<String, ComponentInfo> stackComponentMap = new HashMap<>();
 
-      // for every service installed in that cluster, get the service MetaInfo
+
+      Map<String, Service> clusterServiceMap = cluster.getServices();
+      Set<String> clusterServiceNames = clusterServiceMap.keySet();
+
+      // for every service installed in that cluster, get the service metainfo
       // and off of that the alert definitions
       List<AlertDefinition> stackDefinitions = new ArrayList<>(50);
 
@@ -1167,6 +1148,11 @@ public class AmbariMetaInfo {
         // use the REST APIs to modify them instead
         AlertDefinition databaseDefinition = alertDefinitionFactory.coerce(entity);
         if (!stackDefinition.deeplyEquals(databaseDefinition)) {
+          // this is the code that would normally merge the stack definition
+          // into the database; this is not the behavior we want today
+
+          // entity = alertDefinitionFactory.merge(stackDefinition, entity);
+          // persist.add(entity);
 
           LOG.debug(
               "The alert named {} has been modified from the stack definition and will not be merged",
@@ -1195,10 +1181,28 @@ public class AmbariMetaInfo {
       }
 
       // ambari agent host-only alert definitions
-      persist.addAll(getDefinitionsForMerge(ambariServiceAlertDefinitions.getAgentDefinitions(), clusterId, mappedEntities));
+      List<AlertDefinition> agentDefinitions = ambariServiceAlertDefinitions.getAgentDefinitions();
+      for (AlertDefinition agentDefinition : agentDefinitions) {
+        AlertDefinitionEntity entity = mappedEntities.get(agentDefinition.getName());
+
+        // no entity means this is new; create a new entity
+        if (null == entity) {
+          entity = alertDefinitionFactory.coerce(clusterId, agentDefinition);
+          persist.add(entity);
+        }
+      }
 
       // ambari server host-only alert definitions
-      persist.addAll(getDefinitionsForMerge(ambariServiceAlertDefinitions.getServerDefinitions(), clusterId, mappedEntities));
+      List<AlertDefinition> serverDefinitions = ambariServiceAlertDefinitions.getServerDefinitions();
+      for (AlertDefinition serverDefinition : serverDefinitions) {
+        AlertDefinitionEntity entity = mappedEntities.get(serverDefinition.getName());
+
+        // no entity means this is new; create a new entity
+        if (null == entity) {
+          entity = alertDefinitionFactory.coerce(clusterId, serverDefinition);
+          persist.add(entity);
+        }
+      }
 
       // persist any new or updated definition
       for (AlertDefinitionEntity entity : persist) {
@@ -1233,17 +1237,20 @@ public class AmbariMetaInfo {
           continue;
         }
 
-        if (!stackServiceMap.containsKey(serviceName)) {
+        StackId stackId = cluster.getService(serviceName).getDesiredStackId();
 
-           LOG.info( "The {} service has been marked as deleted for cluster {}, disabling alert {}",
-              serviceName, cluster.getClusterName(), definition.getDefinitionName());
+        if (!stackServiceMap.containsKey(serviceName)) {
+          LOG.info(
+              "The {} service has been marked as deleted for stack {}, disabling alert {}",
+              serviceName, stackId, definition.getDefinitionName());
 
           definitionsToDisable.add(definition);
-        } else if (null != componentName && !stackComponentMap.containsKey(componentName)) {
-
-          StackId stackId = cluster.getService(serviceName).getDesiredStackId();
-          LOG.info( "The {} component {} has been marked as deleted for stack {}, disabling alert {}",
-              serviceName, componentName, stackId, definition.getDefinitionName());
+        } else if (null != componentName
+            && !stackComponentMap.containsKey(componentName)) {
+          LOG.info(
+              "The {} component {} has been marked as deleted for stack {}, disabling alert {}",
+              serviceName, componentName, stackId,
+              definition.getDefinitionName());
 
           definitionsToDisable.add(definition);
         }
@@ -1421,12 +1428,12 @@ public class AmbariMetaInfo {
     versionDefinitions = new HashMap<>();
 
     for (StackInfo stack : getStacks()) {
-      if (stack.isActive() && stack.isValid()) {
-        for (VersionDefinitionXml definition : stack.getVersionDefinitions()) {
-          versionDefinitions.put(String.format("%s-%s-%s", stack.getName(),
+      for (VersionDefinitionXml definition : stack.getVersionDefinitions()) {
+        versionDefinitions.put(String.format("%s-%s-%s", stack.getName(),
             stack.getVersion(), definition.release.version), definition);
-        }
-        
+      }
+
+      if (stack.isActive() && stack.isValid()) {
         try {
           // !!! check for a "latest-vdf" one.  This will be used for the default if one is not found.
           VersionDefinitionXml xml = stack.getLatestVersionDefinition();

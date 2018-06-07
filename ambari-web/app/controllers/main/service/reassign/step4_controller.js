@@ -115,9 +115,10 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         .concat(App.ClientComponent.find().toArray())
         .concat(App.SlaveComponent.find().toArray())
         .filter(function(service){
-          return service.get("totalCount") > 0;
+          return service.get("installedCount") > 0;
         })
         .mapProperty('componentName');
+
     var dependenciesToInstall = App.StackServiceComponent.find(componentName)
         .get('dependencies')
         .filter(function (component) {

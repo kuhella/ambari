@@ -21,7 +21,6 @@
   <target-stack>HDP-2.6</target-stack>
   <type>NON_ROLLING</type>
   <prerequisite-checks>
-    <check>org.apache.ambari.server.checks.KafkaPropertiesCheck</check>
     <check>org.apache.ambari.server.checks.RangerAuditDbCheck</check>
     <check>org.apache.ambari.server.checks.ServicePresenceCheck</check>
     <check>org.apache.ambari.server.checks.RangerSSLConfigCheck</check>
@@ -451,10 +450,6 @@
 
       <execute-stage service="HDFS" component="NAMENODE" title="Prevent Garbage Collection Heuristics">
         <task xsi:type="configure" id="hdfs_namenode_prevent_gc_heuristics"/>
-      </execute-stage>
-
-      <execute-stage service="HDFS" component="HDFS_CLIENT" title="Set User-Agent">
-        <task xsi:type="configure" id="hdfs_user_agent" />
       </execute-stage>
 
       <!--SPARK-->

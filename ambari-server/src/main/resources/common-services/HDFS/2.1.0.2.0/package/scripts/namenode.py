@@ -21,7 +21,6 @@ import sys
 import os
 import json
 import tempfile
-import hashlib
 from datetime import datetime
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
@@ -52,8 +51,18 @@ from hdfs import hdfs
 import hdfs_rebalance
 from utils import initiate_safe_zkfc_failover, get_hdfs_binary, get_dfsadmin_base_command
 
-# The hash algorithm to use to generate digests/hashes
-HASH_ALGORITHM = hashlib.sha224
+
+
+# hashlib is supplied as of Python 2.5 as the replacement interface for md5
+# and other secure hashes.  In 2.6, md5 is deprecated.  Import hashlib if
+# available, avoiding a deprecation warning under 2.6.  Import md5 otherwise,
+# preserving 2.4 compatibility.
+try:
+  import hashlib
+  _md5 = hashlib.md5
+except ImportError:
+  import md5
+  _md5 = md5.new
 
 class NameNode(Script):
 
@@ -158,10 +167,8 @@ class NameNodeDefault(NameNode):
     hdfs_binary = self.get_hdfs_binary()
     namenode_upgrade.prepare_upgrade_check_for_previous_dir()
     namenode_upgrade.prepare_upgrade_enter_safe_mode(hdfs_binary)
-    if not params.skip_namenode_save_namespace_express:
-      namenode_upgrade.prepare_upgrade_save_namespace(hdfs_binary)
-    if not params.skip_namenode_namedir_backup_express:
-      namenode_upgrade.prepare_upgrade_backup_namenode_dir()
+    namenode_upgrade.prepare_upgrade_save_namespace(hdfs_binary)
+    namenode_upgrade.prepare_upgrade_backup_namenode_dir()
     namenode_upgrade.prepare_upgrade_finalize_previous_upgrades(hdfs_binary)
 
     # Call -rollingUpgrade prepare
@@ -215,11 +222,11 @@ class NameNodeDefault(NameNode):
 
     if params.security_enabled:
       # Create the kerberos credentials cache (ccache) file and set it in the environment to use
-      # when executing HDFS rebalance command. Use the sha224 hash of the combination of the principal and keytab file
+      # when executing HDFS rebalance command. Use the md5 hash of the combination of the principal and keytab file
       # to generate a (relatively) unique cache filename so that we can use it as needed.
       # TODO: params.tmp_dir=/var/lib/ambari-agent/tmp. However hdfs user doesn't have access to this path.
       # TODO: Hence using /tmp
-      ccache_file_name = "hdfs_rebalance_cc_" + HASH_ALGORITHM(format("{hdfs_principal_name}|{hdfs_user_keytab}")).hexdigest()
+      ccache_file_name = "hdfs_rebalance_cc_" + _md5(format("{hdfs_principal_name}|{hdfs_user_keytab}")).hexdigest()
       ccache_file_path = os.path.join(tempfile.gettempdir(), ccache_file_name)
       rebalance_env['KRB5CCNAME'] = ccache_file_path
 
@@ -282,6 +289,12 @@ class NameNodeDefault(NameNode):
              "operation earlier. The process may take a long time to finish (hours, even days). If the problem persists "
              "please consult with the HDFS administrators if they have triggred or killed the operation.")
 
+    if params.security_enabled:
+      # Delete the kerberos credentials cache (ccache) file
+      File(ccache_file_path,
+           action = "delete",
+      )
+      
   def get_log_folder(self):
     import params
     return params.hdfs_log_dir

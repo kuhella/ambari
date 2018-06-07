@@ -248,7 +248,7 @@
           },
           "targets": [
             {
-              "aggregator": "max",
+              "aggregator": "avg",
               "app": "hbase",
               "downsampleAggregator": "avg",
               "errors": {},

@@ -29,9 +29,7 @@ import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 
 /**
  * Callable service implementation for executing tasks asynchronously.
@@ -57,13 +55,12 @@ public class AsyncCallableService<T> implements Callable<T> {
 
   // the delay between two consecutive execution trials in milliseconds
   private final long retryDelay;
-  private final Function<Throwable, ?> onError;
 
-  public AsyncCallableService(Callable<T> task, long timeout, long retryDelay, String taskName, Function<Throwable, ?> onError) {
-    this(task, timeout, retryDelay, taskName, Executors.newScheduledThreadPool(1), onError);
+  public AsyncCallableService(Callable<T> task, long timeout, long retryDelay, String taskName) {
+    this(task, timeout, retryDelay, taskName, Executors.newScheduledThreadPool(1));
   }
 
-  public AsyncCallableService(Callable<T> task, long timeout, long retryDelay, String taskName, ScheduledExecutorService executorService, Function<Throwable, ?> onError) {
+  public AsyncCallableService(Callable<T> task, long timeout, long retryDelay, String taskName, ScheduledExecutorService executorService) {
     Preconditions.checkArgument(retryDelay > 0, "retryDelay should be positive");
 
     this.task = task;
@@ -71,7 +68,6 @@ public class AsyncCallableService<T> implements Callable<T> {
     this.timeout = timeout;
     this.retryDelay = retryDelay;
     this.taskName = taskName;
-    this.onError = onError;
   }
 
   @Override
@@ -81,7 +77,6 @@ public class AsyncCallableService<T> implements Callable<T> {
     Future<T> future = executorService.submit(task);
     LOG.info("Task {} execution started at {}", taskName, startTime);
 
-    Throwable lastError = null;
     while (true) {
       try {
         LOG.debug("Task {} waiting for result at most {} ms", taskName, timeLeft);
@@ -90,23 +85,18 @@ public class AsyncCallableService<T> implements Callable<T> {
         return taskResult;
       } catch (TimeoutException e) {
         LOG.debug("Task {} timeout", taskName);
-        if (lastError == null) {
-          lastError = e;
-        }
         timeLeft = 0;
       } catch (ExecutionException e) {
-        Throwable cause = Throwables.getRootCause(e);
+        Throwable cause = e.getCause();
         if (!(cause instanceof RetryTaskSilently)) {
           LOG.info(String.format("Task %s exception during execution", taskName), cause);
         }
-        lastError = cause;
-        timeLeft = timeout - (System.currentTimeMillis() - startTime) - retryDelay;
+        timeLeft = timeout - (System.currentTimeMillis() - startTime);
       }
 
-      if (timeLeft <= 0) {
+      if (timeLeft < retryDelay) {
         attemptToCancel(future);
         LOG.warn("Task {} timeout exceeded, no more retries", taskName);
-        onError.apply(lastError);
         return null;
       }
 
@@ -126,12 +116,6 @@ public class AsyncCallableService<T> implements Callable<T> {
 
   public static class RetryTaskSilently extends RuntimeException {
     // marker, throw if the task needs to be retried
-    public RetryTaskSilently() {
-      super();
-    }
-    public RetryTaskSilently(String message) {
-      super(message);
-    }
   }
 
 }

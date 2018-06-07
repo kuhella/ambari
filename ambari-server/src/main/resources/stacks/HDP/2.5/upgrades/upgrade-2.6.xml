@@ -35,7 +35,6 @@
     <check>org.apache.ambari.server.checks.YarnTimelineServerStatePreservingCheck</check>
     <check>org.apache.ambari.server.checks.RangerSSLConfigCheck</check>
     <check>org.apache.ambari.server.checks.DruidHighAvailabilityCheck</check>
-    <check>org.apache.ambari.server.checks.KafkaPropertiesCheck</check>
     <check>org.apache.ambari.server.checks.LZOCheck</check>
 
     <configuration>
@@ -652,10 +651,6 @@
       </component>
 
       <component name="HDFS_CLIENT">
-        <pre-upgrade>
-          <task xsi:type="configure" id="hdfs_user_agent" />
-        </pre-upgrade>
-        <pre-downgrade />
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -971,9 +966,6 @@
       <component name="ZEPPELIN_MASTER">
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_5_0_0__zeppelin_external_dependency_configs"/>
-          <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixNotebookStorage">
-            <summary>Adjusting Zeppelin Notebook properties</summary>
-          </task>
         </pre-upgrade>
         <pre-downgrade/>
 
