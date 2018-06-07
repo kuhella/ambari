@@ -57,6 +57,7 @@ PYTHON_WRAP="$ROOT/usr/bin/ambari-python-wrap"
 AMBARI_ENV="$ROOT/var/lib/ambari-server/ambari-env.sh"
 AMBARI_PYTHON_EXECUTABLE="$ROOT/usr/sbin/ambari-server.py"
 AMBARI_EXECUTABLE="$ROOT/usr/sbin/ambari-server"
+AMBARI_SERVER_PATH="$ROOT/var/lib/ambari-server"
 
 if [ -z "${PYTHON:-}" ] ; then
   export PYTHON=`readlink $PYTHON_WRAP`
@@ -108,6 +109,7 @@ case "${1:-}" in
         ;;
   upgrade)
         echo -e "Upgrading ambari-server"
+        sudo -u postgres psql -d ambari -q -f $AMBARI_SERVER_PATH/resources/upgrade/ddl/Ambari-DDL-Postgres-UPGRADE-2.5.sql
         $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
         ;;
   status)

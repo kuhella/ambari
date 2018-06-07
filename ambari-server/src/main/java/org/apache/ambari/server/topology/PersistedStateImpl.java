@@ -28,6 +28,7 @@ import javax.inject.Singleton;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.controller.internal.BaseClusterRequest;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -142,6 +143,16 @@ public class PersistedStateImpl implements PersistedState {
   }
 
   @Override
+  public void setHostRequestStatus(long hostRequestId, HostRoleStatus status, String message) {
+    TopologyHostRequestEntity hostRequestEntity = hostRequestDAO.findById(hostRequestId);
+    if (hostRequestEntity != null) {
+      hostRequestEntity.setStatus(status);
+      hostRequestEntity.setStatusMessage(message);
+      hostRequestDAO.merge(hostRequestEntity);
+    }
+  }
+
+  @Override
   public void registerPhysicalTask(long logicalTaskId, long physicalTaskId) {
     TopologyLogicalTaskEntity entity = topologyLogicalTaskDAO.findById(logicalTaskId);
     HostRoleCommandEntity physicalEntity = hostRoleCommandDAO.findByPK(physicalTaskId);
@@ -223,18 +234,21 @@ public class PersistedStateImpl implements PersistedState {
       }
 
       TopologyLogicalRequestEntity logicalRequestEntity = entity.getTopologyLogicalRequestEntity();
-      Long logicalId = logicalRequestEntity.getId();
+      if (logicalRequestEntity != null) {
+        try {
+          Long logicalId = logicalRequestEntity.getId();
 
-      try {
-        //todo: fix initialization of ActionManager.requestCounter to account for logical requests
-        //todo: until this is fixed, increment the counter for every recovered logical request
-        //todo: this will cause gaps in the request id's after recovery
-        ambariContext.getNextRequestId();
-        allRequests.get(clusterTopology).add(logicalRequestFactory.createRequest(
-            logicalId, replayedRequest, clusterTopology, logicalRequestEntity));
-      } catch (AmbariException e) {
-        throw new RuntimeException("Failed to construct logical request during replay: " + e, e);
+          //todo: fix initialization of ActionManager.requestCounter to account for logical requests
+          //todo: until this is fixed, increment the counter for every recovered logical request
+          //todo: this will cause gaps in the request id's after recovery
+          ambariContext.getNextRequestId();
+          allRequests.get(clusterTopology).add(logicalRequestFactory.createRequest(
+                  logicalId, replayedRequest, clusterTopology, logicalRequestEntity));
+        } catch (AmbariException e) {
+          throw new RuntimeException("Failed to construct logical request during replay: " + e, e);
+        }
       }
+
     }
 
     return allRequests;

@@ -47,7 +47,7 @@ App.Repository = DS.Model.extend({
   }.property('baseUrl'),
 
   isEmpty: function() {
-    return this.get('baseUrl') == '';
+    return this.get('showRepo') && this.get('baseUrl') === '';
   }.property('baseUrl'),
 
   invalidError: function() {
@@ -65,7 +65,7 @@ App.Repository = DS.Model.extend({
    * @type {boolean}
    */
   isGPL: function () {
-    return this.get('tags').contains('GPL');    
+    return this.get('tags') && this.get('tags').contains('GPL');
   }.property('tags'),
 
   /**

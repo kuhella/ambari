@@ -218,7 +218,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/tmp/jce_dir/UnlimitedJCEPolicyJDK7.zip',
-      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//UnlimitedJCEPolicyJDK7.zip'),
+      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/UnlimitedJCEPolicyJDK7.zip'),
       mode = 0644,
     )
 
@@ -290,7 +290,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'),
+      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar'),
       mode = 0644
     )
 
@@ -355,6 +355,13 @@ class TestRangerKMS(RMFTestCase):
       group = 'hadoop',
       cd_access = "a",
       create_parents=True
+    )
+
+    self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/ranger-kms-env.sh',
+      content = 'export JAVA_HOME=/usr/jdk64/jdk1.7.0_45',
+      owner = 'kms',
+      group = 'kms',
+      mode = 0755
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/ranger-kms-env-piddir.sh',
@@ -658,7 +665,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/tmp/jce_dir/UnlimitedJCEPolicyJDK7.zip',
-      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//UnlimitedJCEPolicyJDK7.zip'),
+      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/UnlimitedJCEPolicyJDK7.zip'),
       mode = 0644,
     )
 
@@ -713,7 +720,7 @@ class TestRangerKMS(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'),
+      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar'),
       mode = 0644
     )
 
@@ -778,6 +785,13 @@ class TestRangerKMS(RMFTestCase):
       group = 'hadoop',
       cd_access = "a",
       create_parents=True
+    )
+
+    self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/ranger-kms-env.sh',
+      content = 'export JAVA_HOME=/usr/jdk64/jdk1.7.0_45',
+      owner = 'kms',
+      group = 'kms',
+      mode = 0755
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/ranger-kms-env-piddir.sh',

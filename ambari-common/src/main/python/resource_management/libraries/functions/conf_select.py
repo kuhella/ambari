@@ -22,7 +22,7 @@ __all__ = ["select", "create", "get_hadoop_conf_dir", "get_hadoop_dir", "get_pac
 
 # Python Imports
 import os
-import subprocess
+from ambari_commons import subprocess32
 import ambari_simplejson as json
 
 # Local Imports
@@ -107,7 +107,7 @@ def create(stack_name, package, version, dry_run = False):
 
   command = "dry-run-create" if dry_run else "create-conf-dir"
 
-  code, stdout, stderr = shell.call(_get_cmd(command, package, version), logoutput=False, quiet=False, sudo=True, stderr = subprocess.PIPE)
+  code, stdout, stderr = shell.call(_get_cmd(command, package, version), logoutput=False, quiet=False, sudo=True, stderr = subprocess32.PIPE)
 
   # <conf-selector-tool> can set more than one directory
   # per package, so return that list, especially for dry_run
@@ -210,6 +210,13 @@ def convert_conf_directories_to_symlinks(package, version, dirs):
 
   # determine which directories would be created, if any are needed
   dry_run_directory = create(stack_name, package, version, dry_run = True)
+
+  # if the dry run reported an error, then we must assume that the package does not exist in
+  # the conf-select tool
+  if len(dry_run_directory) == 0:
+    Logger.info("The conf-select tool reported an error for the package {0}. The configuration linking will be skipped.".format(package))
+    return
+
 
   need_dirs = []
   for d in dry_run_directory:
