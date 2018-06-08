@@ -47,7 +47,7 @@ def setup_ranger_yarn():
       )
       params.HdfsResource(None, action="execute")
 
-    setup_ranger_plugin('hadoop-yarn-resourcemanager', 'yarn', params.previous_jdbc_jar,
+    setup_ranger_plugin('hadoop-yarn', 'yarn', params.previous_jdbc_jar,
                         params.downloaded_custom_connector, params.driver_curl_source,
                         params.driver_curl_target, params.java64_home,
                         params.repo_name, params.yarn_ranger_plugin_repo,
@@ -58,7 +58,7 @@ def setup_ranger_yarn():
                         plugin_audit_properties=params.config['configurations']['ranger-yarn-audit'], plugin_audit_attributes=params.config['configuration_attributes']['ranger-yarn-audit'],
                         plugin_security_properties=params.config['configurations']['ranger-yarn-security'], plugin_security_attributes=params.config['configuration_attributes']['ranger-yarn-security'],
                         plugin_policymgr_ssl_properties=params.config['configurations']['ranger-yarn-policymgr-ssl'], plugin_policymgr_ssl_attributes=params.config['configuration_attributes']['ranger-yarn-policymgr-ssl'],
-                        component_list=['hadoop-yarn-resourcemanager'], audit_db_is_enabled=params.xa_audit_db_is_enabled,
+                        component_list=['hadoop-yarn'], audit_db_is_enabled=params.xa_audit_db_is_enabled,
                         credential_file=params.credential_file, xa_audit_db_password=params.xa_audit_db_password, 
                         ssl_truststore_password=params.ssl_truststore_password, ssl_keystore_password=params.ssl_keystore_password,
                         api_version = 'v2', skip_if_rangeradmin_down= not params.retryAble,
