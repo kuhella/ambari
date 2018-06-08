@@ -182,7 +182,7 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
         mode=0744) 
 
     # creating symblink should be done by rpm package
-    # setup_ranger_plugin_jar_symblink(stack_version, service_name, component_list)
+    setup_ranger_plugin_jar_symblink(stack_version, service_name, component_list)
 
     setup_ranger_plugin_keystore(service_name, audit_db_is_enabled, stack_version, credential_file,
               xa_audit_db_password, ssl_truststore_password, ssl_keystore_password,
@@ -195,12 +195,11 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
 
 def setup_ranger_plugin_jar_symblink(stack_version, service_name, component_list):
 
-  stack_root = Script.get_stack_root()
+  stack_root = '/usr/lib'
   jar_files = os.listdir(format('{stack_root}/ranger-{service_name}-plugin/lib'))
-
   for jar_file in jar_files:
     for component in component_list:
-      Execute(('ln','-sf',format('{stack_root}/ranger-{service_name}-plugin/lib/{jar_file}'),format('{stack_root}/current/{component}/lib/{jar_file}')),
+      Execute(('ln','-sf',format('{stack_root}/ranger-{service_name}-plugin/lib/{jar_file}'),format('{stack_root}/{component}/lib/{jar_file}')),
       not_if=format('ls {stack_root}/current/{component}/lib/{jar_file}'),
       only_if=format('ls {stack_root}/ranger-{service_name}-plugin/lib/{jar_file}'),
       sudo=True)
