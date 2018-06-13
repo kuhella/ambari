@@ -484,11 +484,15 @@ public class AmbariServer {
       agentroot.addServlet(cert, "/*");
       cert.setInitOrder(4);
 
-      ServletHolder resources = new ServletHolder(ServletContainer.class);
-      resources.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
-          "com.sun.jersey.api.core.PackagesResourceConfig");
-      resources.setInitParameter("com.sun.jersey.config.property.packages",
-          "org.apache.ambari.server.resources.api.rest;");
+      File resourcesDirectory = new File(configs.getResourceDirPath());
+      ServletHolder resources = new ServletHolder(DefaultServlet.class);
+      resources.setInitParameter("resourceBase", resourcesDirectory.getParent());
+      // Allowing aliases can bypass some security constraints, but allows for following symlinks
+      // which are needed for mpacks. For example:
+      //   /var/lib/ambari-server/resources/stacks/HDP/2.6/services/BEACON ->
+      //   /var/lib/ambari-server/resources/mpacks/beacon-engine.mpack-1.1.0.0/addon-services/BEACON/1.1.0
+      // NOTE: Enabling aliases does not re-introduce the vulnerability described in CVE-2018-8003.
+      resources.setInitParameter("aliases", "true");
       root.addServlet(resources, "/resources/*");
       resources.setInitOrder(5);
 

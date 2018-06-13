@@ -209,7 +209,7 @@ class TestRangerAdmin(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'),
+      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar'),
       mode = 0644
     )
 
@@ -263,6 +263,13 @@ class TestRangerAdmin(RMFTestCase):
       group = 'hadoop',
       cd_access = "a",
       create_parents=True
+    )
+
+    self.assertResourceCalled('File', '/usr/hdp/current/ranger-admin/conf/ranger-admin-env.sh',
+      content = 'export JAVA_HOME=/usr/jdk64/jdk1.7.0_45',
+      owner = 'ranger',
+      group = 'ranger',
+      mode = 0755
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-admin/conf/ranger-admin-env-piddir.sh',
@@ -365,7 +372,7 @@ class TestRangerAdmin(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'),
+      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/mysql-connector-java.jar'),
       mode = 0644
     )
 
@@ -419,6 +426,13 @@ class TestRangerAdmin(RMFTestCase):
       group = 'hadoop',
       cd_access = "a",
       create_parents=True
+    )
+
+    self.assertResourceCalled('File', '/usr/hdp/current/ranger-admin/conf/ranger-admin-env.sh',
+      content = 'export JAVA_HOME=/usr/jdk64/jdk1.7.0_45',
+      owner = 'ranger',
+      group = 'ranger',
+      mode = 0755
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-admin/conf/ranger-admin-env-piddir.sh',

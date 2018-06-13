@@ -153,7 +153,7 @@ def kms(upgrade_type=None):
     copy_jdbc_connector()
 
     File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
-      content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),
+      content = DownloadSource(format("{jdk_location}/{check_db_connection_jar_name}")),
       mode = 0644,
     )
 
@@ -224,6 +224,13 @@ def kms(upgrade_type=None):
       group = params.user_group,
       cd_access = "a",
       create_parents=True
+    )
+
+    File(format('{kms_conf_dir}/ranger-kms-env.sh'),
+      content = format("export JAVA_HOME={java_home}"),
+      owner = params.kms_user,
+      group = params.kms_group,
+      mode = 0755
     )
 
     if params.stack_supports_pid:

@@ -334,8 +334,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   final private Integer masterPort;
   final private String masterProtocol;
 
-  final private static String JDK_RESOURCE_LOCATION =
-      "/resources/";
+  final private static String JDK_RESOURCE_LOCATION = "/resources";
 
   final private static int REPO_URL_CONNECT_TIMEOUT = 3000;
   final private static int REPO_URL_READ_TIMEOUT = 2000;
@@ -4506,7 +4505,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         for (RepositoryXml.Repo repo : os.getRepos()) {
           RepositoryResponse resp = new RepositoryResponse(repo.getBaseUrl(), os.getFamily(),
               repo.getRepoId(), repo.getRepoName(), repo.getDistribution(), repo.getComponents(), repo.getMirrorsList(),
-              repo.getBaseUrl(), repo.getLatestUri(), Collections.<String>emptyList(), Collections.<RepoTag>emptySet());
+              repo.getBaseUrl(), repo.getLatestUri(), Collections.<String>emptyList(), repo.getTags());
 
           resp.setVersionDefinitionId(versionDefinitionId);
           resp.setStackName(stackId.getStackName());
