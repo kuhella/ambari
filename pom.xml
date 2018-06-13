@@ -26,7 +26,7 @@
   <url>http://ambari.apache.org/</url>
   <scm>
     <url>https://github.com/apache/ambari</url>
-    <connection>scm:git:https://git-wip-us.apache.org/repos/asf/ambari.git</connection>
+    <connection>https://git-wip-us.apache.org/repos/asf/ambari.git</connection>
   </scm>
   <licenses>
     <license>
@@ -306,9 +306,6 @@
             <exclude>ambari-common/src/main/python/jinja2/**</exclude>
             <!--Simplejson library (MIT license)-->
             <exclude>ambari-common/src/main/python/ambari_simplejson/**</exclude>
-            <!--Subprocess32 library (PSF license)-->
-            <exclude>ambari-common/src/main/python/ambari_commons/subprocess32.py</exclude>
-            <exclude>ambari-common/src/main/python/ambari_commons/_posixsubprocess.so</exclude>
 
             <exclude>ambari-web/node_modules/**</exclude>
 
@@ -472,6 +469,8 @@
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
+        <module>ambari-client</module>
+        <module>ambari-shell</module>
         <module>ambari-logsearch</module>
       </modules>
     </profile>
@@ -492,6 +491,8 @@
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
+        <module>ambari-client</module>
+        <module>ambari-shell</module>
       </modules>
     </profile>
     <profile>
@@ -504,6 +505,8 @@
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
+        <module>ambari-client</module>
+        <module>ambari-shell</module>
         <module>ambari-logsearch</module>
       </modules>
     </profile>
@@ -523,6 +526,8 @@
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
+        <module>ambari-client</module>
+        <module>ambari-shell</module>
         <module>ambari-logsearch</module>
         </modules>
     </profile>
@@ -548,6 +553,8 @@
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
+        <module>ambari-client</module>
+        <module>ambari-shell</module>
         </modules>
     </profile>
     <profile>

@@ -48,13 +48,6 @@ public abstract class Task {
   public String timeoutConfig = null;
 
   /**
-   * A condition element with can prevent this task from being scheduled in the
-   * upgrade.
-   */
-  @XmlElement(name = "condition")
-  public Condition condition;
-
-  /**
    * @return the type of the task
    */
   public abstract Type getType();

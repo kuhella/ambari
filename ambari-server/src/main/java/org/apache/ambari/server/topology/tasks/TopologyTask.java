@@ -19,12 +19,6 @@
 
 package org.apache.ambari.server.topology.tasks;
 
-import java.util.Set;
-
-import org.apache.ambari.server.RoleCommand;
-
-import com.google.common.collect.ImmutableSet;
-
 /**
  * Task which is executed by the TopologyManager.
  */
@@ -32,23 +26,11 @@ public interface TopologyTask extends Runnable {
   /**
    * Task type.
    */
-  enum Type {
+  public enum Type {
     RESOURCE_CREATION,
     CONFIGURE,
     INSTALL,
-    START {
-      @Override
-      public Set<RoleCommand> tasksToAbortOnFailure() {
-        return ImmutableSet.of(RoleCommand.START);
-      }
-    },
-    ;
-
-    private static Set<RoleCommand> ALL_TASKS = ImmutableSet.of(RoleCommand.INSTALL, RoleCommand.START);
-
-    public Set<RoleCommand> tasksToAbortOnFailure() {
-      return ALL_TASKS;
-    }
+    START
   }
 
   /**
@@ -56,5 +38,5 @@ public interface TopologyTask extends Runnable {
    *
    * @return the type of task
    */
-  Type getType();
+  public Type getType();
 }

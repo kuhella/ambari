@@ -26,7 +26,7 @@ from resource_management.core.base import Fail
 from resource_management.core import ExecuteTimeoutException
 import time
 import os
-from ambari_commons import subprocess32
+import subprocess
 import shutil
 from resource_management.libraries.script import Script
 import win32con
@@ -210,7 +210,7 @@ def _call_command(command, logoutput=False, cwd=None, env=None, wait_for_finish=
     cur_token = OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY)
     current_env = CreateEnvironmentBlock(cur_token, False)
     current_env = _merge_env(current_env, env)
-    proc = subprocess32.Popen(command, stdout=subprocess32.PIPE, stderr=subprocess32.STDOUT,
+    proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                             cwd=cwd, env=current_env, shell=False)
     out, err = proc.communicate()
     code = proc.returncode

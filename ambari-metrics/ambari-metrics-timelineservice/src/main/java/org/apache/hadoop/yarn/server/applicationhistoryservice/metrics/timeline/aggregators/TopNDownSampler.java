@@ -39,7 +39,7 @@ public class TopNDownSampler implements CustomDownSampler {
   protected String metricPatterns;
 
   public static TopNDownSampler fromConfig(Map<String, String> conf) {
-    String metricPatterns = conf.get(DownSamplerUtils.downSamplerConfigPrefix + DownSamplerUtils.topNDownSamplerKey + "." +
+    String metricPatterns = conf.get(DownSamplerUtils.downSamplerConfigPrefix + "topn." +
       DownSamplerUtils.downSamplerMetricPatternsConfig);
 
     String topNString = conf.get(DownSamplerUtils.downSamplerConfigPrefix + "topn.value");

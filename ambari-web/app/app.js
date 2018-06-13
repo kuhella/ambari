@@ -190,7 +190,6 @@ module.exports = Em.Application.create({
   clusterName: null,
   clockDistance: null, // server clock - client clock
   currentStackVersion: '',
-  fullStackVersion: '',
   currentStackName: function() {
     return Em.get((this.get('currentStackVersion') || this.get('defaultStackVersion')).match(/(.+)-\d.+/), '1');
   }.property('currentStackVersion', 'defaultStackVersion'),

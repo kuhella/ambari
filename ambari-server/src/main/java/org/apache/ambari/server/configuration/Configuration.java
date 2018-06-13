@@ -24,7 +24,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Writer;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -92,7 +91,6 @@ import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Charsets;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
@@ -387,7 +385,7 @@ public class Configuration {
    */
   @Markdown(description = "The location and name of the Python script used to bootstrap new Ambari Agent hosts.")
   public static final ConfigurationProperty<String> BOOTSTRAP_SCRIPT = new ConfigurationProperty<>(
-      "bootstrap.script", AmbariPath.getPath("/usr/lib/ambari-server/lib/ambari_server/bootstrap.py"));
+      "bootstrap.script", AmbariPath.getPath("/usr/lib/python2.6/site-packages/ambari_server/bootstrap.py"));
 
   /**
    * The location and name of the Python script executed on the Ambari Agent
@@ -396,7 +394,7 @@ public class Configuration {
   @Markdown(description = "The location and name of the Python script executed on the Ambari Agent host during the bootstrap process.")
   public static final ConfigurationProperty<String> BOOTSTRAP_SETUP_AGENT_SCRIPT = new ConfigurationProperty<>(
       "bootstrap.setup_agent.script",
-      AmbariPath.getPath("/usr/lib/ambari-server/lib/ambari_server/setupAgent.py"));
+      AmbariPath.getPath("/usr/lib/python2.6/site-packages/ambari_server/setupAgent.py"));
 
   /**
    * The password to set on the {@code AMBARI_PASSPHRASE} environment variable
@@ -2596,12 +2594,6 @@ public class Configuration {
   // Ambari server log4j file name
   public static final String AMBARI_LOG_FILE = "log4j.properties";
 
-  /**
-   * Default value of Max number of tasks to schedule in parallel for upgrades.
-   */
-  @Markdown(description = "Default value of max number of tasks to schedule in parallel for upgrades. Upgrade packs can override this value.")
-  public static final ConfigurationProperty<Integer> DEFAULT_MAX_DEGREE_OF_PARALLELISM_FOR_UPGRADES = new ConfigurationProperty<>(
-    "stack.upgrade.default.parallelism", 100);
 
   /**
    * The number of tasks that can be queried from the database at once In the
@@ -3206,7 +3198,7 @@ public class Configuration {
 
     // load the properties
     try {
-      properties.load(new InputStreamReader(inputStream, Charsets.UTF_8));
+      properties.load(inputStream);
       inputStream.close();
     } catch (FileNotFoundException fnf) {
       LOG.info("No configuration file " + CONFIG_FILE + " found in classpath.", fnf);
@@ -5572,13 +5564,6 @@ public class Configuration {
       throw new IllegalArgumentException("Invalid " + TLS_EPHEMERAL_DH_KEY_SIZE + " " + getProperty(TLS_EPHEMERAL_DH_KEY_SIZE));
     }
     return keySize;
-  }
-
-  /**
-   * @return default value of number of tasks to run in parallel during upgrades
-   */
-  public int getDefaultMaxParallelismForUpgrades() {
-    return Integer.parseInt(getProperty(DEFAULT_MAX_DEGREE_OF_PARALLELISM_FOR_UPGRADES));
   }
 
   /**

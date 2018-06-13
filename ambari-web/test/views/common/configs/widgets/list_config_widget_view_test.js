@@ -27,6 +27,7 @@ describe('App.ListConfigWidgetView', function () {
       initPopover: Em.K,
       movePopover: Em.K,
       config: Em.Object.create({
+        validate: App.ServiceConfigProperty.prototype.validate,
         name: 'a.b.c',
         savedValue: '2,1',
         value: '2,1',
@@ -69,8 +70,6 @@ describe('App.ListConfigWidgetView', function () {
       }),
       controller: App.MainServiceInfoConfigsController.create({})
     });
-    view.config.set('validate', App.ServiceConfigProperty.prototype.validate.bind(view.config));
-    view.config.set('validateErrors', App.ServiceConfigProperty.prototype.validateErrors.bind(view.config));
     view.willInsertElement();
     view.didInsertElement();
 

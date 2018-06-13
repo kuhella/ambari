@@ -306,8 +306,6 @@ App.AssignMasterComponents = Em.Mixin.create({
   clearRecommendations: function() {
     if (this.get('content.recommendations')) {
       this.set('content.recommendations', null);
-    }
-    if (this.get('recommendations')) {
       this.set('recommendations', null);
     }
   },
@@ -630,16 +628,14 @@ App.AssignMasterComponents = Em.Mixin.create({
    * @method renderHostInfo
    */
   renderHostInfo: function () {
-    var self = this;
     var isInstaller = (this.get('wizardController.name') === 'installerController' || this.get('content.controllerName') === 'installerController');
     return App.ajax.send({
       name: isInstaller ? 'hosts.info.install' : 'hosts.high_availability.wizard',
       sender: this,
       data: {
         hostNames: isInstaller ? this.getHosts().join() : null
-      }
-    }).success(function(data) {
-      self.loadWizardHostsSuccessCallback(data)
+      },
+      success: 'loadWizardHostsSuccessCallback'
     });
   },
 

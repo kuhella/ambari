@@ -22,8 +22,7 @@ package org.apache.ambari.server.topology;
 import java.util.List;
 import java.util.concurrent.Executor;
 
-import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.topology.tasks.TopologyHostTask;
+import org.apache.ambari.server.topology.tasks.TopologyTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,9 +40,9 @@ final class HostOfferResponse {
   private final Answer answer;
   private final String hostGroupName;
   private final long hostRequestId;
-  private final List<TopologyHostTask> tasks;
+  private final List<TopologyTask> tasks;
 
-  static HostOfferResponse createAcceptedResponse(long hostRequestId, String hostGroupName, List<TopologyHostTask> tasks) {
+  static HostOfferResponse createAcceptedResponse(long hostRequestId, String hostGroupName, List<TopologyTask> tasks) {
     return new HostOfferResponse(Answer.ACCEPTED, hostRequestId, hostGroupName, tasks);
   }
 
@@ -51,7 +50,7 @@ final class HostOfferResponse {
     this(answer, -1, null, null);
   }
 
-  private HostOfferResponse(Answer answer, long hostRequestId, String hostGroupName, List<TopologyHostTask> tasks) {
+  private HostOfferResponse(Answer answer, long hostRequestId, String hostGroupName, List<TopologyTask> tasks) {
     this.answer = answer;
     this.hostRequestId = hostRequestId;
     this.hostGroupName = hostGroupName;
@@ -79,20 +78,12 @@ final class HostOfferResponse {
       executor.execute(new Runnable() {
         @Override
         public void run() {
-          for (TopologyHostTask task : tasks) {
-            try {
-              LOG.info("Running task for accepted host offer for hostname = {}, task = {}", hostName, task.getType());
-              task.run();
-            } catch (Exception e) {
-              HostRequest hostRequest = task.getHostRequest();
-              LOG.error("{} task for host {} failed due to", task.getType(), hostRequest.getHostName(), e);
-              hostRequest.markHostRequestFailed(HostRoleStatus.ABORTED, e, ambariContext.getPersistedTopologyState());
-              break;
-            }
+          for (TopologyTask task : tasks) {
+            LOG.info("Running task for accepted host offer for hostname = {}, task = {}", hostName, task.getType());
+            task.run();
           }
         }
       });
     }
   }
-
 }

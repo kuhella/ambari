@@ -19,6 +19,7 @@
 
 package org.apache.ambari.logfeeder.mapper;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
@@ -27,16 +28,15 @@ import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 public class MapperDate extends Mapper {
   private static final Logger LOG = Logger.getLogger(MapperDate.class);
 
-  private FastDateFormat targetDateFormatter = null;
+  private SimpleDateFormat targetDateFormatter = null;
   private boolean isEpoch = false;
-  private FastDateFormat srcDateFormatter=null;
+  private SimpleDateFormat srcDateFormatter=null;
 
   @Override
   public boolean init(String inputDesc, String fieldName, String mapClassCode, Object mapConfigs) {
@@ -61,9 +61,9 @@ public class MapperDate extends Mapper {
         return true;
       } else {
         try {
-          targetDateFormatter = FastDateFormat.getInstance(targetDateFormat);
+          targetDateFormatter = new SimpleDateFormat(targetDateFormat);
           if (!StringUtils.isEmpty(srcDateFormat)) {
-            srcDateFormatter = FastDateFormat.getInstance(srcDateFormat);
+            srcDateFormatter = new SimpleDateFormat(srcDateFormat);
           }
           return true;
         } catch (Throwable ex) {
@@ -86,7 +86,7 @@ public class MapperDate extends Mapper {
           if (srcDateFormatter != null) {
             Date srcDate = srcDateFormatter.parse(value.toString());
             //set year in src_date when src_date does not have year component
-            if (!srcDateFormatter.getPattern().contains("yy")) {
+            if (!srcDateFormatter.toPattern().contains("yy")) {
               Calendar currentCalendar = Calendar.getInstance();
               Calendar logDateCalendar = Calendar.getInstance();
               logDateCalendar.setTimeInMillis(srcDate.getTime());
@@ -110,7 +110,7 @@ public class MapperDate extends Mapper {
         jsonObj.put(fieldName, value);
       } catch (Throwable t) {
         LogFeederUtil.logErrorMessageByInterval(this.getClass().getSimpleName() + ":apply", "Error applying date transformation." +
-            " isEpoch=" + isEpoch + ", targetDateFormat=" + (targetDateFormatter!=null ?targetDateFormatter.getPattern():"")
+            " isEpoch=" + isEpoch + ", targetateFormat=" + (targetDateFormatter!=null ?targetDateFormatter.toPattern():"")
             + ", value=" + value + ". " + this.toString(), t, LOG, Level.ERROR);
       }
     }
