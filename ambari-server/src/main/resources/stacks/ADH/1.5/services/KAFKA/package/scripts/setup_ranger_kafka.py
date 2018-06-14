@@ -51,7 +51,7 @@ def setup_ranger_kafka():
         )
         params.HdfsResource(None, action="execute")
 
-    setup_ranger_plugin('kafka-broker', 'kafka', params.previous_jdbc_jar,
+    setup_ranger_plugin('kafka', 'kafka', params.previous_jdbc_jar,
                         params.downloaded_custom_connector, params.driver_curl_source,
                         params.driver_curl_target, params.java64_home,
                         params.repo_name, params.kafka_ranger_plugin_repo,
@@ -62,7 +62,7 @@ def setup_ranger_kafka():
                         plugin_audit_properties=params.ranger_kafka_audit, plugin_audit_attributes=params.ranger_kafka_audit_attrs,
                         plugin_security_properties=params.ranger_kafka_security, plugin_security_attributes=params.ranger_kafka_security_attrs,
                         plugin_policymgr_ssl_properties=params.ranger_kafka_policymgr_ssl, plugin_policymgr_ssl_attributes=params.ranger_kafka_policymgr_ssl_attrs,
-                        component_list=['kafka-broker'], audit_db_is_enabled=params.xa_audit_db_is_enabled,
+                        component_list=['kafka'], audit_db_is_enabled=params.xa_audit_db_is_enabled,
                         credential_file=params.credential_file, xa_audit_db_password=params.xa_audit_db_password, 
                         ssl_truststore_password=params.ssl_truststore_password, ssl_keystore_password=params.ssl_keystore_password,
                         api_version = 'v2', skip_if_rangeradmin_down= not params.retryAble,

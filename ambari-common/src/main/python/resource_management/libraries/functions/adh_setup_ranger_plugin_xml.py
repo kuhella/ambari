@@ -199,11 +199,17 @@ def setup_ranger_plugin_jar_symblink(stack_version, service_name, component_list
   jar_files = os.listdir(format('{stack_root}/ranger-{service_name}-plugin/lib'))
   for jar_file in jar_files:
     for component in component_list:
-      Execute(('ln','-sf',format('{stack_root}/ranger-{service_name}-plugin/lib/{jar_file}'),format('{stack_root}/{component}/lib/{jar_file}')),
-      not_if=format('ls {stack_root}/current/{component}/lib/{jar_file}'),
-      only_if=format('ls {stack_root}/ranger-{service_name}-plugin/lib/{jar_file}'),
-      sudo=True)
-
+      if component != "kafka":
+        Execute(('ln','-sf',format('{stack_root}/ranger-{service_name}-plugin/lib/{jar_file}'),format('{stack_root}/{component}/lib/{jar_file}')),
+        not_if=format('ls {stack_root}/lib/{jar_file}'),
+        only_if=format('ls {stack_root}/ranger-{service_name}-plugin/lib/{jar_file}'),
+        sudo=True)
+      else:
+        Execute(('ln','-sf',format('{stack_root}/ranger-{service_name}-plugin/lib/{jar_file}'),format('{stack_root}/{component}/libs/{jar_file}')),
+        not_if=format('ls {stack_root}/lib/{jar_file}'),
+        only_if=format('ls {stack_root}/ranger-{service_name}-plugin/lib/{jar_file}'),
+        sudo=True)
+ 
 def setup_ranger_plugin_keystore(service_name, audit_db_is_enabled, stack_version, credential_file, xa_audit_db_password,
                                 ssl_truststore_password, ssl_keystore_password, component_user, component_group, java_home, cred_lib_path_override = None, cred_setup_prefix_override = None):
 
