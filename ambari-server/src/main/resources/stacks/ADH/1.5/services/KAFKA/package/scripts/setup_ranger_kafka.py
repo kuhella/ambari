@@ -31,10 +31,6 @@ def setup_ranger_kafka():
     else:
       Logger.info("Kafka: Setup ranger: command retry not enabled thus skipping if ranger admin is down !")
 
-    from ra import ra 
-    ra.log("params.xml_configurations_supported"+str(params.xml_configurations_supported)) 
-    ra.log("params.enable_ranger_kafka"+str(params.enable_ranger_kafka)) 
-    ra.log("params.xa_audit_hdfs_is_enabled"+str(params.xa_audit_hdfs_is_enabled)) 
     if params.xml_configurations_supported and params.enable_ranger_kafka and params.xa_audit_hdfs_is_enabled:
       if params.has_namenode:
         params.HdfsResource("/ranger/audit",
