@@ -28,7 +28,7 @@ from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.default import default
 from resource_management.libraries import functions
-from resource_management.libraries.functions.adh_setup_ranger_plugin_xml import get_audit_configs 
+from resource_management.libraries.functions.adh_setup_ranger_plugin_xml import get_audit_configs
 
 
 import status_params
@@ -187,10 +187,10 @@ yarn_timelineservice_kinit_cmd = ""
 nodemanager_kinit_cmd = ""
 
 if security_enabled:
-  _rm_principal_name = config['configurations']['yarn-site']['yarn.resourcemanager.principal']
-  _rm_principal_name = _rm_principal_name.replace('_HOST',hostname.lower())
-  _rm_keytab = config['configurations']['yarn-site']['yarn.resourcemanager.keytab']
-  rm_kinit_cmd = format("{kinit_path_local} -kt {_rm_keytab} {_rm_principal_name};")
+  rm_principal_name = config['configurations']['yarn-site']['yarn.resourcemanager.principal']
+  rm_principal_name = rm_principal_name.replace('_HOST',hostname.lower())
+  rm_keytab = config['configurations']['yarn-site']['yarn.resourcemanager.keytab']
+  rm_kinit_cmd = format("{kinit_path_local} -kt {rm_keytab} {rm_principal_name};")
 
   # YARN timeline security options are only available in HDP Champlain
   if has_ats:
@@ -274,7 +274,7 @@ xml_configurations_supported = config['configurations']['ranger-env']['xml_confi
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 # hostname of the active HDFS HA Namenode (only used when HA is enabled)
 dfs_ha_namenode_active = default("/configurations/hadoop-env/dfs_ha_initial_namenode_active", None)
-if dfs_ha_namenode_active is not None: 
+if dfs_ha_namenode_active is not None:
   namenode_hostname = dfs_ha_namenode_active
 else:
   namenode_hostname = config['clusterHostInfo']['namenode_host'][0]
@@ -316,7 +316,7 @@ if has_ranger_admin:
   driver_curl_target = None
   previous_jdbc_jar = None
 
-  xa_audit_db_password = '' 
+  xa_audit_db_password = ''
   jdbc_jar_name, previous_jdbc_jar_name, audit_jdbc_url, jdbc_driver = get_audit_configs(config)
 
   downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}") if stack_supports_ranger_audit_db else None
@@ -336,7 +336,7 @@ if has_ranger_admin:
     ranger_env = config['configurations']['ranger-env']
     ranger_plugin_properties = config['configurations']['ranger-yarn-plugin-properties']
     policy_user = config['configurations']['ranger-yarn-plugin-properties']['policy_user']
-    yarn_rest_url = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address']  
+    yarn_rest_url = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address']
 
     ranger_plugin_config = {
       'username' : config['configurations']['ranger-yarn-plugin-properties']['REPOSITORY_CONFIG_USERNAME'],
@@ -359,7 +359,7 @@ if has_ranger_admin:
     java_share_dir = '/usr/share/java'
 
     ranger_audit_solr_urls = config['configurations']['ranger-admin-site']['ranger.audit.solr.urls']
-    xa_audit_db_is_enabled = False 
+    xa_audit_db_is_enabled = False
     xa_audit_hdfs_is_enabled = config['configurations']['ranger-yarn-audit']['xasecure.audit.destination.hdfs'] if xml_configurations_supported else None
     ssl_keystore_password = unicode(config['configurations']['ranger-yarn-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password']) if xml_configurations_supported else None
     ssl_truststore_password = unicode(config['configurations']['ranger-yarn-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password']) if xml_configurations_supported else None
