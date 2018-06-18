@@ -731,36 +731,33 @@ limitations under the License.
       Used only if hive.tez.java.opts is used to configure Java options.
     </description>
   </property>
+
+<!-- Deprecated parameters -->
   <property>
     <name>hive.enforce.bucketing</name>
-    <value>true</value>
+    <deleted>true</deleted>
     <description>Whether bucketing is enforced. If true, while inserting into the table, bucketing is enforced.</description>
-    <display-name>Enforce bucketing</display-name>
-    <value-attributes>
-      <type>value-list</type>
-      <entries>
-        <entry>
-          <value>true</value>
-          <label>True</label>
-        </entry>
-        <entry>
-          <value>false</value>
-          <label>False</label>
-        </entry>
-      </entries>
-      <selection-cardinality>1</selection-cardinality>
-    </value-attributes>
-    <depends-on>
-      <property>
-        <type>hive-env</type>
-        <name>hive_txn_acid</name>
-      </property>
-    </depends-on>
   </property>
   <property>
     <name>hive.enforce.sorting</name>
-    <value>true</value>
+    <deleted>true</deleted>
     <description>Whether sorting is enforced. If true, while inserting into the table, sorting is enforced.</description>
+  </property>
+  <property>
+    <name>hive.exec.orc.default.stripe.size</name>
+    <deleted>true</deleted>
+  </property>
+  <property>
+    <name>hive.exec.orc.encoding.strategy</name>
+    <deleted>true</deleted>
+  </property>
+  <property>
+    <name>hive.exec.orc.default.compress</name>
+    <deleted>true</deleted>
+  </property>
+  <property>
+    <name>hive.exec.orc.compression.strategy</name>
+    <deleted>true</deleted>
   </property>
 
 
