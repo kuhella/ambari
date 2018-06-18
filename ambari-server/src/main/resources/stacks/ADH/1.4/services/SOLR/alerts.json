@@ -1,6 +1,6 @@
 {
   "SOLR": {
-    "SOLR_SERVER": [
+    "SOLR": [
       {
         "name": "solr",
         "label": "Solr Web UI",
@@ -10,13 +10,13 @@
         "source": {
           "type": "WEB",
           "uri": {
-            "http": "{{solr-config-env/solr_config_port}}",
-            "https": "{{solr-config-env/solr_config_port}}",
-            "https_property": "{{solr-ssl/solr_ssl_enable}}",
+            "http": "{{solr-env/solr_port}}",
+            "https": "{{solr-env/solr_port}}",
+            "https_property": "{{solr-env/solr_ssl_enabled}}",
             "https_property_value": "true",
-            "kerberos_keytab": "{{solr-config-env/solr_spnego_keytab_path}}",
-            "kerberos_principal": "{{solr-config-env/solr_spnego_principal_name}}",
             "connection_timeout": 5.0,
+            "kerberos_keytab": "{{solr-env/solr_web_kerberos_keytab}}",
+            "kerberos_principal": "{{solr-env/solr_web_kerberos_principal}}",
             "default_port": 8983
           },
           "reporting": {

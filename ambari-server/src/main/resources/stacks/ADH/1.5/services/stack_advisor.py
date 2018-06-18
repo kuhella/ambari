@@ -40,6 +40,7 @@ class ADH15StackAdvisor(ADH14StackAdvisor):
         "HDFS": self.recommendHDFSConfigurations,
         "HIVE": self.recommendHIVEConfigurations,
         "HBASE": self.recommendHBASEConfigurations,
+        "SOLR": self.recommendSolrConfigurations,
         "YARN": self.recommendYARNConfigurations,
         "KAFKA": self.recommendKAFKAConfigurations,
         "STORM": self.recommendSTORMConfigurations,
@@ -444,6 +445,7 @@ class ADH15StackAdvisor(ADH14StackAdvisor):
                     "druid-historical": self.validateDruidHistoricalConfigurations,
                     "druid-broker": self.validateDruidBrokerConfigurations},
           "RANGER": {"ranger-ugsync-site": self.validateRangerUsersyncConfigurations},
+          "SOLR": {"ranger-solr-plugin-properties": self.validateSolrRangerPluginConfigurations},
           "YARN" : {"yarn-site": self.validateYarnSiteConfigurations}
       }
       self.mergeValidators(parentValidators, childValidators)
@@ -584,6 +586,50 @@ class ADH15StackAdvisor(ADH14StackAdvisor):
       putRangerKmsEnvProperty("kms_port", ranger_kms_ssl_port)
     else:
       putRangerKmsEnvProperty("kms_port", "9292")
+
+  def recommendSolrConfigurations(self, configurations, clusterData, services, hosts):
+    super(ADH15StackAdvisor, self).recommendSolrConfigurations(configurations, clusterData, services, hosts)
+
+    # Update ranger-solr-plugin-properties/ranger-solr-plugin-enabled to match ranger-env/ranger-solr-plugin-enabled
+    if "ranger-env" in services["configurations"] \
+      and "ranger-solr-plugin-properties" in services["configurations"] \
+      and "ranger-solr-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
+      putSolrRangerPluginProperty = self.putProperty(configurations, "ranger-solr-plugin-properties", services)
+      ranger_solr_plugin_enabled = services["configurations"]["ranger-env"]["properties"]["ranger-solr-plugin-enabled"]
+      putSolrRangerPluginProperty("ranger-solr-plugin-enabled", ranger_solr_plugin_enabled)
+
+    # Determine if the Ranger/Solr Plugin is enabled
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    ranger_plugin_enabled = "RANGER" in servicesList
+    # Only if the RANGER service is installed....
+    if ranger_plugin_enabled:
+      # If ranger-solr-plugin-properties/ranger-solr-plugin-enabled,
+      # determine if the Ranger/Solr plug-in enabled enabled or not
+      if 'ranger-solr-plugin-properties' in configurations and \
+          'ranger-solr-plugin-enabled' in configurations['ranger-solr-plugin-properties']['properties']:
+        ranger_plugin_enabled = configurations['ranger-solr-plugin-properties']['properties']['ranger-solr-plugin-enabled'].lower() == 'yes'
+      # If ranger-solr-plugin-properties/ranger-solr-plugin-enabled was not changed,
+      # determine if the Ranger/Solr plug-in enabled enabled or not
+      elif 'ranger-solr-plugin-properties' in services['configurations'] and \
+          'ranger-solr-plugin-enabled' in services['configurations']['ranger-solr-plugin-properties']['properties']:
+        ranger_plugin_enabled = services['configurations']['ranger-solr-plugin-properties']['properties']['ranger-solr-plugin-enabled'].lower() == 'yes'
+
+  def validateSolrRangerPluginConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    solr = properties
+    validationItems = []
+    ranger_plugin_properties = getSiteProperties(configurations, "ranger-solr-plugin-properties")
+    ranger_plugin_enabled = ranger_plugin_properties['ranger-solr-plugin-enabled'] if ranger_plugin_properties else 'No'
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    security_enabled = self.isSecurityEnabled(services)
+
+    if ("RANGER" in servicesList) and (ranger_plugin_enabled.lower() == 'yes') and not security_enabled:
+          validationItems.append({"config-name": "ranger-solr-plugin-enabled",
+                                  "item": self.getWarnItem(
+                                  "Ranger Solr plugin should not be enabled in non-kerberos environment.")})
+
+    return self.toConfigurationValidationProblems(validationItems, "ranger-solr-plugin-properties")
+
+
 
   def recommendHDFSConfigurations(self, configurations, clusterData, services, hosts):
     super(ADH15StackAdvisor, self).recommendHDFSConfigurations(configurations, clusterData, services, hosts)
@@ -774,3 +820,4 @@ class ADH15StackAdvisor(ADH14StackAdvisor):
 
               putLivy2ConfProperty = self.putProperty(configurations, 'livy2-conf', services)
               putLivy2ConfProperty('livy.superusers', ','.join(_superusers))
+

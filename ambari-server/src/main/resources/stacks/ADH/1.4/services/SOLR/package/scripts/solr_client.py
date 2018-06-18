@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -19,16 +17,35 @@ limitations under the License.
 
 """
 
-from resource_management.libraries.functions import get_kinit_path
-from resource_management.libraries.functions.default import default
-from resource_management.libraries.functions.format import format
+from resource_management.core.exceptions import ClientComponentHasNoStatus
 from resource_management.libraries.script.script import Script
+from setup_solr import setup_solr
 
-config = Script.get_config()
+class SolrClient(Script):
 
-solr_port = default('configurations/solr-env/solr_port', '8983')
-solr_piddir = default('configurations/solr-env/solr_pid_dir', '/var/run/solr')
-solr_pidfile = format("{solr_piddir}/solr-{solr_port}.pid")
+  def install(self, env):
+    import params
+    env.set_params(params)
+    self.install_packages(env)
+    self.configure(env)
 
-security_enabled = config['configurations']['cluster-env']['security_enabled']
-kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+  def configure(self, env, upgrade_type=None):
+    import params
+    env.set_params(params)
+    setup_solr(name ='client')
+
+  def start(self, env, upgrade_type=None):
+    import params
+    env.set_params(params)
+    self.configure(env)
+
+  def stop(self, env, upgrade_type=None):
+    import params
+    env.set_params(params)
+
+  def status(self, env):
+    raise ClientComponentHasNoStatus()
+
+
+if __name__ == "__main__":
+  SolrClient().execute()

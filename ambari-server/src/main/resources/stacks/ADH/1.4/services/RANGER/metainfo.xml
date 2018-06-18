@@ -62,7 +62,7 @@
           <versionAdvertised>true</versionAdvertised>
           <dependencies>
             <dependency>
-              <name>SOLR/SOLR_SERVER</name>
+              <name>SOLR/SOLR</name>
               <scope>cluster</scope>
               <auto-deploy>
                 <enabled>true</enabled>

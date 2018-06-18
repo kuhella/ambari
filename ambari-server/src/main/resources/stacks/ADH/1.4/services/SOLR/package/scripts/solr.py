@@ -1,128 +1,161 @@
-from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute, File
-from resource_management.libraries.functions.check_process_status import check_process_status
-from resource_management.libraries.functions.format import format
-from resource_management.libraries.script.script import Script
+"""
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
 
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+"""
+
+import os
+import sys
+
+from resource_management.core.resources.system import Execute, File
+from resource_management.core.logger import Logger
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.libraries.functions.get_user_call_output import get_user_call_output
+from resource_management.libraries.functions.show_logs import show_logs
+from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions.version import compare_versions
+from resource_management.libraries.functions.version import format_stack_version
 from setup_solr import setup_solr
-from setup_solr_cloud import setup_solr_cloud
-from setup_solr_hdfs_support import setup_solr_hdfs_support
-from setup_solr_kerberos_auth import setup_solr_kerberos_auth, remove_solr_kerberos_auth
-from setup_solr_ssl_support import setup_solr_ssl_support, remove_solr_ssl_support
-from solr_utils import solr_status_validation, solr_port_validation, delete_write_lock_files
+from setup_ranger_solr import setup_ranger_solr
+from resource_management.libraries.functions import solr_cloud_util
 
 
 class Solr(Script):
-    def install(self, env):
-        import params
-        env.set_params(params)
-        self.install_packages(env)
+  def install(self, env):
+    import params
+    env.set_params(params)
+    self.install_packages(env)
 
-    def configure(self, env):
-        import params
-        env.set_params(params)
+  def configure(self, env, upgrade_type=None):
+    import params
+    env.set_params(params)
 
-        cmd = ('chmod','-R','755',format('{cloud_scripts}/zkcli.sh'))
-        Execute(cmd, sudo = True)
+    setup_solr(name = 'server')
 
-        setup_solr()
+  def start(self, env, upgrade_type=None):
+    import params
+    env.set_params(params)
+    self.configure(env)
 
-        src_file = '/etc/zookeeper/conf.dist/zoo.cfg'
-        dst_file = format('{solr_config_data_dir}')
-        Execute(('cp', '-f', src_file, dst_file), sudo=True)
+    if params.security_enabled:
+      solr_kinit_cmd = format("{kinit_path_local} -kt {solr_kerberos_keytab} {solr_kerberos_principal}; ")
+      Execute(solr_kinit_cmd, user=params.solr_user)
 
-        if params.solr_cloud_mode:
-            setup_solr_cloud()
+    if params.is_supported_solr_ranger:
+       setup_ranger_solr() #Ranger Solr Plugin related call
 
-        if params.solr_hdfs_enable:
-            setup_solr_hdfs_support()
+    if params.restart_during_downgrade:
+      solr_env = {'SOLR_INCLUDE': format('{solr_conf}/solr.in.sh')}
+    else:
+      solr_env = {'SOLR_INCLUDE': format('{solr_conf}/solr-env.sh')}
+    Execute(
+      format('{solr_bindir}/solr start -cloud -noprompt -s {solr_datadir} >> {solr_log} 2>&1'),
+      environment=solr_env,
+      user=params.solr_user
+    )
 
-        if params.solr_ssl_enable:
-            setup_solr_ssl_support()
+    if 'ranger-env' in params.config['configurations'] and params.audit_solr_enabled:
+      solr_cloud_util.upload_configuration_to_zk(
+        zookeeper_quorum=params.zookeeper_quorum,
+        solr_znode=params.solr_znode,
+        config_set=params.ranger_solr_config_set,
+        config_set_dir=params.ranger_solr_conf,
+        tmp_dir=params.tmp_dir,
+        java64_home=params.java64_home,
+        jaas_file=params.solr_jaas_file,
+        retry=30, interval=5)
+
+      solr_cloud_util.create_collection(
+        zookeeper_quorum=params.zookeeper_quorum,
+        solr_znode=params.solr_znode,
+        collection=params.ranger_solr_collection_name,
+        config_set=params.ranger_solr_config_set,
+        java64_home=params.java64_home,
+        shards=params.ranger_solr_shards,
+        replication_factor=int(params.replication_factor),
+        jaas_file=params.solr_jaas_file)
+
+
+  def stop(self, env, upgrade_type=None):
+    import params
+    env.set_params(params)
+
+    try:
+      env = format('{solr_conf}/solr-env.sh')
+      if not os.path.exists(env):
+        old_env = format('{solr_conf}/solr.in.sh')
+        if os.path.exists(old_env):
+          env = old_env
         else:
-            remove_solr_ssl_support()
+          self.configure(env)
 
-        if params.security_enabled:
-            setup_solr_kerberos_auth()
-        else:
-            remove_solr_kerberos_auth()
+      no_op_test = format("! ((`SOLR_INCLUDE={env} {solr_bindir}/solr status | grep process | wc -l`))")
+      Execute(format('{solr_bindir}/solr stop -all >> {solr_log}'),
+              environment={'SOLR_INCLUDE': env},
+              user=params.solr_user,
+              not_if=no_op_test
+              )
 
-        if params.solr_hdfs_enable and params.solr_hdfs_delete_write_lock_files:
-            delete_write_lock_files()
+      File(params.solr_pidfile,
+           action="delete"
+           )
+    except:
+      Logger.warning("Could not stop solr:" + str(sys.exc_info()[1]) + "\n Trying to kill it")
+      self.kill_process(params.solr_pidfile, params.solr_user, params.solr_log_dir)
 
+  def status(self, env):
+    import status_params
+    env.set_params(status_params)
 
-    def start(self, env):
-        import params
-        env.set_params(params)
-        self.configure(env)
+    check_process_status(status_params.solr_pidfile)
 
-        src_file = '/etc/zookeeper/conf.dist/zoo.cfg'
-        dst_file = format('{solr_config_data_dir}')
-        Execute(('cp', '-f', src_file, dst_file), sudo=True)
+  def kill_process(self, pid_file, user, log_dir):
+    import params
+    """
+    Kill the process by pid file, then check the process is running or not. If the process is still running after the kill
+    command, it will try to kill with -9 option (hard kill)
+    """
+    pid = get_user_call_output(format("cat {pid_file}"), user=user, is_checked_call=False)[1]
+    process_id_exists_command = format("ls {pid_file} >/dev/null 2>&1 && ps -p {pid} >/dev/null 2>&1")
 
-        cmd = ('chmod','-R','755',format('{cloud_scripts}/zkcli.sh'))
-        Execute(cmd, sudo = True)
+    kill_cmd = format("{sudo} kill {pid}")
+    Execute(kill_cmd,
+          not_if=format("! ({process_id_exists_command})"))
+    wait_time = 5
 
-	if not solr_port_validation():
-            exit(1)
+    hard_kill_cmd = format("{sudo} kill -9 {pid}")
+    Execute(hard_kill_cmd,
+          not_if=format("! ({process_id_exists_command}) || ( sleep {wait_time} && ! ({process_id_exists_command}) )"),
+          ignore_failures=True)
+    try:
+      Execute(format("! ({process_id_exists_command})"),
+            tries=20,
+            try_sleep=3,
+            )
+    except:
+      show_logs(log_dir, user)
+      raise
 
-        if not solr_status_validation():
-            exit(1)
-
-        Logger.info("Starting Solr ... ")
-        # TODO use solr.in.sh to start args instead of here LWSHADOOP-648
-        start_command = format('{solr_config_bin_dir}/solr start -h {hostname}')
-
-        if params.solr_cloud_mode:
-            start_command += format(' -cloud -z {zookeeper_hosts}{solr_cloud_zk_directory}')
-        elif not params.solr_cloud_mode and params.security_enabled:
-            start_command += ' -DauthenticationPlugin=org.apache.solr.security.KerberosPlugin'
-
-        if params.solr_hdfs_enable:
-            start_command += format(
-                ' -Dsolr.directoryFactory=HdfsDirectoryFactory -Dsolr.lock.type=hdfs')
-            start_command += format(' -Dsolr.hdfs.home={default_fs}{solr_hdfs_directory}')
-            start_command += format(' -Dsolr.hdfs.confdir={hadoop_conf_dir}')
-
-            if params.security_enabled:
-                start_command += format(' -Dsolr.hdfs.security.kerberos.enabled=true')
-                start_command += format(
-                    ' -Dsolr.hdfs.security.kerberos.keytabfile={solr_kerberos_keytab}')
-                start_command += format(
-                    ' -Dsolr.hdfs.security.kerberos.principal={solr_kerberos_principal}')
-
-        start_command += format(
-            ' -p {solr_config_port} -m {solr_config_memory} >> {solr_config_service_log_file} 2>&1')
-
-        Execute(
-                start_command,
-                environment={'JAVA_HOME': params.java64_home},
-                user=params.solr_config_user
-        )
-
-
-
-    def stop(self, env):
-        import params
-        env.set_params(params)
-
-        Execute(
-                format(
-                    '{solr_config_bin_dir}/solr stop -all >> {solr_config_service_log_file} 2>&1'),
-                environment={'JAVA_HOME': params.java64_home},
-                user=params.solr_config_user
-        )
-
-        File(params.solr_config_pid_file,
-             action="delete"
-             )
-
-    def status(self, env):
-        import status_params
-        env.set_params(status_params)
-
-        check_process_status(status_params.solr_config_pid_file)
+    File(pid_file,
+       action="delete"
+       )
 
 
 if __name__ == "__main__":
-    Solr().execute()
+  Solr().execute()
