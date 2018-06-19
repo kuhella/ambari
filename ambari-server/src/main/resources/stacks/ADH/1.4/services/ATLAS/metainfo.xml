@@ -30,7 +30,7 @@
           <versionAdvertised>true</versionAdvertised>
           <dependencies>
             <dependency>
-              <name>SOLR/SOLR</name>
+              <name>SOLR/SOLR_SERVER</name>
               <scope>host</scope>
               <auto-deploy>
                 <enabled>true</enabled>

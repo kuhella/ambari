@@ -48,55 +48,75 @@
     "placement": {
       "configuration-layout": "default",
       "configs": [
-        {
-          "config": "solr-env/solr_minmem",
+       {
+          "config": "solr-config-env/solr_config_memory",
+          "subsection-name": "subsection-solr-col1"
+        },
+	{
+          "config": "solr-cloud/solr_cloud_zk_directory",
           "subsection-name": "subsection-solr-col1"
         },
         {
-          "config": "solr-env/solr_maxmem",
-          "subsection-name": "subsection-solr-col1"
-        },
-        {
-          "config": "solr-env/solr_datadir",
+          "config": "solr-config-env/solr_config_conf_dir",
           "subsection-name": "subsection-solr-col2"
         },
         {
-          "config": "solr-env/solr_znode",
+          "config": "solr-config-env/solr_config_data_dir",
+          "subsection-name": "subsection-solr-col2"
+        },
+        {
+          "config": "solr-config-env/solr_config_pid_dir",
+          "subsection-name": "subsection-solr-col2"
+        },
+        {
+          "config": "solr-config-env/solr_config_log_dir",
+          "subsection-name": "subsection-solr-col2"
+        },
+        {
+          "config": "solr-config-env/solr_config_service_log_dir",
           "subsection-name": "subsection-solr-col2"
         }
       ]
     },
     "widgets": [
       {
-        "config": "solr-env/solr_minmem",
+        "config": "solr-config-env/solr_config_memory",
         "widget": {
-          "type": "slider",
-          "units": [
-            {
-              "unit-name": "GB"
-            }
-          ]
+          "type": "text-field"
         }
       },
       {
-        "config": "solr-env/solr_maxmem",
-        "widget": {
-          "type": "slider",
-          "units": [
-            {
-              "unit-name": "GB"
-            }
-          ]
-        }
-      },
-      {
-        "config": "solr-env/solr_datadir",
+        "config": "solr-cloud/solr_cloud_zk_directory",
         "widget": {
           "type": "directory"
         }
       },
       {
-        "config": "solr-env/solr_znode",
+        "config": "solr-config-env/solr_config_conf_dir",
+        "widget": {
+          "type": "directory"
+        }
+      },
+      {
+        "config": "solr-config-env/solr_config_data_dir",
+        "widget": {
+          "type": "directory"
+        }
+      },
+      {
+        "config": "solr-config-env/solr_config_pid_dir",
+        "widget": {
+          "type": "directory"
+        }
+      },
+      {
+        "config": "solr-config-env/solr_config_log_dir",
+        "widget": {
+          "type": "directory"
+        }
+      },
+      {
+        "config": "solr-config-env/solr_config_service_log_dir",
         "widget": {
           "type": "directory"
         }

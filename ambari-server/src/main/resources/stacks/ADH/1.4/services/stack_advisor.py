@@ -135,7 +135,6 @@ class ADH14StackAdvisor(ADH13StackAdvisor):
       "RANGER": {"ranger-tagsync-site": self.validateRangerTagsyncConfigurations},
       "SPARK2": {"spark2-defaults": self.validateSpark2Defaults,
                  "spark2-thrift-sparkconf": self.validateSpark2ThriftSparkConf},
-      "SOLR": self.recommendSolrConfigurations,
       "STORM": {"storm-site": self.validateStormConfigurations},
     }
     self.mergeValidators(parentValidators, childValidators)
@@ -489,11 +488,6 @@ class ADH14StackAdvisor(ADH13StackAdvisor):
     spart_thrift_queue = self.recommendYarnQueue(services, "spark2-thrift-sparkconf", "spark.yarn.queue")
     if spart_thrift_queue is not None:
       putSparkThriftSparkConf("spark.yarn.queue", spart_thrift_queue)
-
-  def recommendSolrConfigurations(self, configurations, clusterData, services, hosts):
-    putSolrEnvProperty = self.putProperty(configurations, "solr-env", services)
-    putSolrAttributes = self.putPropertyAttribute(configurations, "solr-env")
-    putSolrAttributes('solr_lib_dir','delete','true')
 
   def recommendStormConfigurations(self, configurations, clusterData, services, hosts):
     super(ADH14StackAdvisor, self).recommendStormConfigurations(configurations, clusterData, services, hosts)
