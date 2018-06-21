@@ -195,6 +195,9 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
 
 def setup_ranger_plugin_jar_symblink(stack_version, service_name, component_list):
 
+  if service_name == 'nifi':
+    return None
+
   stack_root = '/usr/lib'
   jar_files = os.listdir(format('{stack_root}/ranger-{service_name}-plugin/lib'))
   for jar_file in jar_files:
