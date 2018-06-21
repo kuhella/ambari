@@ -23,17 +23,18 @@ from resource_management.libraries.functions.format import format
 
 def setup_ranger_nifi(upgrade_type=None):
     import params, os
-
+    from ra import ra
+    ra.log("params.has_ranger_admin"+str(params.has_ranger_admin))
+    ra.log("params.enable_ranger_nifi"+str(params.enable_ranger_nifi))
     if params.has_ranger_admin and params.enable_ranger_nifi:
-        stack_version = params.stack_version_buildnum
-        File(format('{stack_root}/{stack_version}/{service_name}/ext/ranger/scripts/ranger_credential_helper.py'),
-             owner=params.nifi_user,
-             group=params.nifi_group,
-             mode=0750
-             )
+      #  File(format('{stack_root}/{service_name}/ext/ranger/scripts/ranger_credential_helper.py'),
+      #       owner=params.nifi_user,
+      #       group=params.nifi_group,
+      #       mode=0750
+      #       )
 
-        cred_lib_prefix_path = format('{stack_root}/{stack_version}/{service_name}/ext/ranger/install/lib/*')
-        cred_setup_prefix_path = (format('{stack_root}/{stack_version}/{service_name}/ext/ranger/scripts/ranger_credential_helper.py'), '-l', cred_lib_prefix_path)
+        cred_lib_prefix_path = format('{stack_root}/ranger/ext/ranger/install/lib/*')
+        cred_setup_prefix_path = (format('{stack_root}/{service_name}/ext/ranger/scripts/ranger_credential_helper.py'), '-l', cred_lib_prefix_path)
 
         if params.retryAble:
             Logger.info("nifi: Setup ranger: command retry enables thus retrying if ranger admin is down !")
@@ -63,7 +64,7 @@ def setup_ranger_nifi(upgrade_type=None):
         api_version=None
         if params.stack_supports_ranger_kerberos:
             api_version='v2'
-        from resource_management.libraries.functions.setup_ranger_plugin_xml import setup_ranger_plugin
+        from resource_management.libraries.functions.adh_setup_ranger_plugin_xml import setup_ranger_plugin
         setup_ranger_plugin('nifi', params.service_name, params.previous_jdbc_jar,
                             params.downloaded_custom_connector, params.driver_curl_source,
                             params.driver_curl_target, params.java_home,
@@ -78,11 +79,11 @@ def setup_ranger_nifi(upgrade_type=None):
                             component_list=[], audit_db_is_enabled=params.xa_audit_db_is_enabled,
                             credential_file=params.credential_file, xa_audit_db_password=params.xa_audit_db_password,
                             ssl_truststore_password=params.ssl_truststore_password, ssl_keystore_password=params.ssl_keystore_password,
-                            stack_version_override = stack_version, skip_if_rangeradmin_down= not params.retryAble,api_version=api_version,
+                            stack_version_override = False, skip_if_rangeradmin_down= not params.retryAble,api_version=api_version,
                             is_security_enabled = params.security_enabled,
                             is_stack_supports_ranger_kerberos = params.stack_supports_ranger_kerberos,
                             component_user_principal=params.ranger_nifi_principal if params.security_enabled else None,
-                            component_user_keytab=params.ranger_nifi_keytab if params.security_enabled else None, cred_lib_path_override = cred_lib_prefix_path, cred_setup_prefix_override = cred_setup_prefix_path)
+                            component_user_keytab=params.ranger_nifi_keytab if params.security_enabled else None, cred_lib_path_override = False, cred_setup_prefix_override = False)
                             
         #change permissions of ranger xml that were written to 0400
         File(os.path.join(params.nifi_config_dir, 'ranger-nifi-audit.xml'), owner=params.nifi_user, group=params.nifi_group, mode=0400)

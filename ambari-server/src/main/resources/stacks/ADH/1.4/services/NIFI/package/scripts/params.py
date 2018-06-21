@@ -41,21 +41,6 @@ stack_root = Script.get_stack_root()
 zk_root = Script.get_stack_root();
 tmp_dir = Script.get_tmp_dir()
 stack_name = default("/hostLevelParams/stack_name", None)
-stack_version_buildnum = default("/commandParams/version", None)
-zk_stack_version_buildnum = default("/commandParams/version", None)
-
-if stack_name == "HDP":
-  # Override HDP stack root
-  stack_root = "/usr/hdf"
-  # # When installing on HDP, ZK will be in /usr/hdp
-  zk_root = "/usr/hdp"
-  # Override HDP stack version
-  stack_version_buildnum = get_component_version_with_stack_selector("/usr/bin/hdf-select", "nifi")
-  # When installing on HDP, ZK will come from HDP so use hdp-select instead of hdf-select
-  zk_stack_version_buildnum = get_component_version_with_stack_selector("/usr/bin/hdp-select", "zookeeper-client")
-elif not stack_version_buildnum and stack_name:
-  stack_version_buildnum = get_component_version_from_symlink(stack_name, "nifi")
-  zk_stack_version_buildnum = get_component_version_from_symlink(stack_name, "zookeeper")
 
 service_name = 'nifi'
 version_for_stack_feature_checks = get_stack_feature_version(config)
@@ -71,7 +56,7 @@ current_version = default("/hostLevelParams/current_version", None)
 #upgrade direction
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 
-nifi_install_dir = os.path.join(stack_root, "current", "nifi")
+nifi_install_dir = os.path.join(stack_root, "nifi")
  
 # params from nifi-ambari-config
 nifi_initial_mem = config['configurations']['nifi-ambari-config']['nifi.initial_mem']
@@ -330,10 +315,8 @@ if security_enabled:
 
 # ranger host
 # E.g., 2.3
-stack_version_unformatted = config['hostLevelParams']['stack_version']
-stack_version_formatted = format_stack_version(stack_version_unformatted)
-stack_supports_ranger_kerberos = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, stack_version_formatted)
-stack_supports_ranger_audit_db = stack_version_formatted and check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, stack_version_formatted)
+stack_supports_ranger_kerberos = True 
+stack_supports_ranger_audit_db = False 
 
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 has_ranger_admin = not len(ranger_admin_hosts) == 0

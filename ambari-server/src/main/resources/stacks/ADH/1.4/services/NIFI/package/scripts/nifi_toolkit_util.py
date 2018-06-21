@@ -66,25 +66,26 @@ def get_toolkit_script(scriptName, scriptDir = files_dir):
   return result
 
 def copy_toolkit_scripts(toolkit_files_dir, toolkit_tmp_dir, user, group, upgrade_type):
-  run_ca_tmp_script = os.path.join(toolkit_tmp_dir,'run_ca.sh')
-
-  if not sudo.path_isfile(run_ca_tmp_script) or not (upgrade_type is None):
-    File(format(run_ca_tmp_script),
-         content=StaticFile("run_ca.sh"),
-         mode=0755,owner=user, group=group)
-
-  nifiToolkitDirFilesPath = None
-  nifiToolkitDirTmpPath = None
-
-  for dir in os.listdir(toolkit_files_dir):
-    if dir.startswith('nifi-toolkit-'):
-      nifiToolkitDirFilesPath = os.path.join(toolkit_files_dir, dir)
-      nifiToolkitDirTmpPath = os.path.join(toolkit_tmp_dir, dir)
-
-  if not sudo.path_isdir(nifiToolkitDirTmpPath) or not (upgrade_type is None):
-    os.system("\cp -r " + nifiToolkitDirFilesPath+ " " + toolkit_tmp_dir)
-    Directory(nifiToolkitDirTmpPath, owner=user, group=group, create_parents=False, recursive_ownership=True, cd_access="a", mode=0755)
-    os.system("\/var/lib/ambari-agent/ambari-sudo.sh chmod -R 755 " + nifiToolkitDirTmpPath)
+  None
+#  run_ca_tmp_script = os.path.join(toolkit_tmp_dir,'run_ca.sh')
+#
+#  if not sudo.path_isfile(run_ca_tmp_script) or not (upgrade_type is None):
+#    File(format(run_ca_tmp_script),
+#         content=StaticFile("run_ca.sh"),
+#         mode=0755,owner=user, group=group)
+#
+#  nifiToolkitDirFilesPath = None
+#  nifiToolkitDirTmpPath = None
+#
+#  for dir in os.listdir(toolkit_files_dir):
+#    if dir.startswith('nifi-toolkit-'):
+#      nifiToolkitDirFilesPath = os.path.join(toolkit_files_dir, dir)
+#      nifiToolkitDirTmpPath = os.path.join(toolkit_tmp_dir, dir)
+#
+#  if not sudo.path_isdir(nifiToolkitDirTmpPath) or not (upgrade_type is None):
+#    os.system("\cp -r " + nifiToolkitDirFilesPath+ " " + toolkit_tmp_dir)
+#    Directory(nifiToolkitDirTmpPath, owner=user, group=group, create_parents=False, recursive_ownership=True, cd_access="a", mode=0755)
+#    os.system("\/var/lib/ambari-agent/ambari-sudo.sh chmod -R 755 " + nifiToolkitDirTmpPath)
 
 def update_nifi_properties(client_dict, nifi_properties):
   nifi_properties[nifi_constants.NIFI_SECURITY_KEYSTORE_TYPE] = client_dict['keyStoreType']
@@ -308,10 +309,7 @@ def existing_cluster(params):
 
     # Determine where the zkCli.sh shell script is
     # When we are on HDP the stack_root will be /usr/hdf, but ZK will be in /usr/hdp, so use zk_root and not stack_root
-    zk_command_location = os.path.join(params.zk_root, "current", "zookeeper-client", "bin", "zkCli.sh")
-
-    if params.stack_version_buildnum is not None:
-      zk_command_location = os.path.join(params.zk_root, params.zk_stack_version_buildnum, "zookeeper", "bin", "zkCli.sh")
+    zk_command_location = os.path.join(params.zk_root, "zookeeper", "bin", "zkCli.sh")
 
     # create the ZooKeeper query command e.g.
     command = "{0} -server {1}:{2} ls {3}".format(zk_command_location, zookeeper_server, params.zookeeper_port, params.nifi_znode)
