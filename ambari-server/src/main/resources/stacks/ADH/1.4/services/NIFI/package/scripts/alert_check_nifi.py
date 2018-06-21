@@ -18,12 +18,32 @@ limitations under the License.
 
 """
 
-from resource_management import *
-import sys, os
+import glob
+import sys
 
+from resource_management.core.exceptions import ComponentIsNotRunning
+from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.libraries.script import Script
+
+reload(sys)
+sys.setdefaultencoding('utf8')
 config = Script.get_config()
 
-nifi_pid_dir=config['configurations']['nifi-env']['nifi_pid_dir']
-#nifi_master_pid_file=nifi_pid_dir + '/nifi-master.pid'
-nifi_node_pid_file=nifi_pid_dir + '/nifi.pid'
-nifi_ca_pid_file=nifi_pid_dir + '/nifi-ca.pid'
+nifi_pid_dir = config['configurations']['nifi-env']['nifi_pid_dir']
+
+RESULT_CODE_OK = 'OK'
+RESULT_CODE_CRITICAL = 'CRITICAL'
+RESULT_CODE_UNKNOWN = 'UNKNOWN'
+
+
+def execute(configurations={}, parameters={}, host_name=None):
+  try:
+    pid_file = nifi_pid_dir + '/nifi.pid'
+    check_process_status(pid_file)
+  except ComponentIsNotRunning as ex:
+    return (RESULT_CODE_CRITICAL, [str(ex)])
+  except:
+    return (RESULT_CODE_CRITICAL, ["Nifi is not running"])
+
+  return (RESULT_CODE_OK, ["Successful connection to Nifi"])
+

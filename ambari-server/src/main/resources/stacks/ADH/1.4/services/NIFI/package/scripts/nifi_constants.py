@@ -18,12 +18,8 @@ limitations under the License.
 
 """
 
-from resource_management import *
-import sys, os
-
-config = Script.get_config()
-
-nifi_pid_dir=config['configurations']['nifi-env']['nifi_pid_dir']
-#nifi_master_pid_file=nifi_pid_dir + '/nifi-master.pid'
-nifi_node_pid_file=nifi_pid_dir + '/nifi.pid'
-nifi_ca_pid_file=nifi_pid_dir + '/nifi-ca.pid'
+NIFI_SECURITY_KEY_PASSWD = 'nifi.security.keyPasswd'
+NIFI_SECURITY_KEYSTORE_PASSWD = 'nifi.security.keystorePasswd'
+NIFI_SECURITY_KEYSTORE_TYPE = 'nifi.security.keystoreType'
+NIFI_SECURITY_TRUSTSTORE_PASSWD = 'nifi.security.truststorePasswd'
+NIFI_SECURITY_TRUSTSTORE_TYPE = 'nifi.security.truststoreType'

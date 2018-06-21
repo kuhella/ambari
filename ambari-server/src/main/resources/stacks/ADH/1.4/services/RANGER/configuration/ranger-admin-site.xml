@@ -17,6 +17,24 @@
 -->
 <configuration supports_final="true">
   <property>
+    <name>ranger.plugins.nifi.serviceuser</name>
+    <value>nifi</value>
+    <depends-on>
+      <property>
+        <type>nifi-env</type>
+        <name>nifi_user</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>ranger.supportedcomponents</name>
+    <value>kafka,hbase,yarn,knox,hdfs,hive,nifi</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
     <name>ranger.service.host</name>
     <value>{{ranger_host}}</value>
     <description>Host where ranger service to be installed</description>

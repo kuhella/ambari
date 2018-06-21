@@ -17,6 +17,9 @@
                </packages>
              </osSpecific>
             </osSpecifics>
+            <requiredServices>
+               <service>ZOOKEEPER</service>
+            </requiredServices>
             <components>
                 <component>
                   <name>NIFI_MASTER</name>
@@ -24,8 +27,17 @@
                   <category>MASTER</category>
                   <cardinality>1+</cardinality>
                   <timelineAppid>NIFI</timelineAppid>
+                  <dependencies>
+                    <dependency>
+                      <name>ZOOKEEPER/ZOOKEEPER_CLIENT</name>
+                      <scope>host</scope>
+                      <auto-deploy>
+                        <enabled>true</enabled>
+                      </auto-deploy>
+                    </dependency>
+                  </dependencies>
                   <commandScript>
-                    <script>scripts/master.py</script>
+                    <script>scripts/nifi.py</script>
                     <scriptType>PYTHON</scriptType>
                     <timeout>10000</timeout>
                   </commandScript>
@@ -33,8 +45,20 @@
             </components>
 
       	    <configuration-dependencies>
-        	<config-type>nifi-ambari-config</config-type>
-                <config-type>nifi-flow</config-type>
+                <config-type>nifi-ambari-config</config-type>
+                <config-type>nifi-ambari-ssl-config</config-type>
+                <config-type>nifi-authorizers-env</config-type>
+                <config-type>nifi-bootstrap-env</config-type>
+                <config-type>nifi-env</config-type>
+                <config-type>nifi-flow-env</config-type>
+                <config-type>nifi-login-identity-providers-env</config-type>
+                <config-type>nifi-node-logback-env</config-type>
+                <config-type>nifi-properties</config-type>
+                <config-type>nifi-state-management-env</config-type>
+                <config-type>ranger-nifi-audit</config-type>
+                <config-type>ranger-nifi-plugin-properties</config-type>
+                <config-type>ranger-nifi-policymgr-ssl</config-type>
+                <config-type>ranger-nifi-security</config-type>
       	    </configuration-dependencies>
             <restartRequiredAfterChange>false</restartRequiredAfterChange>
             <quickLinksConfigurations>
