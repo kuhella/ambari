@@ -19,19 +19,25 @@ limitations under the License.
 """
 from resource_management.core.logger import Logger
 from resource_management.core.resources import File
+from resource_management.core.resources.system import Directory
 from resource_management.libraries.functions.format import format
 
 def setup_ranger_nifi(upgrade_type=None):
-    import params, os
-    from ra import ra
-    ra.log("params.has_ranger_admin"+str(params.has_ranger_admin))
-    ra.log("params.enable_ranger_nifi"+str(params.enable_ranger_nifi))
+    if not os.path.exists(format('{stack_root}/{service_name}/ext/ranger/scripts')):
+      Directory(format('{stack_root}/{service_name}/ext/ranger/scripts'),
+                owner=params.nifi_user,
+                group=params.nifi_group,
+                mode=0750,
+                cd_access='a',
+                create_parents = True,
+                recursive_ownership = True)
+
     if params.has_ranger_admin and params.enable_ranger_nifi:
-      #  File(format('{stack_root}/{service_name}/ext/ranger/scripts/ranger_credential_helper.py'),
-      #       owner=params.nifi_user,
-      #       group=params.nifi_group,
-      #       mode=0750
-      #       )
+        File(format('{stack_root}/{service_name}/ext/ranger/scripts/ranger_credential_helper.py'),
+             owner=params.nifi_user,
+             group=params.nifi_group,
+             mode=0750,
+             )
 
         cred_lib_prefix_path = format('{stack_root}/ranger/ext/ranger/install/lib/*')
         cred_setup_prefix_path = (format('{stack_root}/{service_name}/ext/ranger/scripts/ranger_credential_helper.py'), '-l', cred_lib_prefix_path)
@@ -83,7 +89,7 @@ def setup_ranger_nifi(upgrade_type=None):
                             is_security_enabled = params.security_enabled,
                             is_stack_supports_ranger_kerberos = params.stack_supports_ranger_kerberos,
                             component_user_principal=params.ranger_nifi_principal if params.security_enabled else None,
-                            component_user_keytab=params.ranger_nifi_keytab if params.security_enabled else None, cred_lib_path_override = False, cred_setup_prefix_override = False)
+                            component_user_keytab=params.ranger_nifi_keytab if params.security_enabled else None, cred_lib_path_override = cred_lib_prefix_path, cred_setup_prefix_override = cred_setup_prefix_path) 
                             
         #change permissions of ranger xml that were written to 0400
         File(os.path.join(params.nifi_config_dir, 'ranger-nifi-audit.xml'), owner=params.nifi_user, group=params.nifi_group, mode=0400)
