@@ -17,12 +17,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import os
 from resource_management.core.logger import Logger
 from resource_management.core.resources import File
 from resource_management.core.resources.system import Directory
 from resource_management.libraries.functions.format import format
 
 def setup_ranger_nifi(upgrade_type=None):
+    import params
     if not os.path.exists(format('{stack_root}/{service_name}/ext/ranger/scripts')):
       Directory(format('{stack_root}/{service_name}/ext/ranger/scripts'),
                 owner=params.nifi_user,
@@ -89,12 +91,12 @@ def setup_ranger_nifi(upgrade_type=None):
                             is_security_enabled = params.security_enabled,
                             is_stack_supports_ranger_kerberos = params.stack_supports_ranger_kerberos,
                             component_user_principal=params.ranger_nifi_principal if params.security_enabled else None,
-                            component_user_keytab=params.ranger_nifi_keytab if params.security_enabled else None, cred_lib_path_override = cred_lib_prefix_path, cred_setup_prefix_override = cred_setup_prefix_path) 
-                            
+                            component_user_keytab=params.ranger_nifi_keytab if params.security_enabled else None, cred_lib_path_override = cred_lib_prefix_path, cred_setup_prefix_override = cred_setup_prefix_path)
+
         #change permissions of ranger xml that were written to 0400
         File(os.path.join(params.nifi_config_dir, 'ranger-nifi-audit.xml'), owner=params.nifi_user, group=params.nifi_group, mode=0400)
         File(os.path.join(params.nifi_config_dir, 'ranger-nifi-security.xml'), owner=params.nifi_user, group=params.nifi_group, mode=0400)
-        File(os.path.join(params.nifi_config_dir, 'ranger-policymgr-ssl.xml'), owner=params.nifi_user, group=params.nifi_group, mode=0400)        
+        File(os.path.join(params.nifi_config_dir, 'ranger-policymgr-ssl.xml'), owner=params.nifi_user, group=params.nifi_group, mode=0400)
 
     else:
         Logger.info('Ranger admin not installed')
