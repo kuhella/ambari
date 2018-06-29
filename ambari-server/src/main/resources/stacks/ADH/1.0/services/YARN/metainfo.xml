@@ -32,6 +32,7 @@
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
           <commandScript>
             <script>scripts/resourcemanager.py</script>
             <scriptType>PYTHON</scriptType>
@@ -67,6 +68,7 @@
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
           <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
           <commandScript>
             <script>scripts/nodemanager.py</script>
             <scriptType>PYTHON</scriptType>
@@ -110,7 +112,7 @@
               <type>xml</type>
               <fileName>capacity-scheduler.xml</fileName>
               <dictionaryName>capacity-scheduler</dictionaryName>
-            </configFile>                        
+            </configFile>
           </configFiles>
         </component>
       </components>
@@ -137,7 +139,7 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
-      
+
       <requiredServices>
         <service>HDFS</service>
         <service>MAPREDUCE2</service>
@@ -245,7 +247,7 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
-      
+
       <requiredServices>
         <service>YARN</service>
       </requiredServices>

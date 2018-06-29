@@ -31,6 +31,7 @@
           <category>MASTER</category>
           <cardinality>1-2</cardinality>
           <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
           <commandScript>
             <script>scripts/namenode.py</script>
             <scriptType>PYTHON</scriptType>
@@ -75,6 +76,7 @@
           <!-- TODO:  cardinality is conditional on HA usage -->
           <cardinality>1</cardinality>
           <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
           <category>MASTER</category>
           <commandScript>
             <script>scripts/snamenode.py</script>
@@ -109,7 +111,7 @@
               <type>env</type>
               <fileName>log4j.properties</fileName>
               <dictionaryName>hdfs-log4j,yarn-log4j</dictionaryName>
-            </configFile>                          
+            </configFile>
             <configFile>
               <type>env</type>
               <fileName>hadoop-env.sh</fileName>
@@ -168,7 +170,7 @@
             </package>
           </packages>
         </osSpecific>
-        
+
         <osSpecific>
           <osFamily>redhat6,suse11</osFamily>
           <packages>
@@ -187,7 +189,7 @@
             </package>
           </packages>
         </osSpecific>
-        
+
         <osSpecific>
           <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
@@ -212,7 +214,7 @@
             </package>
           </packages>
         </osSpecific>
-            
+
       </osSpecifics>
 
       <commandScript>
@@ -220,7 +222,7 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
-      
+
       <requiredServices>
         <service>ZOOKEEPER</service>
       </requiredServices>
