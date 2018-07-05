@@ -19,12 +19,11 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_final="false" supports_adding_forbidden="true">
-    <!-- topology file -->
-
-    <property>
+  <!-- topology file -->
+  <property>
     <name>content</name>
+    <display-name>topology template</display-name>
     <value>
         &lt;topology&gt;
 
@@ -86,7 +85,7 @@
 
             &lt;service&gt;
                 &lt;role&gt;WEBHDFS&lt;/role&gt;
-                &lt;url&gt;http://{{namenode_host}}:{{namenode_http_port}}/webhdfs&lt;/url&gt;
+                {{webhdfs_service_urls}}
             &lt;/service&gt;
 
             &lt;service&gt;
@@ -119,14 +118,16 @@
         The configuration specifies the Hadoop cluster services Knox will provide access to.
     </description>
     <value-attributes>
-       <empty-value-valid>true</empty-value-valid>
-       <show-property-name>false</show-property-name>
+      <type>content</type>
+      <empty-value-valid>true</empty-value-valid>
+      <show-property-name>false</show-property-name>
     </value-attributes>
-        <depends-on>
-            <property>
-                <type>ranger-knox-plugin-properties</type>
-                <name>ranger-knox-plugin-enabled</name>
-            </property>
-        </depends-on>
-    </property>
+    <depends-on>
+      <property>
+        <type>ranger-knox-plugin-properties</type>
+        <name>ranger-knox-plugin-enabled</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>
