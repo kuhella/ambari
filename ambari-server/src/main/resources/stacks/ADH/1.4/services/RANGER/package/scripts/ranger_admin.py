@@ -73,9 +73,9 @@ class RangerAdmin(Script):
       File(params.ranger_admin_pid_file,
         action = "delete"
       )
-
-    # Stop another solr instance for ranger audits
-    Execute(('bash', '/usr/lib/solr/ranger_audit_server/scripts/stop_solr.sh'), environment={'JAVA_HOME': params.java_home}, user='solr')
+    if not params.is_solrCloud_enabled:
+      # Stop another solr instance for ranger audits
+      Execute(('bash', '/usr/lib/solr/ranger_audit_server/scripts/stop_solr.sh'), environment={'JAVA_HOME': params.java_home}, user='solr')
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
@@ -103,11 +103,12 @@ class RangerAdmin(Script):
       setup_ranger_audit_solr()
 
     # Install another solr instance for ranger audits in old style, without InfraSolr
-    service_packagedir = os.path.realpath(__file__).split('/scripts')[0]
-    Execute('find '+service_packagedir+' -iname "*.sh" | xargs chmod +x')
-    Execute('cd '+format('{service_packagedir}/scripts/solr_for_audit_setup ')+'&& '+'bash '+'./setup.sh', environment={'JAVA_HOME': params.java_home})
+    if not params.is_solrCloud_enabled:
+      service_packagedir = os.path.realpath(__file__).split('/scripts')[0]
+      Execute('find '+service_packagedir+' -iname "*.sh" | xargs chmod +x')
+      Execute('cd '+format('{service_packagedir}/scripts/solr_for_audit_setup ')+'&& '+'bash '+'./setup.sh', environment={'JAVA_HOME': params.java_home})
     #start another solr instance for ranger audits
-    Execute(format('/usr/lib/solr/ranger_audit_server/scripts/start_solr.sh'), environment={'JAVA_HOME': params.java_home}, user='solr')
+      Execute(format('/usr/lib/solr/ranger_audit_server/scripts/start_solr.sh'), environment={'JAVA_HOME': params.java_home}, user='solr')
 
     update_password_configs()
     ranger_service('ranger_admin')
