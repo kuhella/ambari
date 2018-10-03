@@ -6,5 +6,6 @@ config = Script.get_config()
 
 flink_pid_dir=config['configurations']['flink-env']['flink_pid_dir']
 flink_pid_file=flink_pid_dir + '/flink-flink-jobmanager.pid'
+flink_task_pid_file=flink_pid_dir + '/flink-flink-taskmanager.pid'
 
 flink_home_dir=config['configurations']['flink-env']['flink_home_dir']

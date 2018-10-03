@@ -5,7 +5,7 @@ from resource_management.libraries.functions.check_process_status import check_p
 from resource_management import *
 from subprocess import call
 
-class Master(Script):
+class TaskManager(Script):
 
   def get_component_name(self):
     return "flink"
@@ -40,28 +40,16 @@ class Master(Script):
     env.set_params(params)
     env.set_params(status_params)
     
-    self.create_hdfs_user(params.flink_user)
-    self.config_ssh(params.flink_user)
-
     #write out config
     properties_content=InlineTemplate(params.flink_yaml_content)
     File(format("{conf_dir}/flink-conf.yaml"), content=properties_content, owner=params.flink_user)
             
-  def config_ssh(self, flink_user):
-    if not os.path.exists(format("{flink_home_dir}/.ssh/id_rsa")):
-      cmd1 = format("ssh-keygen -f {flink_home_dir}/.ssh/id_rsa -t rsa -N \"\"")
-      Execute(cmd1, user=flink_user)
-      cmd2 = format("cat {flink_home_dir}/.ssh/id_rsa.pub >> {flink_home_dir}/.ssh/authorized_keys")
-      Execute(cmd2, user=flink_user)
-      cmd3 = format("echo -e \"Host localhost\n  StrictHostKeyChecking no\" > {flink_home_dir}/.ssh/config")
-      Execute(cmd3, user=flink_user)
-
   def stop(self, env):
     import params
     import status_params
-    cmd = format("{params.bin_dir}/jobmanager.sh stop")
+    cmd = format("{params.bin_dir}/taskmanager.sh stop")
     Execute (cmd, user=params.flink_user, environment=self.get_env())
-    File(status_params.flink_pid_file,
+    File(status_params.flink_task_pid_file,
       action = "delete",
       owner = params.flink_user
     )
@@ -75,7 +63,7 @@ class Master(Script):
     
     self.configure(env, True)
     
-    cmd = format("{params.bin_dir}/jobmanager.sh start cluster >> {params.flink_log_file}")
+    cmd = format("{params.bin_dir}/taskmanager.sh start >> {params.flink_log_file}")
     #cmd = "env >/tmp/1.log"
     Execute (cmd, user=params.flink_user, environment=self.get_env())
 
@@ -84,12 +72,7 @@ class Master(Script):
 
   def status(self, env):
     import status_params       
-    check_process_status(status_params.flink_pid_file)
+    check_process_status(status_params.flink_task_pid_file)
 
-  def create_hdfs_user(self, user):
-    Execute('hadoop fs -mkdir -p /user/'+user, user='hdfs', ignore_failures=True)
-    Execute('hadoop fs -chown ' + user + ' /user/'+user, user='hdfs')
-    Execute('hadoop fs -chgrp ' + user + ' /user/'+user, user='hdfs')
-          
 if __name__ == "__main__":
-  Master().execute()
+  TaskManager().execute()

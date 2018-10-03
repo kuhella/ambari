@@ -4,21 +4,41 @@
 <configuration>
 
   <property>
+    <name>flink_jobmanager_host</name>
+    <value></value>
+    <value-attributes>
+      <empty-value-valid>false</empty-value-valid>
+    </value-attributes>
+    <description>Flink JobManager Hostname</description>
+    <display-name>Flink JobManager Hostname</display-name>
+  </property>
+
+  <property>
     <name>flink_log_dir</name>
-    <value>/usr/lib/flink/log</value>
+    <value>/usr/lib/flink/log/</value>
     <description>Flink Log dir</description>
+    <display-name>Flink Log Directory</display-name>
   </property>
 
  <property>
     <name>flink_pid_dir</name>
     <value>/var/run/flink</value>
     <description>Dir containing process ID file</description>
+    <display-name>Flink PID Directory</display-name>
   </property>
 
  <property>
     <name>flink_home_dir</name>
     <value>/home/flink</value>
     <description>Flink home dir</description>
+    <display-name>Flink Home Directory</display-name>
+  </property>
+
+ <property>
+    <name>flink_conf_dir</name>
+    <value>/etc/flink/conf</value>
+    <description>Flink conf dir</description>
+    <display-name>Flink Configuration Directory</display-name>
   </property>
 
   <property>
@@ -26,6 +46,7 @@
     <value>flink</value>
     <property-type>USER</property-type>
     <description>User flink daemon runs as</description>
+    <display-name>Flink Default Username</display-name>
   </property>
 
   <property>
@@ -33,11 +54,12 @@
     <value>flink</value>
     <property-type>GROUP</property-type>
     <description>flink group</description>
+    <display-name>Flink Default Group</display-name>
   </property>
 
 
   <property>
-    <name>content</name>
+    <name>flink_yaml_content</name>
     <value>
 ################################################################################
 #  Licensed to the Apache Software Foundation (ASF) under one
@@ -66,7 +88,7 @@
 # The JobManager process will use this hostname to bind the listening servers to.
 # The TaskManagers will try to connect to the JobManager on that host.
 
-jobmanager.rpc.address: localhost
+jobmanager.rpc.address: {{flink_manager_host}}
 
 
 # The port where the JobManager's main actor system listens for messages.
@@ -194,7 +216,7 @@ env.pid.dir: /var/run/flink
 
   </value>
   <description>Template for flink-conf.yaml</description>
-
+  <display-name>Flink Configuration Template</display-name>
   </property>
 
 </configuration>
