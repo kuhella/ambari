@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<metainfo>
+    <schemaVersion>2.0</schemaVersion>
+    <services>
+        <service>
+            <name>SOLR</name>
+            <displayName>Solr</displayName>
+            <comment>Solr is a search platform from the Apache Lucene project.
+                Its major features include full-text search, hit highlighting,
+                faceted search, dynamic clustering, database integration, and
+                rich document (e.g., Word, PDF) handling.
+            </comment>
+            <version>7.3.1.1.6</version>
+        </service>
+    </services>
+</metainfo>

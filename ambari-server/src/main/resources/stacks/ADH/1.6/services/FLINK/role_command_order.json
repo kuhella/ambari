@@ -1,0 +1,22 @@
+{
+  "general_deps": {
+    "_comment": "Dependencies for Flink service",
+    "FLINK_JOBMANAGER-START": [
+      "ZOOKEEPER_SERVER-START",
+      "NAMENODE-START",
+      "DATANODE-START",
+      "SECONDARY_NAMENODE-START",
+      "HDFS_SERVICE_CHECK-SERVICE_CHECK"
+    ],
+    "FLINK_TASKMANAGER-START": [
+      "FLINK_JOBMANAGER-START"
+    ],
+    "FLINK_HISTORYSEVER-START": [
+      "FLINK_TASKMANAGER-START"
+    ],
+    "FLINK_JOBMANAGER-STOP": [
+      "FLINK_TASKMANAGER-STOP",
+      "FLINK_HISTORYSEVER-STOP"
+    ]
+  }
+}
