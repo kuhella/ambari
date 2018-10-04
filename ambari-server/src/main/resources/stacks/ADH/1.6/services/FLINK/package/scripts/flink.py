@@ -46,6 +46,7 @@ class Master(Script):
     #write out config
     properties_content=InlineTemplate(params.flink_yaml_content)
     File(format("{conf_dir}/flink-conf.yaml"), content=properties_content, owner=params.flink_user)
+    Execute("mkdir -p {flink_home_dir}/log")
             
   def config_ssh(self, flink_user):
     if not os.path.exists(format("{flink_home_dir}/.ssh/id_rsa")):
