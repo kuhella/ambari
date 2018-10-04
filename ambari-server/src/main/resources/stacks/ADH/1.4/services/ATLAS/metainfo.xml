@@ -140,6 +140,9 @@
             <package>
               <name>atlas-metadata</name>
             </package>
+            <package>
+              <name>ranger-atlas-plugin</name>
+            </package>
           </packages>
         </osSpecific>
         <osSpecific>
@@ -147,6 +150,9 @@
           <packages>
             <package>
               <name>atlas-metadata</name>
+            </package>
+            <package>
+              <name>ranger-atlas-plugin</name>
             </package>
           </packages>
         </osSpecific>
