@@ -43,8 +43,8 @@ SERVER_ROLE_DIRECTORY_MAP = {
   'SPARK2_JOBHISTORYSERVER' : 'spark2-historyserver',
   'SPARK2_CLIENT' : 'spark',
   'SPARK2_THRIFTSERVER' : 'spark2-thriftserver',
-  'LIVY2_SERVER' : 'livy',
-  'LIVY2_CLIENT' : 'livy'
+  'LIVY2_SERVER' : 'livy2-server',
+  'LIVY2_CLIENT' : 'livy2-client'
 
 }
 
@@ -103,27 +103,6 @@ spark_history_server_stop = format("{spark_home}/sbin/stop-history-server.sh")
 spark_thrift_server_start = format("{spark_home}/sbin/start-thriftserver.sh")
 spark_thrift_server_stop = format("{spark_home}/sbin/stop-thriftserver.sh")
 spark_hadoop_lib_native = format("{stack_root}/hadoop/lib/native:{stack_root}/hadoop/lib/native/Linux-amd64-64")
-
-livy2_component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "LIVY2_SERVER")
-livy2_conf = format("{stack_root}/{livy2_component_directory}/conf")
-livy2_log_dir = config['configurations']['livy2-env']['livy2_log_dir']
-livy2_pid_dir = status_params.livy2_pid_dir
-livy2_home = format("{stack_root}/{livy2_component_directory}")
-livy2_user = status_params.livy2_user
-livy2_group = status_params.livy2_group
-user_group = status_params.user_group
-livy2_hdfs_user_dir = format("/user/{livy2_user}")
-livy2_server_pid_file = status_params.livy2_server_pid_file
-livy2_recovery_dir = default("/configurations/livy2-conf/livy.server.recovery.state-store.url", "/livy2-recovery")
-
-livy2_server_start = format("{livy2_home}/bin/livy-server start")
-livy2_server_stop = format("{livy2_home}/bin/livy-server stop")
-livy2_logs_dir = format("{livy2_home}/logs")
-
-livy2_env_sh = config['configurations']['livy2-env']['content']
-livy2_log4j_properties = config['configurations']['livy2-log4j-properties']['content']
-livy2_spark_blacklist_properties = config['configurations']['livy2-spark-blacklist']['content']
-
 
 run_example_cmd = format("{spark_home}/bin/run-example")
 spark_smoke_example = "SparkPi"

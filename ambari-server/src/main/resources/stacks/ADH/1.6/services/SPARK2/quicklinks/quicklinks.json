@@ -22,21 +22,6 @@
           "regex": "^(\\d+)$",
           "site": "spark2-defaults"
         }
-      },
-      {
-        "name": "livy2_server_ui",
-        "label": "Livy2 Server UI",
-        "component_name": "LIVY2_SERVER",
-        "requires_user_name": "false",
-        "url": "%@://%@:%@/ui",
-        "port":{
-          "http_property": "livy.server.port",
-          "http_default_port": "8999",
-          "https_property": "livy.server.port",
-          "https_default_port": "8899",
-          "regex": "^(\\d+)$",
-          "site": "livy2-conf"
-        }
       }
     ]
   }
