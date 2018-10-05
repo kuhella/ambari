@@ -38,7 +38,7 @@ config  = Script.get_config()
 tmp_dir = '/tmp/'
 stack_root = '/usr/lib/'
 
-stack_name = 'ADH' 
+stack_name = 'ADH'
 version = default("/commandParams/version", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 
@@ -180,7 +180,7 @@ repo_config_password = unicode(config['configurations']['kms-properties']['REPOS
 kms_plugin_config = {
   'username' : repo_config_username,
   'password' : repo_config_password,
-  'provider' : format('kms://http@{kms_host}:{kms_port}/kms') 
+  'provider' : format('kms://http@{kms_host}:{kms_port}/kms')
 }
 
 xa_audit_db_is_enabled = False
@@ -196,7 +196,7 @@ ranger_kms_hosts = config['clusterHostInfo']['ranger_kms_server_hosts']
 if current_host in ranger_kms_hosts:
   kms_host = current_host
 
-check_db_connection_jar_name = "DBConnectionVerification.jar"
+check_db_connection_jar_name = "/DBConnectionVerification.jar"
 check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar_name}")
 ranger_kms_jdbc_connection_url = config['configurations']['dbks-site']['ranger.ks.jpa.jdbc.url']
 ranger_kms_jdbc_driver = config['configurations']['dbks-site']['ranger.ks.jpa.jdbc.driver']
