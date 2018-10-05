@@ -15,7 +15,7 @@
 
   <property>
     <name>flink_log_dir</name>
-    <value>/usr/lib/flink/log</value>
+    <value>/usr/lib/flink/log/</value>
     <description>Flink Log dir</description>
     <display-name>Flink Log Directory</display-name>
   </property>
@@ -59,7 +59,7 @@
 
 
   <property>
-    <name>content</name>
+    <name>flink_yaml_content</name>
     <value>
 ################################################################################
 #  Licensed to the Apache Software Foundation (ASF) under one
@@ -98,12 +98,12 @@ jobmanager.rpc.port: 6123
 
 # The heap size for the JobManager JVM
 
-jobmanager.heap.size: 256
+jobmanager.heap.mb: 256
 
 
 # The heap size for the TaskManager JVM
 
-taskmanager.heap.size: 512
+taskmanager.heap.mb: 512
 
 
 # The number of task slots that each TaskManager offers. Each slot runs one parallel pipeline.

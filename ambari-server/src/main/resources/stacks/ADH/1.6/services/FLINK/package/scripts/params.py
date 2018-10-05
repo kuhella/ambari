@@ -21,7 +21,7 @@ bin_dir = flink_install_dir + '/bin'
 java_home = config['hostLevelParams']['java_home']
 
 # params from flink-conf.yaml
-flink_yaml_content = config['configurations']['flink-env']['content']
+flink_yaml_content = config['configurations']['flink-env']['flink_yaml_content']
 flink_user = config['configurations']['flink-env']['flink_user']
 flink_group = config['configurations']['flink-env']['flink_group']
 flink_log_dir = config['configurations']['flink-env']['flink_log_dir']
