@@ -73,9 +73,9 @@ class RangerAdmin(Script):
       File(params.ranger_admin_pid_file,
         action = "delete"
       )
-
-    # Stop another solr instance for ranger audits
-    Execute(('bash', '/usr/lib/solr/ranger_audit_server/scripts/stop_solr.sh'), environment={'JAVA_HOME': params.java_home}, user='solr')
+    if not params.is_solrCloud_enabled:
+      # Stop another solr instance for ranger audits
+      Execute(('bash', '/usr/lib/solr/ranger_audit_server/scripts/stop_solr.sh'), environment={'JAVA_HOME': params.java_home}, user='solr')
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
