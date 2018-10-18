@@ -1,0 +1,70 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<view>
+    <name>GPDB</name>
+    <label>GPDB</label>
+    <version>1.0.0</version>
+    <build>${env.BUILD_NUMBER}</build>
+
+    <parameter>
+        <name>gpdb.user.name</name>
+        <description>Name of the user to connect to GPDB.</description>
+        <label>GPDB User Name</label>
+        <place-holder>gpadmin</place-holder>
+        <default-value>gpadmin</default-value>
+        <required>true</required>
+    </parameter>
+
+    <parameter>
+        <name>gpdb.user.password</name>
+        <description>Password of the user to connect to GPDB.</description>
+        <label>GPDB User Password</label>
+        <place-holder>gpadmin</place-holder>
+        <default-value>gpadmin</default-value>
+        <required>true</required>
+        <masked>true</masked>
+    </parameter>
+
+    <parameter>
+        <name>gpdb.master.host</name>
+        <description>GPDB Master Host.</description>
+        <label>GPDB Master Host</label>
+        <cluster-config>gpdb-site/gpdb_master_address_host</cluster-config>
+        <required>true</required>
+    </parameter>
+
+    <parameter>
+        <name>gpdb.master.port</name>
+        <description>GPDB Master Port.</description>
+        <label>GPDB Master Port</label>
+        <place-holder>5432</place-holder>
+        <cluster-config>gpdb-site/gpdb_master_address_port</cluster-config>
+        <required>true</required>
+    </parameter>
+
+    <min-ambari-version>2.2.*</min-ambari-version>
+
+    <resource>
+        <name>query</name>
+        <plural-name>queries</plural-name>
+        <id-property>id</id-property>
+        <resource-class>org.apache.ambari.view.gpdb.QueryResource</resource-class>
+        <provider-class>org.apache.ambari.view.gpdb.QueryResourceProvider</provider-class>
+        <service-class>org.apache.ambari.view.gpdb.QueryService</service-class>
+    </resource>
+
+</view>

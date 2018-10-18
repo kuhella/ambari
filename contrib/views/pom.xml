@@ -44,6 +44,7 @@
 <!--     <module>slider</module> -->
     <module>capacity-scheduler</module>
     <module>tez</module>
+    <module>gpdb</module>
 <!--    <module>hawq</module>
     <module>storm</module>
     <module>hueambarimigration</module> -->
