@@ -1,39 +1,42 @@
-# Arenadata Hadoop 1.6
+# Arenadata Hadoop 1.5.2
 
 Arenadata Hadoop (Универсальная платформа данных) -  это интегрированный набор компонентов корпоративного уровня на базе решений с открытым исходным кодом. Платформа включает в себя все необходимые компоненты для управления данными, доступа к данным, анализа данных, интеграции, безопасности и администрирования.
 
-ADH 1.6 Release Notes
-Оффициальные версия продуктов Apache в ADH 1.6
-Все компоненты ADH 1.6, представленные в данном документе, являются наиболее стабильными версиями официальных релизов продуктов Apache Software Foundation. Arenadata оставляет за собой лишь право добавления необхоимых изменений и патчей для обеспечения стабильного функционирования компонентов и их интеграции.
+ADH 1.5.2 Release Notes
+Оффициальные версия продуктов Apache в ADH 1.5.2
+Все компоненты ADH 1.5.2, представленные в данном документе, являются наиболее стабильными версиями официальных релизов продуктов Apache Software Foundation. Arenadata оставляет за собой лишь право добавления необхоимых изменений и патчей для обеспечения стабильного функционирования компонентов и их интеграции.
 
 **Состав и версии компонентов ADH 1.5:**
-- Apache Ambari 2.6.1
-- Apache HDFS	3.1.0
-- Apache YARN	3.1.0
-- Apache MapReduce	3.1.0
-- Apache Zookeeper	3.5.3
-- Apache Tez	0.9.1
-- Apache Hive	2.3.3
-- Apache HBase	2.0.0
-- Apache Phoenix	50..0
+- Apache Ambari	2.6.1
+- Ambari Logsearch	0.5.0
+- Apache HDFS	2.8.1
+- Apache YARN	2.8.1
+- Apache MapReduce	2.8.1
+- Apache Zookeeper	3.4.10
+- Apache Tez	0.9.0
+- Apache Hive	2.3.0
+- Apache HBase	1.3.1
+- Apache Phoenix	4.11.0
 - Apache Pig	0.17.0
 - Apache Sqoop	1.4.6
 - Apache Flume	1.8.0
-- Apache Oozie	5.0.0
-- Apache Atlas	1.0.0
-- Apache NiFi   1.6.0
-- Apache Apex 	3.6.0
+- Apache Oozie	4.3.0
+- Apache Atlas	0.8.1
+- Apache NiFi	1.3.0
+- Apache Apex	3.6.0
 - Apache Flink	1.3.2
-- Apache Kafka	1.1.0
+- Apache Kafka	1.0.0
 - Apache Knox	0.12.0
 - Apache Mahout	0.13.0
-- Apache Ranger	1.0.0
-- Apache Ranger KMS	1.0.0
-- Apache Solr	7.3.0
-- Apache Spark	2.3.0
-- Apache Zeppelin 	0.7.3
+- Apache Ranger	0.7.0
+- Apache Ranger KMS	0.7.0
+- Apache Solr	6.6.0
+- Apache Spark	2.2.0
+- Apache Zeppelin	0.7.3
 - Apache Giraph	1.1.0
-- Apache Slider	0.98.0
+- Apache Slider	0.92.0
+- Kafka Manager	1.1.0
+
 
 **Дополнительные компоненты включенные в состав дистрибутива:**
 - Bigtop-groovy 2.4.10
@@ -74,7 +77,7 @@ ADH 1.6 Release Notes
 - Apache Flink: https://flink.apache.org/news/2017/06/01/release-1.3.0.html
 - Apache Kafka: https://archive.apache.org/dist/kafka/1.0.0/RELEASE_NOTES.html
 - Apache Mahout: http://mahout.apache.org/release-notes/Apache-Mahout-0.13.0-Release-Notes.pdf
-- Apache Ranger: https://cwiki.apache.org/confluence/display/RANGER/Apache+Ranger+0.7.1+-+Release+Notes
+- Apache Ranger: https://cwiki.apache.org/confluence/display/RANGER/Apache+Ranger+0.7.0+-+Release+Notes
 - Apache Solr: https://lucene.apache.org/solr/6_6_0/changes/Changes.html
 - Apache Spark: https://spark.apache.org/releases/spark-release-2-1-0.html
 - Apache Zeppelin: https://zeppelin.apache.org/releases/zeppelin-release-0.7.3.html
