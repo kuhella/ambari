@@ -9,12 +9,12 @@
         {
           "property":"ranger.service.https.attrib.ssl.enabled",
           "desired":"true",
-          "site":"ranger-site"
+          "site":"ranger-admin-site"
         },
         {
           "property":"ranger.service.http.enabled",
           "desired":"false",
-          "site":"ranger-site"
+          "site":"ranger-admin-site"
         }
       ]
     },
@@ -22,7 +22,7 @@
     "links": [
       {
         "name": "ranger_ui",
-        "label": "Ranger Admin UI",
+        "label": "Ranger UI",
         "requires_user_name": "false",
         "component_name": "RANGER_ADMIN",
         "url": "%@://%@:%@",
@@ -32,11 +32,11 @@
           "http_default_port": "6080",
           "https_property": "ranger.service.https.port",
           "https_default_port": "6182",
-          "regex": "^(\\d+)$",
+          "regex": "(\\d*)+",
+          "regex": "(\\d*)+",
           "site": "ranger-site"
         }
       }
     ]
   }
 }
-
