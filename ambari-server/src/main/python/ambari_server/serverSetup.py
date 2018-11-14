@@ -739,9 +739,9 @@ class JDKSetupLinux(JDKSetup):
     super(JDKSetupLinux, self).__init__()
     self.JDK_DEFAULT_CONFIGS = [
       JDKRelease("jdk1.8", "Oracle JDK 1.8 + Java Cryptography Extension (JCE) Policy Files 8",
-                 "https://storage.googleapis.com/arenadata-repo/ADH/1.5.2/jdk/jdk-8u172-linux-x64.tar.gz", "jdk-8u172-linux-x64.tar.gz",
-                 "https://storage.googleapis.com/arenadata-repo/ADH/1.5.2/jdk/jce_policy-8.zip", "jce_policy-8.zip",
-                 AmbariPath.get("/usr/jdk64/jdk1.8.0_172"),
+                 "https://storage.googleapis.com/arenadata-repo/ADH/1.6.1/jdk/jdk-8u191-linux-x64.tar.gz", "jdk-8u191-linux-x64.tar.gz",
+                 "https://storage.googleapis.com/arenadata-repo/ADH/1.6.1/jdk/jce_policy-8.zip", "jce_policy-8.zip",
+                 AmbariPath.get("/usr/jdk64/jdk1.8.0_191"),
                  "(jdk.*)/jre")
     ]
 
