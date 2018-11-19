@@ -57,13 +57,13 @@ class Master(Script):
 
 
     #Copy files (or create symlinks to those) that jdbc(hive) needs to work properly, this is a BAD workaround.
-    src_file = '/usr/lib/hadoop/hadoop-common.jar' 
+    src_file = '/usr/lib/hadoop/hadoop-common.jar'
     dst_file = params.zeppelin_dir + '/interpreter/jdbc/'
-    Execute(('ln', '-s', src_file, dst_file), sudo=True)
+    Execute(('ln', '-sf', src_file, dst_file), sudo=True)
 
-    src_file = '/usr/lib/hive/lib/hive-jdbc-1.2.1-standalone.jar' 
+    src_file = '/usr/lib/hive/lib/hive-jdbc-1.2.1-standalone.jar'
     dst_file = params.zeppelin_dir + '/interpreter/jdbc/'
-    Execute(('ln', '-s', src_file, dst_file), sudo=True)
+    Execute(('ln', '-sf', src_file, dst_file), sudo=True)
 
   def create_zeppelin_dir(self, params):
     params.HdfsResource(format("/user/{zeppelin_user}"),
