@@ -47,10 +47,12 @@ version_for_stack_feature_checks = get_stack_feature_version(config)
 
 stack_supports_config_versioning = check_stack_feature(StackFeature.CONFIG_VERSIONING, version_for_stack_feature_checks)
 stack_support_kms_hsm = check_stack_feature(StackFeature.RANGER_KMS_HSM_SUPPORT, version_for_stack_feature_checks)
-stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
+#stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
+stack_supports_ranger_kerberos = True
 stack_supports_pid = check_stack_feature(StackFeature.RANGER_KMS_PID_SUPPORT, version_for_stack_feature_checks)
 stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
-stack_supports_ranger_kms_ssl = check_stack_feature(StackFeature.RANGER_KMS_SSL, version_for_stack_feature_checks)
+#stack_supports_ranger_kms_ssl = check_stack_feature(StackFeature.RANGER_KMS_SSL, version_for_stack_feature_checks)
+stack_supports_ranger_kms_ssl = True
 
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 security_enabled = config['configurations']['cluster-env']['security_enabled']
