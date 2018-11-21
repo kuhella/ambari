@@ -171,7 +171,7 @@
       </configuration-dependencies>
 
       <requiredServices>
-        <service>SOLR</service>
+        <service>INFRA_SOLR</service>
       </requiredServices>
 
       <quickLinksConfigurations>
