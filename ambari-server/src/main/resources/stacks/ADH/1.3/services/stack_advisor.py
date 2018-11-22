@@ -337,6 +337,10 @@ class ADH13StackAdvisor(ADH12StackAdvisor):
 
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     kafka_broker = getServicesSiteProperties(services, "kafka-broker")
+    kafka_env = getServicesSiteProperties(services, "kafka-env")
+
+    if not kafka_env: #Kafka check not required
+      return
 
     security_enabled = self.isSecurityEnabled(services)
 
@@ -345,8 +349,7 @@ class ADH13StackAdvisor(ADH12StackAdvisor):
     putKafkaBrokerAttributes = self.putPropertyAttribute(configurations, "kafka-broker")
 
     if security_enabled:
-      kafka_env = getServicesSiteProperties(services, "kafka-env")
-      kafka_user = kafka_env.get('kafka_user') if kafka_env is not None else None
+      kafka_user = kafka_env.get('kafka_user')
 
       if kafka_user is not None:
         kafka_super_users = kafka_broker.get('super.users') if kafka_broker is not None else None
@@ -365,7 +368,13 @@ class ADH13StackAdvisor(ADH12StackAdvisor):
         putKafkaBrokerProperty("super.users", kafka_super_users)
 
       putKafkaBrokerProperty("principal.to.local.class", "kafka.security.auth.KerberosPrincipalToLocal")
-      putKafkaBrokerProperty("security.inter.broker.protocol", "PLAINTEXTSASL")
+
+      recommended_inter_broker_protocol = 'SASL_PLAINTEXT'
+      if 'security.inter.broker.protocol' in kafka_broker:
+        current_inter_broker_protocol = kafka_broker['security.inter.broker.protocol']
+        if current_inter_broker_protocol in ('SASL_PLAINTEXT', 'SASL_SSL'):
+          recommended_inter_broker_protocol = current_inter_broker_protocol
+      putKafkaBrokerProperty("security.inter.broker.protocol", recommended_inter_broker_protocol)
       putKafkaBrokerProperty("zookeeper.set.acl", "true")
 
     else:  # not security_enabled
@@ -373,6 +382,7 @@ class ADH13StackAdvisor(ADH12StackAdvisor):
       putKafkaBrokerAttributes('super.users', 'delete', 'true')
       putKafkaBrokerAttributes('principal.to.local.class', 'delete', 'true')
       putKafkaBrokerAttributes('security.inter.broker.protocol', 'delete', 'true')
+
 
     # Update ranger-kafka-plugin-properties/ranger-kafka-plugin-enabled to match ranger-env/ranger-kafka-plugin-enabled
     if "ranger-env" in services["configurations"] \
@@ -445,6 +455,12 @@ class ADH13StackAdvisor(ADH12StackAdvisor):
           if kafkaLog4jRangerLines[item]["name"] not in kafkaLog4jContent:
             kafkaLog4jContent+= '\n' + kafkaLog4jRangerLines[item]["name"] + '=' + kafkaLog4jRangerLines[item]["value"]
         putKafkaLog4jProperty("content",kafkaLog4jContent)
+
+      zookeeper_host_port = self.getZKHostPortString(services)
+      if zookeeper_host_port:
+        putRangerKafkaPluginProperty = self.putProperty(configurations, 'ranger-kafka-plugin-properties', services)
+        putRangerKafkaPluginProperty('zookeeper.connect', zookeeper_host_port)
+
 
   def recommendRangerKMSConfigurations(self, configurations, clusterData, services, hosts):
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]

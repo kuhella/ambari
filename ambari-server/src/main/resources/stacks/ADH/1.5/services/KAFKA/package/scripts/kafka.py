@@ -72,10 +72,10 @@ def kafka(upgrade_type=None):
       listeners = kafka_server_config['listeners'].replace("localhost", params.hostname)
       Logger.info(format("Kafka listeners: {listeners}"))
 
-    if params.security_enabled and params.kafka_kerberos_enabled:
+    if params.kerberos_security_enabled and params.kafka_kerberos_enabled:
       Logger.info("Kafka kerberos security is enabled.")
       if "SASL" not in listeners:
-        listeners = listeners.replace("PLAINTEXT", "PLAINTEXTSASL")
+        listeners = listeners.replace("PLAINTEXT", "SASL_PLAINTEXT")
 
       kafka_server_config['listeners'] = listeners
       kafka_server_config['advertised.listeners'] = listeners
@@ -126,7 +126,7 @@ def kafka(upgrade_type=None):
              content=InlineTemplate(params.log4j_props)
          )
 
-    if params.security_enabled and params.kafka_kerberos_enabled:
+    if params.kerberos_security_enabled and params.kafka_kerberos_enabled:
       if params.kafka_jaas_conf_template:
         File(format("{conf_dir}/kafka_jaas.conf"),
              owner=params.kafka_user,

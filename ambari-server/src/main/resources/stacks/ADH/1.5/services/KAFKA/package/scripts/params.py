@@ -154,19 +154,25 @@ if has_metric_collector:
   pass
 
 # Security-related params
-security_enabled = config['configurations']['cluster-env']['security_enabled']
+kerberos_security_enabled = config['configurations']['cluster-env']['security_enabled']
+
 kafka_kerberos_enabled = (('security.inter.broker.protocol' in config['configurations']['kafka-broker']) and
-                         ((config['configurations']['kafka-broker']['security.inter.broker.protocol'] == "PLAINTEXTSASL") or
-                          (config['configurations']['kafka-broker']['security.inter.broker.protocol'] == "SASL_PLAINTEXT")))
+                         (config['configurations']['kafka-broker']['security.inter.broker.protocol'] in ("PLAINTEXTSASL", "SASL_PLAINTEXT", "SASL_SSL")))
 
+kafka_other_sasl_enabled = not kerberos_security_enabled and check_stack_feature(StackFeature.KAFKA_LISTENERS, stack_version_formatted) and \
+                          check_stack_feature(StackFeature.KAFKA_EXTENDED_SASL_SUPPORT, stack_version_formatted) and \
+                          (("SASL_PLAINTEXT" in config['configurations']['kafka-broker']['listeners']) or
+                          ("PLAINTEXTSASL" in config['configurations']['kafka-broker']['listeners']) or
+                          ("SASL_SSL" in config['configurations']['kafka-broker']['listeners']))
 
-if security_enabled and 'kafka_principal_name' in config['configurations']['kafka-env'] \
-  and True:
+if kerberos_security_enabled and 'kafka_principal_name' in config['configurations']['kafka-env']:
     _hostname_lowercase = config['hostname'].lower()
     _kafka_principal_name = config['configurations']['kafka-env']['kafka_principal_name']
     kafka_jaas_principal = _kafka_principal_name.replace('_HOST',_hostname_lowercase)
     kafka_keytab_path = config['configurations']['kafka-env']['kafka_keytab']
     kafka_bare_jaas_principal = get_bare_principal(_kafka_principal_name)
+    kafka_kerberos_params = "-Djava.security.auth.login.config="+ conf_dir +"/kafka_jaas.conf"
+elif kafka_other_sasl_enabled:
     kafka_kerberos_params = "-Djava.security.auth.login.config="+ conf_dir +"/kafka_jaas.conf"
 else:
     kafka_kerberos_params = ''
@@ -317,7 +323,7 @@ HdfsResource = functools.partial(
   HdfsResource,
   user=hdfs_user,
   hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore",
-  security_enabled = security_enabled,
+  security_enabled = kerberos_security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
   hadoop_bin_dir = hadoop_bin_dir,
