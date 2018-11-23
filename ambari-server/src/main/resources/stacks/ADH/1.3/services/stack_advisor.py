@@ -727,7 +727,7 @@ class ADH13StackAdvisor(ADH12StackAdvisor):
       zookeeper_host_port = self.getZKHostPortString(services)
       ranger_audit_zk_port = ''
       if zookeeper_host_port:
-        ranger_audit_zk_port = '{0}/{1}'.format(zookeeper_host_port, 'solr')
+        ranger_audit_zk_port = '{0}/{1}'.format(zookeeper_host_port, 'infra-solr')
         putRangerAdminProperty('ranger.audit.solr.zookeepers', ranger_audit_zk_port)
     else:
       putRangerAdminProperty('ranger.audit.solr.zookeepers', 'NONE')

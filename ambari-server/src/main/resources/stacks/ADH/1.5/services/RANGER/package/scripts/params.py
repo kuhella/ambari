@@ -63,7 +63,8 @@ version_for_stack_feature_checks = get_stack_feature_version(config)
 stack_supports_rolling_upgrade = check_stack_feature(StackFeature.ROLLING_UPGRADE, version_for_stack_feature_checks)
 stack_supports_config_versioning = check_stack_feature(StackFeature.CONFIG_VERSIONING, version_for_stack_feature_checks)
 stack_supports_usersync_non_root = check_stack_feature(StackFeature.RANGER_USERSYNC_NON_ROOT, version_for_stack_feature_checks)
-stack_supports_ranger_tagsync = check_stack_feature(StackFeature.RANGER_TAGSYNC_COMPONENT, version_for_stack_feature_checks)
+#stack_supports_ranger_tagsync = check_stack_feature(StackFeature.RANGER_TAGSYNC_COMPONENT, version_for_stack_feature_checks)
+stack_supports_ranger_tagsync = True
 stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
 stack_supports_ranger_log4j = check_stack_feature(StackFeature.RANGER_LOG4J_SUPPORT, version_for_stack_feature_checks)
 stack_supports_ranger_kerberos = True 
@@ -73,7 +74,8 @@ stack_supports_infra_client = True
 stack_supports_pid = check_stack_feature(StackFeature.RANGER_PID_SUPPORT, version_for_stack_feature_checks)
 stack_supports_ranger_admin_password_change = check_stack_feature(StackFeature.RANGER_ADMIN_PASSWD_CHANGE, version_for_stack_feature_checks)
 stack_supports_ranger_setup_db_on_start = check_stack_feature(StackFeature.RANGER_SETUP_DB_ON_START, version_for_stack_feature_checks)
-stack_supports_ranger_tagsync_ssl_xml_support = check_stack_feature(StackFeature.RANGER_TAGSYNC_SSL_XML_SUPPORT, version_for_stack_feature_checks)
+#stack_supports_ranger_tagsync_ssl_xml_support = check_stack_feature(StackFeature.RANGER_TAGSYNC_SSL_XML_SUPPORT, version_for_stack_feature_checks)
+stack_supports_ranger_tagsync_ssl_xml_support = True
 stack_supports_ranger_solr_configs = True 
 stack_supports_secure_ssl_password = check_stack_feature(StackFeature.SECURE_RANGER_SSL_PASSWORD, version_for_stack_feature_checks)
 
@@ -82,12 +84,12 @@ upgrade_direction = default("/commandParams/upgrade_direction", None)
 
 ranger_conf    = '/etc/ranger/admin/conf'
 ranger_ugsync_conf = '/etc/ranger/usersync/conf'
-ranger_tagsync_home  = format('{stack_root}/ranger-tagsync')
-ranger_tagsync_conf = format('{stack_root}/ranger-tagsync/conf')
+ranger_tagsync_home  = '/usr/lib/ranger-tagsync'
+ranger_tagsync_conf = '/etc/ranger/tagsync/conf'
 tagsync_bin = '/usr/bin/ranger-tagsync'
-tagsync_services_file = format('{stack_root}/ranger-tagsync/ranger-tagsync-services.sh')
+tagsync_services_file = '/usr/lib/ranger-tagsync/ranger-tagsync-services.sh'
 security_store_path = '/etc/security/serverKeys'
-tagsync_etc_path = '/etc/ranger/tagsync/'
+tagsync_etc_path = '/etc/ranger/tagsync/conf'
 ranger_tagsync_credential_file= os.path.join(tagsync_etc_path,'rangercred.jceks')
 atlas_tagsync_credential_file= os.path.join(tagsync_etc_path,'atlascred.jceks')
 ranger_tagsync_keystore_password = config['configurations']['ranger-tagsync-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password']
@@ -112,13 +114,12 @@ usersync_stop  = '/usr/lib/ranger-usersync/stop.sh'
 ranger_ugsync_conf = '/etc/ranger/usersync/conf'
 
 if stack_supports_ranger_tagsync:
-  ranger_tagsync_home  = format('{stack_root}/ranger-tagsync')
+  ranger_tagsync_home  = '/usr/lib/ranger-tagsync'
   tagsync_bin = '/usr/bin/ranger-tagsync'
-  ranger_tagsync_conf = format('{stack_root}/ranger-tagsync/conf')
-  tagsync_services_file = format('{stack_root}/ranger-tagsync/ranger-tagsync-services.sh')
+  ranger_tagsync_conf = '/etc/ranger/tagsync/conf'
+  tagsync_services_file = '/usr/lib/ranger-tagsync/ranger-tagsync-services.sh'
 
 usersync_services_file = format('{stack_root}/ranger-usersync/ranger-usersync-services.sh')
-
 java_home = config['hostLevelParams']['java_home']
 unix_user  = config['configurations']['ranger-env']['ranger_user']
 unix_group = config['configurations']['ranger-env']['ranger_group']

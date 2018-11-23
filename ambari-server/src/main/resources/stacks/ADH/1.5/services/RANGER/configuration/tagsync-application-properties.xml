@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 <!--
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -18,26 +19,44 @@
  * limitations under the License.
  */
 -->
-<configuration supports_final="true">
+<configuration>
   <property>
-    <name>ranger.tagsync.dest.ranger.ssl.config.filename</name>
-    <value>/usr/lib/ranger-tagsync/conf/mytruststore.jks</value>
-    <description>Truststore used for tagsync, required if tagsync -&gt; ranger admin communication is SSL enabled</description>
+    <name>atlas.kafka.entities.group.id</name>
+    <display-name>Atlas Source: Kafka consumer group</display-name>
+    <value>ranger_entities_consumer</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>ranger.tagsync.keystore.filename</name>
-    <value>/usr/lib/ranger-tagsync/conf/rangertagsync.jceks</value>
-    <description>Keystore file</description>
+    <name>atlas.kafka.bootstrap.servers</name>
+    <display-name>Atlas Source: Kafka endpoint</display-name>
+    <value>localhost:6667</value>
+    <description/>
+    <depends-on>
+      <property>
+        <type>kafka-broker</type>
+        <name>port</name>
+      </property>
+    </depends-on>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>ranger.tagsync.source.atlasrest.keystore.filename</name>
-    <value>/usr/lib/ranger-tagsync/conf/atlasuser.jceks</value>
-    <description>Tagsync atlasrest keystore file</description>
+    <name>atlas.kafka.zookeeper.connect</name>
+    <display-name>Atlas Source: Zookeeper endpoint</display-name>
+    <value>localhost:2181</value>
+    <description/>
+    <depends-on>
+      <property>
+        <type>zoo.cfg</type>
+        <name>clientPort</name>
+      </property>
+    </depends-on>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

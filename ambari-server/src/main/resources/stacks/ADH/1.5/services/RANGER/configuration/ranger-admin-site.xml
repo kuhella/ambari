@@ -30,7 +30,7 @@
 
   <property>
     <name>ranger.supportedcomponents</name>
-    <value>kafka,hbase,yarn,knox,hdfs,hive,nifi</value>
+    <value>kafka,hbase,yarn,knox,hdfs,hive,nifi,solr,kms,tag,atlas</value>
     <on-ambari-upgrade add="true"/>
   </property>
 
@@ -308,69 +308,38 @@
   </property>
   <property>
     <name>ranger.ldap.ad.domain</name>
-    <display-name>Domain Name (Only for AD)</display-name>
-    <value/>
-    <description>AD domain, only used if Authentication method is AD</description>
-    <value-attributes>
-      <overridable>false</overridable>
-    </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>ranger.ldap.ad.url</name>
-    <value>{{ranger_ug_ldap_url}}</value>
-    <description>AD URL, only used if Authentication method is AD</description>
-    <value-attributes>
-      <overridable>false</overridable>
-    </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>ranger.ldap.ad.base.dn</name>
-    <value>dc=example,dc=com</value>
-    <description>The Distinguished Name (DN) of the starting point for directory server searches.</description>
-    <value-attributes>
-      <overridable>false</overridable>
-    </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>ranger.ldap.ad.bind.dn</name>
-    <value>{{ranger_ug_ldap_bind_dn}}</value>
-    <description>Full distinguished name (DN), including common name (CN), of an LDAP user account that has privileges to search for users.</description>
-    <value-attributes>
-      <overridable>false</overridable>
-    </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>ranger.ldap.ad.bind.password</name>
-    <value>{{ranger_usersync_ldap_ldapbindpassword}}</value>
-    <property-type>PASSWORD</property-type>
-    <description>Password for the account that can search for users</description>
-    <value-attributes>
-      <type>password</type>
-      <overridable>false</overridable>
-    </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>ranger.ldap.ad.user.searchfilter</name>
-    <value>{{ranger_ug_ldap_user_searchfilter}}</value>
-    <description>Search filter used for Bind Authentication</description>
-    <value-attributes>
-      <overridable>false</overridable>
-    </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>ranger.ldap.ad.referral</name>
-    <value>ignore</value>
-    <description>Set to follow if multiple LDAP servers are configured to return continuation references for results. Set to ignore (default) if no referrals should be followed. Possible values are follow|throw|ignore</description>
-    <value-attributes>
-      <overridable>false</overridable>
-    </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>ranger.unixauth.remote.login.enabled</name>
