@@ -38,7 +38,7 @@
 
   <property>
     <name>kms_log_dir</name>
-    <value>/var/log/ranger/kms</value>
+    <value>/var/log/kms</value>
     <description></description>
   </property>
 

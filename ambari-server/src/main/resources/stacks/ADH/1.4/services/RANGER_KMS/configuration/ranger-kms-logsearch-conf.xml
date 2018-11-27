@@ -44,7 +44,7 @@
     {
       "type":"ranger_kms",
       "rowtype":"service",
-      "path":"{{default('/configurations/kms-env/kms_log_dir', '/var/log/ranger/kms')}}/kms.log"
+      "path":"{{default('/configurations/kms-env/kms_log_dir', '/var/log/kms')}}/kms.log"
     }
    ],
   "filter":[

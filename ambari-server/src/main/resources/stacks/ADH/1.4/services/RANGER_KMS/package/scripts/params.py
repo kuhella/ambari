@@ -60,7 +60,7 @@ security_enabled = config['configurations']['cluster-env']['security_enabled']
 kms_home = format('{stack_root}/ranger-kms')
 kms_conf_dir = format('/etc/ranger/kms/conf')
 
-kms_log_dir = "/var/log/ranger/kms"
+kms_log_dir = "/var/log/kms"
 java_home = config['hostLevelParams']['java_home']
 kms_user  = default("/configurations/kms-env/kms_user", "kms")
 kms_group = default("/configurations/kms-env/kms_group", "kms")
