@@ -197,7 +197,7 @@ def hive_interactive(name=None):
       del merged_hive_interactive_site_copy[item]
 
   for conf_dir in hive2_conf_dirs_list:
-      mode_identified = 0644 if conf_dir == hive2_client_conf_path else 0600
+      mode_identified = 0644
       if conf_dir == hive2_client_conf_path:
         XmlConfig("hive-site.xml",
                   conf_dir=conf_dir,
@@ -219,7 +219,7 @@ def hive_interactive(name=None):
                   configuration_attributes=params.config['configuration_attributes']['hive-interactive-site'],
                   owner=params.hive_user,
                   group=params.user_group,
-                  mode=0600)
+                  mode=0644)
       XmlConfig("hiveserver2-site.xml",
                 conf_dir=conf_dir,
                 configurations=merged_hiveserver2_interactive_site,

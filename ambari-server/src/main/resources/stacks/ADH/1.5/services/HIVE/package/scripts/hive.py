@@ -106,8 +106,8 @@ def hive(name=None):
 def hive(name=None):
   import params
   hive_client_conf_path = format("/etc/hive/conf")
-  # Permissions 644 for conf dir (client) files, and 600 for conf.server
-  mode_identified = 0644 if params.hive_config_dir == hive_client_conf_path else 0600
+  # Permissions 644 for conf dir (client) files and conf.server
+  mode_identified = 0644
   if name == 'hiveserver2':
     if params.hcat_hdfs_user_dir != params.webhcat_hdfs_user_dir:
       params.HdfsResource(params.hcat_hdfs_user_dir,
@@ -236,7 +236,7 @@ def hive(name=None):
               configuration_attributes=params.config['configuration_attributes']['hiveserver2-site'],
               owner=params.hive_user,
               group=params.user_group,
-              mode=0600)
+              mode=0644)
 
   if params.hive_metastore_site_supported and name == 'metastore':
     XmlConfig("hivemetastore-site.xml",
@@ -245,7 +245,7 @@ def hive(name=None):
               configuration_attributes=params.config['configuration_attributes']['hivemetastore-site'],
               owner=params.hive_user,
               group=params.user_group,
-              mode=0600)
+              mode=0644)
 
   File(format("{hive_config_dir}/hive-env.sh"),
        owner=params.hive_user,
@@ -290,7 +290,7 @@ def hive(name=None):
     File(os.path.join(params.hive_server_conf_dir, "hadoop-metrics2-hivemetastore.properties"),
          owner=params.hive_user,
          group=params.user_group,
-         mode=0600,
+         mode=0644,
          content=Template("hadoop-metrics2-hivemetastore.properties.j2")
     )
 
@@ -307,7 +307,7 @@ def hive(name=None):
     File(os.path.join(params.hive_server_conf_dir, "hadoop-metrics2-hiveserver2.properties"),
          owner=params.hive_user,
          group=params.user_group,
-         mode=0600,
+         mode=0644,
          content=Template("hadoop-metrics2-hiveserver2.properties.j2")
     )
 
