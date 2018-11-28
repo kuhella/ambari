@@ -172,7 +172,7 @@
   </property>
   <property>
     <name>atlas.graph.index.search.solr.zookeeper-url</name>
-    <value>localhost:2181/solr</value>
+    <value>localhost:2181/infra-solr</value>
     <description>The ZooKeeper quorum setup for Solr as comma separated value.</description>
     <on-ambari-upgrade add="false"/>
   </property>

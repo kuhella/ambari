@@ -20,7 +20,7 @@
       <name>ATLAS</name>
       <displayName>Atlas</displayName>
       <comment>Atlas Metadata and Governance platform</comment>
-      <version>0.8.0.1.5</version>
+      <version>0.8.1.1.5</version>
     </service>
   </services>
 </metainfo>
