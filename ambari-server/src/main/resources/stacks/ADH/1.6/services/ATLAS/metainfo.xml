@@ -21,15 +21,6 @@
       <displayName>Atlas</displayName>
       <comment>Atlas Metadata and Governance platform</comment>
       <version>0.8.2.1.6</version>
-      <configuration-dependencies>
-        <config-type>application-properties</config-type>
-        <config-type>atlas-env</config-type>
-        <config-type>atlas-log4j</config-type>
-        <config-type>core-site</config-type>
-        <config-type>hdfs-site</config-type>
-        <config-type>ranger-atlas-audit</config-type>
-        <config-type>ranger-atlas-plugin-properties</config-type>
-      </configuration-dependencies>
     </service>
   </services>
 </metainfo>
