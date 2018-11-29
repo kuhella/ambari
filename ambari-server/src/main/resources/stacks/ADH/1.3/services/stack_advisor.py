@@ -376,6 +376,7 @@ class ADH13StackAdvisor(ADH12StackAdvisor):
           recommended_inter_broker_protocol = current_inter_broker_protocol
       putKafkaBrokerProperty("security.inter.broker.protocol", recommended_inter_broker_protocol)
       putKafkaBrokerProperty("zookeeper.set.acl", "true")
+      putKafkaBrokerProperty("listeners", "SASL_PLAINTEXT://:9092")
 
     else:  # not security_enabled
       # remove unneeded properties
