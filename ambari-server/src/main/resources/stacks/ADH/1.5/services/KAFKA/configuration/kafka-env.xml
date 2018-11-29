@@ -71,6 +71,7 @@ export PID_DIR={{kafka_pid_dir}}
 export LOG_DIR={{kafka_log_dir}}
 export KAFKA_KERBEROS_PARAMS={{kafka_kerberos_params}}
 export JMX_PORT={{kafka_broker_jmx_port}}
+export KAFKA_OPTS="-Djava.security.auth.login.config=/etc/kafka/conf/kafka_jaas.conf"
 export KAFKA_JMX_OPTS="-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname={{hostname}} -Djava.net.preferIPv4Stack=true"
 
       # Add kafka sink to classpath and related depenencies
