@@ -33,8 +33,8 @@ class HiveClient(Script):
     import params
     self.install_packages(env)
     self.configure(env)
-    Execute('tar -czf /usr/lib/hive/hive.tar.gz -C /usr/lib/hive/lib/ .')
-    
+    Execute(('tar', '-czf', '/usr/lib/hive/hive.tar.gz', '-C', params.hive_lib, '.'), sudo = True)
+
   def status(self, env):
     raise ClientComponentHasNoStatus()
 
