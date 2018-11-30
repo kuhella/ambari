@@ -167,7 +167,7 @@ def metadata(type='server'):
 
     is_atlas_upgrade_support = check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, get_stack_feature_version(params.config))
 
-    if is_atlas_upgrade_support and params.security_enabled:
+    if params.security_enabled:
 
       File(params.atlas_kafka_setup,
            group=params.user_group,
