@@ -261,7 +261,7 @@ kafka_keytab = default('/configurations/kafka-env/kafka_keytab', None)
 kafka_principal_name = default('/configurations/kafka-env/kafka_principal_name', None)
 default_replication_factor = default('/configurations/application-properties/atlas.notification.replicas', None)
 
-if check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, version_for_stack_feature_checks):
+if True: #check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, version_for_stack_feature_checks):
   default_replication_factor = default('/configurations/application-properties/atlas.notification.replicas', None)
 
   kafka_env_sh_template = config['configurations']['kafka-env']['content']
