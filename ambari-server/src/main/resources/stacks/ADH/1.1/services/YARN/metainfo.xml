@@ -35,7 +35,7 @@
             <timeout>1200</timeout>
           </commandScript>
         </component>
-        
+
        <component>
          <name>RESOURCEMANAGER</name>
          <category>MASTER</category>
@@ -49,9 +49,6 @@
               </auto-deploy>
            </dependency>
          </dependencies>
-          <configuration-dependencies>
-            <config-type>capacity-scheduler</config-type>
-          </configuration-dependencies>
         </component>
 
       </components>

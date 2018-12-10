@@ -23,6 +23,27 @@
       <name>YARN</name>
       <displayName>YARN</displayName>
       <version>2.8.1.1.5</version>
+      <components>
+
+       <component>
+         <name>RESOURCEMANAGER</name>
+         <category>MASTER</category>
+         <cardinality>1-2</cardinality>
+         <dependencies>
+           <dependency>
+              <name>TEZ/TEZ_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+           </dependency>
+         </dependencies>
+          <configuration-dependencies>
+            <config-type>capacity-scheduler</config-type>
+          </configuration-dependencies>
+        </component>
+
+      </components>
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>
@@ -47,6 +68,7 @@
       <name>MAPREDUCE2</name>
       <displayName>MapReduce2</displayName>
       <version>2.8.1.1.5</version>
+      <configuration-dir>configuration-mapred</configuration-dir>
     </service>
 
 
