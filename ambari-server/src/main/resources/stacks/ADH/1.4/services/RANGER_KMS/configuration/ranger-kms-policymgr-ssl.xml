@@ -19,10 +19,10 @@
  */
 -->
 <configuration>
-  
+
   <property>
     <name>xasecure.policymgr.clientssl.keystore</name>
-    <value>/usr/hdp/current/ranger-kms/conf/ranger-plugin-keystore.jks</value>
+    <value>/etc/ranger-kms/conf/ranger-plugin-keystore.jks</value>
     <description>Java Keystore files</description>
   </property>
 
@@ -35,7 +35,7 @@
 
   <property>
     <name>xasecure.policymgr.clientssl.truststore</name>
-    <value>/usr/hdp/current/ranger-kms/conf/ranger-plugin-truststore.jks</value>
+    <value>/etc/ranger-kms/conf/ranger-plugin-truststore.jks</value>
     <description>java truststore file</description>
   </property>
 
@@ -57,5 +57,5 @@
     <value>jceks://file{{credential_file}}</value>
     <description>java truststore credential file</description>
   </property>
-  
+
 </configuration>
