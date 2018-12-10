@@ -62,16 +62,21 @@ ADH 1.6.1 Release Notes
 - snappy-devel 1.1.0
 
 **Перечень новых функциональностей:**
-+ `Apache HDFS, Apache YARN, Apache MR2 <https://hadoop.apache.org/docs/r2.8.5/hadoop-project-dist/hadoop-common/release/2.8.5/RELEASENOTES.2.8.5.html>`_;
 
-+ `Apache Zookeeper <https://zookeeper.apache.org/doc/r3.4.12/releasenotes.html>`_;
++ `Apache HDFS, Apache YARN, Apache MR2` https://hadoop.apache.org/docs/r2.8.5/hadoop-project-dist/hadoop-common/release/2.8.5/RELEASENOTES.2.8.5.html
 
-+ `Apache Tez <https://tez.apache.org/releases/0.9.1/release-notes.txt>`_;
++ `Apache Zookeeper`https://zookeeper.apache.org/doc/r3.4.12/releasenotes.html
+
++ `Apache Tez` https://tez.apache.org/releases/0.9.1/release-notes.txt>
 
 + `Apache Hive` https://issues.apache.org/jira/secure/ReleaseNote.jspa?projectId=12310843&version=12342162
+
 + `Apache HBase` https://issues.apache.org/jira/secure/ReleaseNote.jspa?version=12343936&styleName=Html&projectId=12310753&Create=Create&atl_token=A5KQ-2QAV-T4JA-FDED%7C532fd2f5c68ef9cc47051e23daa7ec51514ea695%7Clin
+
 + `Apache Phoenix` https://issues.apache.org/jira/secure/ReleaseNote.jspa?version=12342145&styleName=&projectId=12315120&Create=Create&atl_token=A5KQ-2QAV-T4JA-FDED%7C532fd2f5c68ef9cc47051e23daa7ec51514ea695%7Clin
+
 + `Apache Pig` http://svn.apache.org/repos/asf/pig/branches/branch-0.17/RELEASE_NOTES.txt
+
 + `Apache Sqoop` https://sqoop.apache.org/docs/1.4.7/sqoop-1.4.7.releasenotes.html
 
 + `Apache Flume` https://flume.apache.org/releases/1.8.0.html
