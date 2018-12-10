@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 
+<!--
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -25,13 +25,13 @@ limitations under the License.
 
   <property>
     <name>templeton.libjars</name>
-    <value>/usr/hdp/${hdp.version}/zookeeper/zookeeper.jar,/usr/hdp/${hdp.version}/hive/lib/hive-common.jar</value>
+    <value>/usr/lib/zookeeper/zookeeper.jar,/usr/lib/hive/lib/hive-common*.jar</value>
     <description>Jars to add the the classpath.</description>
   </property>
 
   <property>
     <name>templeton.hive.extra.files</name>
-    <value>/usr/hdp/${hdp.version}/tez/conf/tez-site.xml,/usr/hdp/${hdp.version}/tez,/usr/hdp/${hdp.version}/tez/lib</value>
+    <value>/etc/tez/conf/tez-site.xml,/usr/lib/tez,/usr/lib/tez/lib</value>
     <description>The resources in this list will be localized to the node running LaunchMapper and added to HADOOP_CLASSPTH
       before launching 'hive' command.  If the path /foo/bar is a directory, the contents of the the entire dir will be localized
       and ./foo/* will be added to HADOOP_CLASSPATH.  Note that since classpath path processing does not recurse into subdirectories,

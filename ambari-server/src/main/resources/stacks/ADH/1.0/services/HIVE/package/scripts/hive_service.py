@@ -84,10 +84,10 @@ def hive_service(name, action='start', upgrade_type=None):
 
       if params.version:
         import os
-        hadoop_home = format("/usr/hdp/{version}/hadoop")
+        hadoop_home = format("/usr/lib/hadoop")
         hive_bin = os.path.join(params.hive_bin, hive_bin)
-      
-    Execute(daemon_cmd, 
+
+    Execute(daemon_cmd,
       user = params.hive_user,
       environment = { 'HADOOP_HOME': hadoop_home, 'JAVA_HOME': params.java64_home, 'HIVE_BIN': hive_bin },
       path = params.execute_path,
@@ -96,10 +96,10 @@ def hive_service(name, action='start', upgrade_type=None):
     if params.hive_jdbc_driver == "com.mysql.jdbc.Driver" or \
        params.hive_jdbc_driver == "org.postgresql.Driver" or \
        params.hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":
-      
+
       db_connection_check_command = format(
         "{java64_home}/bin/java -cp {check_db_connection_jar}:{target} org.apache.ambari.server.DBConnectionVerification '{hive_jdbc_connection_url}' {hive_metastore_user_name} {hive_metastore_user_passwd!p} {hive_jdbc_driver}")
-      
+
       Execute(db_connection_check_command,
               path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin', tries=5, try_sleep=10)
   elif action == 'stop':
@@ -145,4 +145,3 @@ def check_fs_root():
             user=params.hive_user,
             environment={'PATH': params.execute_path}
     )
-

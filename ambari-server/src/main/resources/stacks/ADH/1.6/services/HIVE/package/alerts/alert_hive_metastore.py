@@ -53,10 +53,10 @@ SMOKEUSER_PRINCIPAL_DEFAULT = 'ambari-qa@EXAMPLE.COM'
 SMOKEUSER_SCRIPT_PARAM_KEY = 'default.smoke.user'
 SMOKEUSER_DEFAULT = 'ambari-qa'
 
-HIVE_CONF_DIR = '/usr/hdp/current/hive-metastore/conf/conf.server'
+HIVE_CONF_DIR = '/etc/hive/conf/conf.server'
 HIVE_CONF_DIR_LEGACY = '/etc/hive/conf.server'
 
-HIVE_BIN_DIR = '/usr/hdp/current/hive-metastore/bin'
+HIVE_BIN_DIR = '/usr/lib/hive/bin'
 HIVE_BIN_DIR_LEGACY = '/usr/lib/hive/bin'
 
 CHECK_COMMAND_TIMEOUT_KEY = 'check.command.timeout'
@@ -145,7 +145,7 @@ def execute(configurations={}, parameters={}, host_name=None):
         kerberos_executable_search_paths = configurations[KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY]
       else:
         kerberos_executable_search_paths = None
-             
+
       kinit_path_local = get_kinit_path(kerberos_executable_search_paths)
       kinitcmd=format("{kinit_path_local} -kt {smokeuser_keytab} {smokeuser_principal}; ")
 
