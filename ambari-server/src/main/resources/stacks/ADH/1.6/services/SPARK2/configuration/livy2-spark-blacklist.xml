@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-     /**
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -21,16 +21,27 @@
 <configuration supports_final="false" supports_adding_forbidden="true">
     <property>
         <name>content</name>
-        <description>Livy2-log4j-Properties</description>
+        <description>spark2-blacklist.properties</description>
         <value>
-            # Set everything to be logged to the console
-            log4j.rootCategory=INFO, console
-            log4j.appender.console=org.apache.log4j.ConsoleAppender
-            log4j.appender.console.target=System.err
-            log4j.appender.console.layout=org.apache.log4j.PatternLayout
-            log4j.appender.console.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n
+            #
+            # Configuration override / blacklist. Defines a list of properties that users are not allowed
+            # to override when starting Spark sessions.
+            #
+            # This file takes a list of property names (one per line). Empty lines and lines starting with "#"
+            # are ignored.
+            #
 
-            log4j.logger.org.eclipse.jetty=WARN
+            # Disallow overriding the master and the deploy mode.
+            spark.master
+            spark.submit.deployMode
+
+            # Disallow overriding the location of Spark cached jars.
+            spark.yarn.jar
+            spark.yarn.jars
+            spark.yarn.archive
+
+            # Don't allow users to override the RSC timeout.
+            livy.rsc.server.idle_timeout
         </value>
         <value-attributes>
             <type>content</type>
@@ -39,5 +50,3 @@
         <on-ambari-upgrade add="false"/>
     </property>
 </configuration>
-
-
