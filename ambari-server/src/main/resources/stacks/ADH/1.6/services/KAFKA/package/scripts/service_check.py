@@ -41,18 +41,12 @@ class ServiceCheck(Script):
     topic_exists_cmd_p = subprocess.Popen(topic_exists_cmd.split(" "), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     topic_exists_cmd_out, topic_exists_cmd_err = topic_exists_cmd_p.communicate()
     # run create topic command only if the topic doesn't exists
- if params.kerberos_security_enabled and params.kafka_kerberos_enabled and topic not in topic_exists_cmd_out:
+    if topic not in topic_exists_cmd_out:
       create_topic_cmd = format("{kafka_home}/bin/kafka-topics.sh --zookeeper {kafka_config[zookeeper.connect]} --create --topic {topic} --partitions 1 --replication-factor 1")
-      command = 'export JAVA_HOME='+ params.java64_home +' KAFKA_OPTS="-Djava.security.auth.login.config=/etc/kafka/conf/kafka_jaas.conf"' + ' ; ' + create_topic_cmd
+      command = 'export JAVA_HOME='+ params.java64_home + ' ; ' + create_topic_cmd
       Logger.info("Running kafka create topic command: %s" % command)
       call_and_match_output(command, format("({create_topic_cmd_created_output})|({create_topic_cmd_exists_output})"), "Failed to check that topic exists", user=params.kafka_user)
-    else:
-      if topic not in topic_exists_cmd_out:
-        create_topic_cmd = format("{kafka_home}/bin/kafka-topics.sh --zookeeper {kafka_config[zookeeper.connect]} --create --topic {topic} --partitions 1 --replication-factor 1")
-        command = 'export JAVA_HOME='+ params.java64_home + ' ; ' + create_topic_cmd
-        Logger.info("Running kafka create topic command: %s" % command)
-        call_and_match_output(command, format("({create_topic_cmd_created_output})|({create_topic_cmd_exists_output})"), "Failed to check that topic exists", user=params.kafka_user)
-        
+
   def read_kafka_config(self):
     import params
 
