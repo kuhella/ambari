@@ -60,6 +60,9 @@
             <package>
               <name>hadoop-hdfs</name>
             </package>
+            <package>
+              <name>spark-yarn-shuffle</name>
+            </package>
           </packages>
         </osSpecific>
       </osSpecifics>
