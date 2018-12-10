@@ -168,8 +168,8 @@ if [ -d "/usr/lib/atlas-server" ]; then
 export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:/usr/lib/atlas-server/hook/hive/*:/usr/lib/atlas-server/hook/hive/atlas-hive-plugin-impl/*
 fi
 
-if [ -d "/usr/lib/spark" ]; then
-export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:/usr/lib/spark/yarn/lib/*
+if [ -d "/usr/lib/spark/yarn/" ]; then
+export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:/usr/lib/spark/yarn/lib/*:/usr/lib/spark/yarn/*
 fi
 
 # Setting path to hdfs command line
