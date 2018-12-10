@@ -45,9 +45,9 @@ major_stack_version = get_major_version(stack_version_formatted)
 # default hadoop params
 hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
 
-mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
+mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
 
-versioned_stack_root = '/usr/hdp/current'
+versioned_stack_root = '/usr/lib/'
 
 #security params
 security_enabled = config['configurations']['cluster-env']['security_enabled']

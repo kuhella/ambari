@@ -72,10 +72,10 @@ hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
 hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 hadoop_bin = stack_select.get_hadoop_dir("sbin")
 
-mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
+mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
 hadoop_home = stack_select.get_hadoop_dir("home")
 create_lib_snappy_symlinks = False
-  
+
 current_service = config['serviceName']
 
 #security params
@@ -259,7 +259,7 @@ refresh_topology = False
 command_params = config["commandParams"] if "commandParams" in config else None
 if command_params is not None:
   refresh_topology = bool(command_params["refresh_topology"]) if "refresh_topology" in command_params else False
-  
+
 ambari_libs_dir = "/var/lib/ambari-agent/lib"
 is_webhdfs_enabled = config['configurations']['hdfs-site']['dfs.webhdfs.enabled']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
@@ -276,7 +276,7 @@ net_topology_script_dir = os.path.dirname(net_topology_script_file_path)
 net_topology_mapping_data_file_name = 'topology_mappings.data'
 net_topology_mapping_data_file_path = os.path.join(net_topology_script_dir, net_topology_mapping_data_file_name)
 
-#Added logic to create /tmp and /user directory for HCFS stack.  
+#Added logic to create /tmp and /user directory for HCFS stack.
 has_core_site = 'core-site' in config['configurations']
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 kinit_path_local = get_kinit_path()
