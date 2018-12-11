@@ -77,6 +77,7 @@
       <name>MAPREDUCE2</name>
       <displayName>MapReduce2</displayName>
       <version>2.7.3.1.4</version>
+      <configuration-dir>configuration-mapred</configuration-dir>
       <osSpecifics>
         <osSpecific>
           <osFamily>redhat6,redhat7,suse11,suse12</osFamily>
