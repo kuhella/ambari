@@ -75,11 +75,11 @@ version_for_stack_feature_checks = get_stack_feature_version(config)
 # This is expected to be of the form #.#.#.#
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted_major = format_stack_version(stack_version_unformatted)
-stack_version_formatted = functions.get_stack_version('hadoop-yarn-resourcemanager')
+stack_version_formatted = None
 major_stack_version = get_major_version(stack_version_formatted_major)
 
 stack_supports_ru = check_stack_feature(StackFeature.ROLLING_UPGRADE, version_for_stack_feature_checks)
-stack_supports_timeline_state_store = check_stack_feature(StackFeature.TIMELINE_STATE_STORE, version_for_stack_feature_checks)
+stack_supports_timeline_state_store = True
 
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade.
 # It cannot be used during the initial Cluser Install because the version is not yet known.
@@ -127,8 +127,8 @@ def get_spark_version(service_name, component_name, yarn_version):
 # these are used to render the classpath for picking up Spark classes
 # in the event that spark is not installed, then we must default to the vesrion of YARN installed
 # since it will still load classes from its own spark version
-spark_version = get_spark_version("SPARK", "SPARK_CLIENT", version)
-spark2_version = get_spark_version("SPARK2", "SPARK2_CLIENT", version)
+#spark_version = get_spark_version("SPARK", "SPARK_CLIENT", version)
+#spark2_version = get_spark_version("SPARK2", "SPARK2_CLIENT", version)
 
 stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
 stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
@@ -329,7 +329,7 @@ nodemanager_kinit_cmd = ""
 rm_zk_address = config['configurations']['yarn-site']['yarn.resourcemanager.zk-address']
 rm_zk_znode = config['configurations']['yarn-site']['yarn.resourcemanager.zk-state-store.parent-path']
 rm_zk_store_class = config['configurations']['yarn-site']['yarn.resourcemanager.store.class']
-stack_supports_zk_security = check_stack_feature(StackFeature.SECURE_ZOOKEEPER, version_for_stack_feature_checks)
+stack_supports_zk_security = True
 rm_zk_failover_znode = default('/configurations/yarn-site/yarn.resourcemanager.ha.automatic-failover.zk-base-path', '/yarn-leader-election')
 hadoop_registry_zk_root = default('/configurations/yarn-site/hadoop.registry.zk.root', '/registry')
 
@@ -432,7 +432,7 @@ cgroups_dir = "/cgroups_test/cpu"
 
 # hostname of the active HDFS HA Namenode (only used when HA is enabled)
 dfs_ha_namenode_active = default("/configurations/hadoop-env/dfs_ha_initial_namenode_active", None)
-if dfs_ha_namenode_active is not None: 
+if dfs_ha_namenode_active is not None:
   namenode_hostname = dfs_ha_namenode_active
 else:
   namenode_hostname = config['clusterHostInfo']['namenode_host'][0]
