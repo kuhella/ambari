@@ -22,7 +22,10 @@ Ambari Agent
 from resource_management import *
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
-from resource_management.core.shell import as_user
+from resource_management.core.shell import as_user, as_sudo
+from resource_management.libraries.functions.show_logs import show_logs
+from resource_management.core.signal_utils import TerminateStrategy
+from resource_management.core.logger import Logger
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def service(componentName, action='start', serviceName='yarn'):
@@ -40,10 +43,14 @@ def service(componentName, action='start', serviceName='yarn'):
   import params
 
   if serviceName == 'mapreduce' and componentName == 'historyserver':
+    if not params.hdfs_tmp_dir or params.hdfs_tmp_dir == None or params.hdfs_tmp_dir.lower() == 'null':
+      Logger.error("WARNING: HDFS tmp dir property (hdfs_tmp_dir) is empty or invalid. Ambari will change permissions for the folder on regular basis.")
+
     delete_pid_file = True
     daemon = format("{mapred_bin}/mr-jobhistory-daemon.sh")
     pid_file = format("{mapred_pid_dir}/mapred-{mapred_user}-{componentName}.pid")
     usr = params.mapred_user
+    log_dir = params.mapred_log_dir
   else:
     # !!! yarn-daemon.sh deletes the PID for us; if we remove it the script
     # may not work correctly when stopping the service
@@ -51,12 +58,13 @@ def service(componentName, action='start', serviceName='yarn'):
     daemon = format("{yarn_bin}/yarn-daemon.sh")
     pid_file = format("{yarn_pid_dir}/yarn-{yarn_user}-{componentName}.pid")
     usr = params.yarn_user
+    log_dir = params.yarn_log_dir
 
   cmd = format("export HADOOP_LIBEXEC_DIR={hadoop_libexec_dir} && {daemon} --config {hadoop_conf_dir}")
 
   if action == 'start':
     daemon_cmd = format("{ulimit_cmd} {cmd} start {componentName}")
-    check_process = as_user(format("ls {pid_file} && ps -p `cat {pid_file}`"), user=usr)
+    check_process = as_sudo(["test", "-f", pid_file]) + " && " + as_sudo(["pgrep", "-F", pid_file])
 
     # Remove the pid file if its corresponding process is not running.
     File(pid_file, action = "delete", not_if = check_process)
@@ -69,19 +77,27 @@ def service(componentName, action='start', serviceName='yarn'):
          ignore_failures = True
       )
 
-    # Attempt to start the process. Internally, this is skipped if the process is already running.
-    Execute(daemon_cmd, user = usr, not_if = check_process)
-
-    # Ensure that the process with the expected PID exists.
-    Execute(check_process,
-            not_if = check_process,
-            tries=5,
-            try_sleep=1,
-    )
+    try:
+      # Attempt to start the process. Internally, this is skipped if the process is already running.
+      Execute(daemon_cmd, user = usr, not_if = check_process)
+  
+      # Ensure that the process with the expected PID exists.
+      Execute(check_process,
+              not_if = check_process,
+              tries=5,
+              try_sleep=1,
+      )
+    except:
+      show_logs(log_dir, usr)
+      raise
 
   elif action == 'stop':
     daemon_cmd = format("{cmd} stop {componentName}")
-    Execute(daemon_cmd, user=usr)
+    try:
+      Execute(daemon_cmd, user=usr)
+    except:
+      show_logs(log_dir, usr)
+      raise
 
     # !!! yarn-daemon doesn't need us to delete PIDs
     if delete_pid_file is True:
@@ -91,4 +107,11 @@ def service(componentName, action='start', serviceName='yarn'):
   elif action == 'refreshQueues':
     rm_kinit_cmd = params.rm_kinit_cmd
     refresh_cmd = format("{rm_kinit_cmd} export HADOOP_LIBEXEC_DIR={hadoop_libexec_dir} && {yarn_container_bin}/yarn rmadmin -refreshQueues")
-    Execute(refresh_cmd, user=usr)
+
+    Execute(refresh_cmd,
+            user = usr,
+            timeout = 20, # when Yarn is not started command hangs forever and should be killed
+            tries = 5,
+            try_sleep = 5,
+            timeout_kill_strategy = TerminateStrategy.KILL_PROCESS_GROUP, # the process cannot be simply killed by 'kill -15', so kill pg group instread.
+    )

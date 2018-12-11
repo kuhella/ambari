@@ -99,7 +99,7 @@
             "warning": {
               "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]",
               "value": 3000
-            },
+            },          
             "critical": {
               "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]",
               "value": 5000
@@ -342,7 +342,7 @@
             "warning": {
               "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]",
               "value": 3000
-            },
+            },          
             "critical": {
               "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]",
               "value": 5000

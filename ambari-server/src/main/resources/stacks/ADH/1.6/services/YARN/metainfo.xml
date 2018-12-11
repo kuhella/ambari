@@ -28,6 +28,7 @@
       <name>MAPREDUCE2</name>
       <displayName>MapReduce2</displayName>
       <version>2.8.5.1.6</version>
+      <configuration-dir>configuration-mapred</configuration-dir>
     </service>
 
 
