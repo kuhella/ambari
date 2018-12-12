@@ -837,11 +837,6 @@ class ADH13StackAdvisor(ADH12StackAdvisor):
     putYarnSitePropertyAttributes = self.putPropertyAttribute(configurations, "yarn-site")
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
-    if "tez-site" not in services["configurations"]:
-      putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes', '')
-    else:
-      putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes', 'org.apache.tez.dag.history.logging.ats.TimelineCachePluginImpl')
-
     if "ranger-env" in services["configurations"] and "ranger-yarn-plugin-properties" in services["configurations"] and \
         "ranger-yarn-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
       putYarnRangerPluginProperty = self.putProperty(configurations, "ranger-yarn-plugin-properties", services)

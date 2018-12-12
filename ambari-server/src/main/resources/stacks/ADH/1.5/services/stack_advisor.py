@@ -256,6 +256,11 @@ class ADH15StackAdvisor(ADH14StackAdvisor):
     putYarnEnvProperty = self.putProperty(configurations, "yarn-env", services)
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
+    if "tez-site" not in services["configurations"]:
+      putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes', '')
+    else:
+      putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes', 'org.apache.tez.dag.history.logging.ats.TimelineCachePluginImpl')
+
     if 'HIVE' in servicesList and "yarn-site" in services["configurations"] and "yarn.nodemanager.kill-escape.user" in \
                 services["configurations"]["yarn-site"]["properties"] and 'hive-env' in services['configurations'] and \
                 'hive_user' in services['configurations']['hive-env']['properties']:
@@ -298,7 +303,7 @@ class ADH15StackAdvisor(ADH14StackAdvisor):
       ranger_yarn_plugin_enabled = (services['configurations']['ranger-yarn-plugin-properties']['properties']['ranger-yarn-plugin-enabled'].lower() == 'Yes'.lower())
     else:
       ranger_yarn_plugin_enabled = False
-    
+
     if ranger_yarn_plugin_enabled and 'ranger-yarn-plugin-properties' in services['configurations'] and 'REPOSITORY_CONFIG_USERNAME' in services['configurations']['ranger-yarn-plugin-properties']['properties']:
       Logger.info("Setting Yarn Repo user for Ranger.")
       putRangerYarnPluginProperty = self.putProperty(configurations, "ranger-yarn-plugin-properties", services)
