@@ -60,7 +60,7 @@ SMOKEUSER_DEFAULT = 'ambari-qa'
 STACK_NAME = '{{cluster-env/stack_name}}'
 STACK_ROOT = '{{cluster-env/stack_root}}'
 
-HIVE_CONF_DIR_LEGACY = '/etc/hive/conf.server'
+HIVE_CONF_DIR_LEGACY = '/etc/hive/conf'
 
 HIVE_BIN_DIR_LEGACY = '/usr/lib/hive/bin'
 
