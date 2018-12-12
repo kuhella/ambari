@@ -170,10 +170,11 @@
         <config-type>zookeeper-logsearch-conf</config-type>
       </configuration-dependencies>
 
-      <requiredServices>
-        <service>INFRA_SOLR</service>
-      </requiredServices>
 
+      <requiredServices>
+        <service>AMBARI_INFRA</service>
+      </requiredServices>
+      
       <quickLinksConfigurations>
         <quickLinksConfiguration>
           <fileName>quicklinks.json</fileName>
