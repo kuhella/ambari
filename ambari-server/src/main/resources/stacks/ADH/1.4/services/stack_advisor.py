@@ -786,7 +786,7 @@ class ADH14StackAdvisor(ADH13StackAdvisor):
 
   def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
     super(ADH14StackAdvisor, self).recommendYARNConfigurations(configurations, clusterData, services, hosts)
-    hsi_env_poperties = self.getServicesSiteProperties(services, "hive-interactive-env")
+    putYarnSiteProperty = self.putProperty(configurations, "yarn-site", services)
     cluster_env = self.getServicesSiteProperties(services, "cluster-env")
 
     #yarn timeline service url depends on http policy and takes the host name of the yarn webapp.
@@ -2195,9 +2195,6 @@ yarn.scheduler.capacity.root.{0}.maximum-am-resource-percent=1""".format(llap_qu
               putLivyProperty = self.putProperty(configurations, 'livy-conf', services)
               putLivyProperty('livy.superusers', ','.join(_superusers))
 
-  def __isServiceDeployed(self, services, serviceName):
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    return serviceName in servicesList
 
   def isComponentUsingCardinalityForLayout(self, componentName):
     return super(ADH14StackAdvisor, self).isComponentUsingCardinalityForLayout (componentName) or  componentName in ['SPARK2_THRIFTSERVER', 'LIVY2_SERVER', 'LIVY_SERVER']

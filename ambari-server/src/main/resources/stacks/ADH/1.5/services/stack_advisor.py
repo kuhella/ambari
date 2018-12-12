@@ -255,6 +255,7 @@ class ADH15StackAdvisor(ADH14StackAdvisor):
     putYarnSiteProperty = self.putProperty(configurations, "yarn-site", services)
     putYarnEnvProperty = self.putProperty(configurations, "yarn-env", services)
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    hsi_env_poperties = self.getServicesSiteProperties(services, "hive-interactive-env")
 
     if "tez-site" not in services["configurations"]:
       putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes', '')
@@ -362,7 +363,7 @@ class ADH15StackAdvisor(ADH14StackAdvisor):
 
     if self.__isServiceDeployed(services, "SPARK"):
       timeline_plugin_classes_values.append('org.apache.spark.deploy.history.yarn.plugin.SparkATSPlugin')
-      timeline_plugin_classpath_values.append(stack_root + "/{{spark_version}}/spark/hdpLib/*")
+      timeline_plugin_classpath_values.append(stack_root + "/spark/jars/*")
 
     putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes', ",".join(timeline_plugin_classes_values))
     putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.group-id-plugin-classpath', ":".join(timeline_plugin_classpath_values))
@@ -805,3 +806,7 @@ class ADH15StackAdvisor(ADH14StackAdvisor):
 
               putLivy2ConfProperty = self.putProperty(configurations, 'livy2-conf', services)
               putLivy2ConfProperty('livy.superusers', ','.join(_superusers))
+
+  def __isServiceDeployed(self, services, serviceName):
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    return serviceName in servicesList
