@@ -789,32 +789,6 @@ class ADH14StackAdvisor(ADH13StackAdvisor):
     hsi_env_poperties = self.getServicesSiteProperties(services, "hive-interactive-env")
     cluster_env = self.getServicesSiteProperties(services, "cluster-env")
 
-    # Queue 'llap' creation/removal logic (Used by Hive Interactive server and associated LLAP)
-    if hsi_env_poperties and 'enable_hive_interactive' in hsi_env_poperties:
-      enable_hive_interactive = hsi_env_poperties['enable_hive_interactive']
-      LLAP_QUEUE_NAME = 'llap'
-
-      # Hive Server interactive is already added or getting added
-      if enable_hive_interactive == 'true':
-        self.updateLlapConfigs(configurations, services, hosts, LLAP_QUEUE_NAME)
-      else:  # When Hive Interactive Server is in 'off/removed' state.
-        self.checkAndStopLlapQueue(services, configurations, LLAP_QUEUE_NAME)
-
-    putYarnSiteProperty = self.putProperty(configurations, "yarn-site", services)
-
-    timeline_plugin_classes_values = []
-    timeline_plugin_classpath_values = []
-
-    if self.__isServiceDeployed(services, "TEZ"):
-      timeline_plugin_classes_values.append('org.apache.tez.dag.history.logging.ats.TimelineCachePluginImpl')
-
-    if self.__isServiceDeployed(services, "SPARK"):
-      timeline_plugin_classes_values.append('org.apache.spark.deploy.history.yarn.plugin.SparkATSPlugin')
-      timeline_plugin_classpath_values.append(stack_root + "/{{spark_version}}/spark/hdpLib/*")
-
-    putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes', ",".join(timeline_plugin_classes_values))
-    putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.group-id-plugin-classpath', ":".join(timeline_plugin_classpath_values))
-
     #yarn timeline service url depends on http policy and takes the host name of the yarn webapp.
     if "yarn-site" in services["configurations"] and \
                     "yarn.timeline-service.webapp.https.address" in services["configurations"]["yarn-site"]["properties"] and \
