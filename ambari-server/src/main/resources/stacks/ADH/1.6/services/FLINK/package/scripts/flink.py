@@ -29,6 +29,8 @@ class Master(Script):
     Execute('ln -sf /usr/lib/hadoop-yarn/lib/jersey-json-1.9.jar  /usr/lib/flink/lib/jersey-json.jar')
 
     Directory([status_params.flink_pid_dir, params.flink_log_dir],
+            create_parents=True,
+            mode=0755,
             owner=params.flink_user,
             group=params.flink_group
     )
