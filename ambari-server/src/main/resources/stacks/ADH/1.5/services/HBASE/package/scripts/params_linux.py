@@ -17,8 +17,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-from urlparse import urlparse
-
 import status_params
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
@@ -43,9 +41,7 @@ from resource_management.libraries.functions.get_not_managed_resources import ge
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.expect import expect
 from ambari_commons.ambari_metrics_helper import select_metric_collector_hosts_from_hostnames
-from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs, generate_ranger_service_config
-from resource_management.libraries.functions.constants import Direction
-from resource_management.libraries.functions.version import get_major_version
+from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs
 
 # server configurations
 config = Script.get_config()
@@ -59,40 +55,27 @@ version = default("/commandParams/version", None)
 component_directory = status_params.component_directory
 etc_prefix_dir = "/etc/hbase"
 
-stack_version_unformatted = status_params.stack_version_unformatted
-stack_version_formatted = status_params.stack_version_formatted
-major_stack_version = get_major_version(stack_version_formatted)
-stack_root = status_params.stack_root
+stack_root = '/usr/lib' 
 
 # get the correct version to use for checking stack features
 version_for_stack_feature_checks = get_stack_feature_version(config)
 
-stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
-stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
+#stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
+# force true since ADH doesn't support check_stack_feature
+stack_supports_ranger_kerberos = True
+stack_supports_ranger_audit_db = False 
 
 # hadoop default parameters
-hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
-hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+hadoop_bin_dir = '/usr/lib/hadoop/bin'
+hadoop_conf_dir = '/etc/hadoop/conf'
 daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
 region_mover = "/usr/lib/hbase/bin/region_mover.rb"
 region_drainer = "/usr/lib/hbase/bin/draining_servers.rb"
 hbase_cmd = "/usr/lib/hbase/bin/hbase"
 hbase_max_direct_memory_size = None
+thrift_daemon_script = '/usr/lib/hbase/bin/hbase-daemon.sh'
 
 # hadoop parameters for stacks supporting rolling_upgrade
-if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
-  daemon_script = format('{stack_root}/current/hbase-client/bin/hbase-daemon.sh')
-  region_mover = format('{stack_root}/current/hbase-client/bin/region_mover.rb')
-  region_drainer = format('{stack_root}/current/hbase-client/bin/draining_servers.rb')
-  hbase_cmd = format('{stack_root}/current/hbase-client/bin/hbase')
-
-  hbase_max_direct_memory_size  = default('configurations/hbase-env/hbase_max_direct_memory_size', None)
-
-  daemon_script=format("{stack_root}/current/{component_directory}/bin/hbase-daemon.sh")
-  region_mover = format("{stack_root}/current/{component_directory}/bin/region_mover.rb")
-  region_drainer = format("{stack_root}/current/{component_directory}/bin/draining_servers.rb")
-  hbase_cmd = format("{stack_root}/current/{component_directory}/bin/hbase")
-
 
 hbase_conf_dir = status_params.hbase_conf_dir
 limits_conf_dir = status_params.limits_conf_dir
@@ -101,7 +84,7 @@ hbase_user_nofile_limit = default("/configurations/hbase-env/hbase_user_nofile_l
 hbase_user_nproc_limit = default("/configurations/hbase-env/hbase_user_nproc_limit", "16000")
 
 # no symlink for phoenix-server at this point
-phx_daemon_script = format('{stack_root}/current/phoenix-server/bin/queryserver.py')
+phx_daemon_script = format('{stack_root}/phoenix/bin/queryserver.py')
 
 hbase_excluded_hosts = config['commandParams']['excluded_hosts']
 hbase_drain_only = default("/commandParams/mark_draining_only",False)
@@ -131,18 +114,12 @@ regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, regionserver_xm
 
 hbase_regionserver_shutdown_timeout = expect('/configurations/hbase-env/hbase_regionserver_shutdown_timeout', int, 30)
 
-regionserver_cms_initiating_occupancy_fraction = expect('/configurations/hbase-env/hbase_regionserver_cms_initiating_occupancy_fraction', int, 50)
-
 phoenix_hosts = default('/clusterHostInfo/phoenix_query_server_hosts', [])
 phoenix_enabled = default('/configurations/hbase-env/phoenix_sql_enabled', False)
 has_phoenix = len(phoenix_hosts) > 0
 
-underscored_version = stack_version_unformatted.replace('.', '_')
-dashed_version = stack_version_unformatted.replace('.', '-')
 if OSCheck.is_redhat_family() or OSCheck.is_suse_family():
-  phoenix_package = format("phoenix_{underscored_version}_*")
-elif OSCheck.is_ubuntu_family():
-  phoenix_package = format("phoenix-{dashed_version}-.*")
+  phoenix_package = format("phoenix-*")
 
 pid_dir = status_params.pid_dir
 tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
@@ -159,20 +136,12 @@ has_ganglia_server = not len(ganglia_server_hosts) == 0
 if has_ganglia_server:
   ganglia_server_host = ganglia_server_hosts[0]
 
-set_instanceId = "false"
-cluster_name = config["clusterName"]
-
-if 'cluster-env' in config['configurations'] and \
-    'metrics_collector_external_hosts' in config['configurations']['cluster-env']:
-  ams_collector_hosts = config['configurations']['cluster-env']['metrics_collector_external_hosts']
-  set_instanceId = "true"
-else:
-  ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
+ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
 has_metric_collector = not len(ams_collector_hosts) == 0
 if has_metric_collector:
   if 'cluster-env' in config['configurations'] and \
-      'metrics_collector_external_port' in config['configurations']['cluster-env']:
-    metric_collector_port = config['configurations']['cluster-env']['metrics_collector_external_port']
+      'metrics_collector_vip_port' in config['configurations']['cluster-env']:
+    metric_collector_port = config['configurations']['cluster-env']['metrics_collector_vip_port']
   else:
     metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188")
     if metric_collector_web_address.find(':') != -1:
@@ -241,7 +210,6 @@ else:
 hbase_env_sh_template = config['configurations']['hbase-env']['content']
 
 hbase_hdfs_root_dir = config['configurations']['hbase-site']['hbase.rootdir']
-hbase_hdfs_root_dir_protocol = urlparse(hbase_hdfs_root_dir).scheme
 hbase_staging_dir = "/apps/hbase/staging"
 #for create_hdfs_directory
 hostname = config["hostname"]
@@ -289,7 +257,8 @@ ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 has_ranger_admin = not len(ranger_admin_hosts) == 0
 
 # ranger support xml_configuration flag, instead of depending on ranger xml_configurations_supported/ranger-env introduced, using stack feature
-xml_configurations_supported = check_stack_feature(StackFeature.RANGER_XML_CONFIGURATION, version_for_stack_feature_checks)
+# force True or False since we doesn't suppport check_stack_feature
+xml_configurations_supported = True 
 
 # ambari-server hostname
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
@@ -382,10 +351,6 @@ if enable_ranger_hbase:
     'assetType': '2'
   }
 
-  custom_ranger_service_config = generate_ranger_service_config(ranger_plugin_properties)
-  if len(custom_ranger_service_config) > 0:
-    hbase_ranger_plugin_config.update(custom_ranger_service_config)
-
   if stack_supports_ranger_kerberos and security_enabled:
     hbase_ranger_plugin_config['policy.download.auth.users'] = hbase_user
     hbase_ranger_plugin_config['tag.download.auth.users'] = hbase_user
@@ -424,12 +389,9 @@ if enable_ranger_hbase:
   if has_ranger_admin and stack_supports_ranger_audit_db and xa_audit_db_flavor.lower() == 'sqla':
     xa_audit_db_is_enabled = False
 
-# need this to capture cluster name from where ranger hbase plugin is enabled
-cluster_name = config['clusterName']
-
 # ranger hbase plugin section end
 
-create_hbase_home_directory = check_stack_feature(StackFeature.HBASE_HOME_DIRECTORY, stack_version_formatted)
+create_hbase_home_directory = True 
 hbase_home_directory = format("/user/{hbase_user}")
 
 atlas_hosts = default('/clusterHostInfo/atlas_server_hosts', [])
@@ -445,11 +407,3 @@ if has_atlas:
   atlas_with_managed_hbase = len(zk_hosts_matches) > 0
 else:
   atlas_with_managed_hbase = False
-
-wal_directory = "/apps/hbase/data/MasterProcWALs"
-
-backup_wal_dir = default('/configurations/hbase-env/backup_wal_dir', False)
-
-#Need to make sure not to keep removing WAL logs once EU is finalized.
-upgrade_direction = default("/commandParams/upgrade_direction", None)
-to_backup_wal_dir = upgrade_direction is not None and upgrade_direction == Direction.UPGRADE and backup_wal_dir
