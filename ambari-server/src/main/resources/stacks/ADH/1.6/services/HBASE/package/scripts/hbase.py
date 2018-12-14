@@ -17,11 +17,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+from urlparse import urlparse
+
 import os
-from resource_management import *
-import sys
+
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
+from resource_management.core.resources import Directory
+from resource_management.core.resources import Execute
+from resource_management.core.resources import File
+from resource_management.core.resources import Package
+from resource_management.core.resources import ServiceConfig
+from resource_management.core.source import InlineTemplate
+from resource_management.core.source import Template
+from resource_management.libraries import Script
+from resource_management.libraries.functions import format
+from resource_management.libraries.functions import lzo_utils
+from resource_management.libraries.resources import TemplateConfig
+from resource_management.libraries.resources import XmlConfig
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 
@@ -46,6 +59,9 @@ def hbase(name=None):
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def hbase(name=None):
   import params
+
+  # ensure that matching LZO libraries are installed for HBase
+  lzo_utils.install_lzo_if_needed()
 
   Directory( params.etc_prefix_dir,
       mode=0755
@@ -193,11 +209,12 @@ def hbase(name=None):
       owner=params.hbase_user
     )
   if name == "master":
-    params.HdfsResource(params.hbase_hdfs_root_dir,
-                         type="directory",
-                         action="create_on_execute",
-                         owner=params.hbase_user
-    )
+    if not params.hbase_hdfs_root_dir_protocol or params.hbase_hdfs_root_dir_protocol == urlparse(params.default_fs).scheme:
+      params.HdfsResource(params.hbase_hdfs_root_dir,
+                           type="directory",
+                           action="create_on_execute",
+                           owner=params.hbase_user
+      )
     params.HdfsResource(params.hbase_staging_dir,
                          type="directory",
                          action="create_on_execute",
