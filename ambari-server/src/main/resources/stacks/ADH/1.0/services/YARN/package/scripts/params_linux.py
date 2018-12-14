@@ -45,15 +45,15 @@ import status_params
 # a map of the Ambari role to the component name
 # for use with <stack-root>/current/<component>
 MAPR_SERVER_ROLE_DIRECTORY_MAP = {
-  'HISTORYSERVER' : 'hadoop-mapreduce-historyserver',
-  'MAPREDUCE2_CLIENT' : 'hadoop-mapreduce-client',
+  'HISTORYSERVER' : 'hadoop-mapreduce',
+  'MAPREDUCE2_CLIENT' : 'hadoop-mapreduce',
 }
 
 YARN_SERVER_ROLE_DIRECTORY_MAP = {
-  'APP_TIMELINE_SERVER' : 'hadoop-yarn-timelineserver',
-  'NODEMANAGER' : 'hadoop-yarn-nodemanager',
-  'RESOURCEMANAGER' : 'hadoop-yarn-resourcemanager',
-  'YARN_CLIENT' : 'hadoop-yarn-client'
+  'APP_TIMELINE_SERVER' : 'hadoop-yarn',
+  'NODEMANAGER' : 'hadoop-yarn',
+  'RESOURCEMANAGER' : 'hadoop-yarn',
+  'YARN_CLIENT' : 'hadoop-yarn'
 }
 
 # server configurations
@@ -130,8 +130,8 @@ def get_spark_version(service_name, component_name, yarn_version):
 #spark_version = get_spark_version("SPARK", "SPARK_CLIENT", version)
 #spark2_version = get_spark_version("SPARK2", "SPARK2_CLIENT", version)
 
-stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
-stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
+stack_supports_ranger_kerberos = True
+stack_supports_ranger_audit_db = False
 
 hostname = config['hostname']
 
