@@ -23,6 +23,10 @@ import sys
 
 from resource_management import *
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.version import compare_versions, format_stack_version
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
@@ -32,7 +36,7 @@ def zookeeper(type = None, upgrade_type=None):
 
   Directory(params.config_dir,
             owner=params.zk_user,
-            create_parents=True,
+            create_parents = True,
             group=params.user_group
   )
 
@@ -48,21 +52,21 @@ def zookeeper(type = None, upgrade_type=None):
 
   Directory(params.zk_pid_dir,
             owner=params.zk_user,
-            create_parents=True,
+            create_parents = True,
             group=params.user_group,
             mode=0755,
   )
 
   Directory(params.zk_log_dir,
             owner=params.zk_user,
-            create_parents=True,
+            create_parents = True,
             group=params.user_group,
             mode=0755,
   )
 
   Directory(params.zk_data_dir,
             owner=params.zk_user,
-            create_parents=True,
+            create_parents = True,
             cd_access="a",
             group=params.user_group,
             mode=0755,
@@ -117,7 +121,7 @@ def zookeeper(type = None, upgrade_type=None):
   Directory(params.zk_data_dir,
             owner=params.zk_user,
             mode="(OI)(CI)F",
-            create_parents=True
+            create_parents = True
   )
   if (params.log4j_props != None):
     File(os.path.join(params.config_dir, "log4j.properties"),

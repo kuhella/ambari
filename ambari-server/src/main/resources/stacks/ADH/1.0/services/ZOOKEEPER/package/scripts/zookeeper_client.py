@@ -21,14 +21,15 @@ Ambari Agent
 
 import sys
 from resource_management import *
-from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.version import compare_versions, format_stack_version
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.stack_features import check_stack_feature 
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from zookeeper import zookeeper
 from resource_management.core.exceptions import ClientComponentHasNoStatus
-from resource_management.libraries.functions import stack_select
-from zookeeper import zookeeper
 
 class ZookeeperClient(Script):
   def configure(self, env):
@@ -53,11 +54,6 @@ class ZookeeperClient(Script):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class ZookeeperClientLinux(ZookeeperClient):
-  def get_stack_to_component(self):
-    return {"HDP": "zookeeper-client"}
-
-  def get_component_name(self):
-    return "zookeeper-client"
 
   def install(self, env):
     self.install_packages(env)
@@ -67,6 +63,9 @@ class ZookeeperClientLinux(ZookeeperClient):
     Logger.info("Executing Stack Upgrade pre-restart")
     import params
     env.set_params(params)
+
+    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, format_stack_version(params.version)):
+      stack_select.select_packages(params.version)
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class ZookeeperClientWindows(ZookeeperClient):

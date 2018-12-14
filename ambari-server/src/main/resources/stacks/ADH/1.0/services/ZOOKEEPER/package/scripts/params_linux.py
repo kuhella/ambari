@@ -22,18 +22,22 @@ import status_params
 import os
 
 from resource_management.libraries.functions import format
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.expect import expect
 
 # server configurations
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_formatted = status_params.stack_version_formatted
+stack_root = status_params.stack_root
 
-stack_name = default("/hostLevelParams/stack_name", None)
-current_version = default("/hostLevelParams/current_version", None)
+stack_name = status_params.stack_name
 component_directory = status_params.component_directory
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
@@ -45,6 +49,14 @@ zk_bin = "/usr/lib/zookeeper/bin"
 zk_cli_shell = "/usr/lib/zookeeper/bin/zkCli.sh"
 config_dir = "/etc/zookeeper/conf"
 zk_smoke_out = os.path.join(tmp_dir, "zkSmoke.out")
+
+# hadoop parameters for stacks that support rolling_upgrade
+if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
+  zk_home = format("{stack_root}/current/{component_directory}")
+  zk_bin = format("{stack_root}/current/{component_directory}/bin")
+  zk_cli_shell = format("{stack_root}/current/{component_directory}/bin/zkCli.sh")
+  config_dir = status_params.config_dir
+
 
 zk_user = config['configurations']['zookeeper-env']['zk_user']
 hostname = config['hostname']
@@ -73,7 +85,7 @@ zk_principal_name = default("/configurations/zookeeper-env/zookeeper_principal_n
 zk_principal = zk_principal_name.replace('_HOST',hostname.lower())
 
 java64_home = config['hostLevelParams']['java_home']
-java_version = int(config['hostLevelParams']['java_version'])
+java_version = expect("/hostLevelParams/java_version", int)
 
 zookeeper_hosts = config['clusterHostInfo']['zookeeper_hosts']
 zookeeper_hosts.sort()

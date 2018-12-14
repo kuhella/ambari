@@ -26,18 +26,18 @@ import status_params
 config = Script.get_config()
 
 config_dir = None
-hdp_root = None
+stack_root = None
 try:
   # not used zookeeper_home_dir = os.environ["ZOOKEEPER_HOME"]
   config_dir = os.environ["ZOOKEEPER_CONF_DIR"]
-  hdp_root = os.environ["HADOOP_NODE_INSTALL_ROOT"]
+  stack_root = os.environ["HADOOP_NODE_INSTALL_ROOT"]
 except:
   pass
 
 hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
 zk_user = hadoop_user
 
-# notused zk_log_dir = config['configurations']['zookeeper-env']['zk_log_dir']
+zk_log_dir = config['configurations']['zookeeper-env']['zk_log_dir']
 zk_data_dir = ensure_double_backslashes(config['configurations']['zoo.cfg']['dataDir'])
 tickTime = config['configurations']['zoo.cfg']['tickTime']
 initLimit = config['configurations']['zoo.cfg']['initLimit']
