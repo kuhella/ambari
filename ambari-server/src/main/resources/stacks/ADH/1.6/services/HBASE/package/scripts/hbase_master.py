@@ -19,14 +19,10 @@ limitations under the License.
 """
 
 import sys
-
-from resource_management.libraries.script.script import Script
-from resource_management.core.resources.service import Service
+from resource_management import *
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_XML
-from resource_management.libraries.functions.check_process_status import check_process_status
-from resource_management.libraries.functions.format import format
 from hbase import hbase
 from hbase_service import hbase_service
 from hbase_decommission import hbase_decommission
@@ -35,8 +31,6 @@ from setup_ranger_hbase import setup_ranger_hbase
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
 
-if OSCheck.is_windows_family():
-  from resource_management.libraries.functions.windows_service_utils import check_windows_service_status
 
 class HbaseMaster(Script):
   def configure(self, env):
@@ -76,17 +70,20 @@ class HbaseMasterWindows(HbaseMaster):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HbaseMasterDefault(HbaseMaster):
+  def get_component_name(self):
+    return "hbase-master"
+
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    upgrade.prestart(env)
+    upgrade.prestart(env, "hbase-master")
 
   def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     self.configure(env) # for security
     setup_ranger_hbase(upgrade_type=upgrade_type, service_name="hbase-master")
-    hbase_service('master', action='start')
+    hbase_service('master', action = 'start')
     
   def stop(self, env, upgrade_type=None):
     import params
@@ -98,6 +95,55 @@ class HbaseMasterDefault(HbaseMaster):
     env.set_params(status_params)
     pid_file = format("{pid_dir}/hbase-{hbase_user}-master.pid")
     check_process_status(pid_file)
+
+  def security_status(self, env):
+    import status_params
+
+    env.set_params(status_params)
+    if status_params.security_enabled:
+      props_value_check = {"hbase.security.authentication" : "kerberos",
+                           "hbase.security.authorization": "true"}
+      props_empty_check = ['hbase.master.keytab.file',
+                           'hbase.master.kerberos.principal']
+      props_read_check = ['hbase.master.keytab.file']
+      hbase_site_expectations = build_expectations('hbase-site', props_value_check, props_empty_check,
+                                                  props_read_check)
+
+      hbase_expectations = {}
+      hbase_expectations.update(hbase_site_expectations)
+
+      security_params = get_params_from_filesystem(status_params.hbase_conf_dir,
+                                                   {'hbase-site.xml': FILE_TYPE_XML})
+      result_issues = validate_security_config_properties(security_params, hbase_expectations)
+      if not result_issues:  # If all validations passed successfully
+        try:
+          # Double check the dict before calling execute
+          if ( 'hbase-site' not in security_params
+               or 'hbase.master.keytab.file' not in security_params['hbase-site']
+               or 'hbase.master.kerberos.principal' not in security_params['hbase-site']):
+            self.put_structured_out({"securityState": "UNSECURED"})
+            self.put_structured_out(
+              {"securityIssuesFound": "Keytab file or principal are not set property."})
+            return
+
+          cached_kinit_executor(status_params.kinit_path_local,
+                                status_params.hbase_user,
+                                security_params['hbase-site']['hbase.master.keytab.file'],
+                                security_params['hbase-site']['hbase.master.kerberos.principal'],
+                                status_params.hostname,
+                                status_params.tmp_dir)
+          self.put_structured_out({"securityState": "SECURED_KERBEROS"})
+        except Exception as e:
+          self.put_structured_out({"securityState": "ERROR"})
+          self.put_structured_out({"securityStateErrorInfo": str(e)})
+      else:
+        issues = []
+        for cf in result_issues:
+          issues.append("Configuration file %s did not pass the validation. Reason: %s" % (cf, result_issues[cf]))
+        self.put_structured_out({"securityIssuesFound": ". ".join(issues)})
+        self.put_structured_out({"securityState": "UNSECURED"})
+    else:
+      self.put_structured_out({"securityState": "UNSECURED"})
       
   def get_log_folder(self):
     import params
