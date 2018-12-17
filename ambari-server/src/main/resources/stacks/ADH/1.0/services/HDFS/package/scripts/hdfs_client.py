@@ -37,7 +37,7 @@ class HdfsClient(Script):
     env.set_params(params)
     self.install_packages(env)
     self.configure(env)
-    Execute(('tar', '-czf', '/usr/lib/hadoop/mapreduce.tar.gz ', '-C', '/usr/lib/hadoop-mapreduce/', '.'), sudo = True)
+    Execute(('tar', '-czf', '/usr/lib/hadoop/mapreduce.tar.gz', '-C', '/usr/lib/hadoop-mapreduce/', '.'), sudo = True)
 
   def configure(self, env):
     import params
